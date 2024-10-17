@@ -21,9 +21,10 @@
 - https://faucet.celo.org
 - https://core.app/en/tools/testnet-faucet/?subnet=c
 
-#### Testnet explorers
+#### Explorers
 - https://alfajores.celoscan.io
 - https://testnet.avascan.info
+- https://wormholescan.io/
 
 #### Deployment sequence
 - Deploy `Altverse.sol` on both chains
@@ -40,6 +41,7 @@
 - Inject `1000000000000000000000 wBTC`, `63244530000000000000000000 ALT` as LP
 - Inject `10000000000000000000000 wETH`, `24707300000000000000000000 ALT` as LP
 - Inject `1000000000000000000000000 wLINK`, `10980000000000000000000000 ALT` as LP
+- Finance Altverse contract with native asset (so users do not have to pay gas, for now)
 - Can deploy using `deployment/scenario.json` 
 
 #### Contract references (on all chains if deployed using `scenario.json`)
