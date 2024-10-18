@@ -27,7 +27,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
         duration={2}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row mb-4">
+      <div className="flex flex-col gap-4 sm:flex-row mb-4 mt-[4px]">
         <ShimmerButton
           className="h-12 shadow-2xl"
           shimmerColor="rgb(256 158 11)"
