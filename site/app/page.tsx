@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react"
 import { useRef } from "react"
 import { useInView } from "framer-motion"
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid"
+import Particles from "@/components/magicui/particles"
 import { cn } from "@/lib/utils"
 import { Zap, Globe, Shield, Layers } from "lucide-react"
 
@@ -27,6 +28,14 @@ export default function Component() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden flex items-center">
+      <Particles
+        className="absolute inset-0 pointer-events-none"
+        quantity={125}
+        staticity={100}
+        ease={70}
+        size={0.03}
+        color="#fffbeb"
+      />
       <div className="container mx-auto px-4 py-8 flex flex-col justify-center h-full">
         <main className="flex flex-col items-center justify-center gap-6">
           <motion.h1

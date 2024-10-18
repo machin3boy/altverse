@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en" className={cn(manrope.variable, "font-sans")}>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-black font-sans antialiased",
         )}
       >
         {children}
