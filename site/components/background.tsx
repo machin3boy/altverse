@@ -6,7 +6,7 @@ const Background: React.FC = () => (
     <Particles
       className="absolute inset-0 pointer-events-none"
       quantity={150}
-      staticity={100}
+      staticity={40}
       ease={70}
       size={0.03}
       color="#fde68a"
