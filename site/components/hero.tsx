@@ -1,10 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { ChevronRight, Zap, Globe, Shield, Layers } from "lucide-react";
+import { ChevronRight, Zap, Globe as GlobeIcon, Shield, Layers } from "lucide-react";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { cn } from "@/lib/utils";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import BlurIn from '@/components/magicui/blurin';
+import Globe from "@/components/magicui/globe"
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -53,8 +54,8 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <BentoCard
             name="Completely Decentralized"
             className="col-span-1 sm:col-span-2"
-            background={<div></div>}
-            Icon={(props: any) => <Globe {...props} className="text-amber-500" />}
+            background={<Globe />}
+            Icon={(props: any) => <GlobeIcon {...props} className="text-amber-500" />}
             description="No central entity. Zero hackable bridges. All on-chain."
             href="#"
             cta="Explore"
