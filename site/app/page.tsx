@@ -1,101 +1,192 @@
-import Image from "next/image";
+"use client"
+
+import Image from "next/image"
+import { motion } from "framer-motion"
+import { ChevronRight } from "lucide-react"
+import { useRef } from "react"
+import { useInView } from "framer-motion"
+import { BentoGrid, BentoCard } from "@/components/ui/bento-grid"
+import { cn } from "@/lib/utils"
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const fadeInRef = useRef(null)
+  const fadeInInView = useInView(fadeInRef, {
+    once: true,
+  })
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+  const fadeUpVariants = {
+    initial: {
+      opacity: 0,
+      y: 24,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="container mx-auto px-4 py-14">
+        <main className="mt-20 flex flex-col items-center gap-8">
+          <motion.h1
+            ref={fadeInRef}
+            className="text-balance bg-gradient-to-br from-white from-30% to-white/60 bg-clip-text py-6 text-center text-2xl font-semibold leading-none tracking-tighter text-transparent sm:text-6xl md:text-7xl lg:text-8xl"
+            animate={fadeInInView ? "animate" : "initial"}
+            variants={fadeUpVariants}
+            initial={false}
+            transition={{
+              duration: 0.6,
+              delay: 0.1,
+              ease: [0.21, 0.47, 0.32, 0.98],
+              type: "spring",
+            }}
+          >
+            AltVerse: Trustless, Instant Cross-Chain Swaps
+          </motion.h1>
+
+          <motion.p
+            className="text-balance text-center text-lg tracking-tight text-gray-400 md:text-xl"
+            animate={fadeInInView ? "animate" : "initial"}
+            variants={fadeUpVariants}
+            initial={false}
+            transition={{
+              duration: 0.6,
+              delay: 0.2,
+              ease: [0.21, 0.47, 0.32, 0.98],
+              type: "spring",
+            }}
+          >
+            Experience seamless, secure, and decentralized cross-chain swaps
+          </motion.p>
+
+          <motion.div
+            animate={fadeInInView ? "animate" : "initial"}
+            variants={fadeUpVariants}
+            className="flex flex-col gap-4 sm:flex-row"
+            initial={false}
+            transition={{
+              duration: 0.6,
+              delay: 0.3,
+              ease: [0.21, 0.47, 0.32, 0.98],
+              type: "spring",
+            }}
+          >
+            <a
+              href="#"
+              className={cn(
+                "bg-white text-black shadow hover:bg-white/90",
+                "group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden whitespace-pre rounded-md px-6 py-3 text-base font-semibold tracking-tighter",
+                "transform-gpu ring-offset-black transition-all duration-300 ease-out hover:ring-2 hover:ring-amber-500 hover:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2",
+              )}
+            >
+              Get Started
+              <ChevronRight className="size-5 translate-x-0 transition-all duration-300 ease-out group-hover:translate-x-1" />
+            </a>
+          </motion.div>
+
+          <motion.div
+            animate={fadeInInView ? "animate" : "initial"}
+            variants={fadeUpVariants}
+            initial={false}
+            transition={{
+              duration: 1.4,
+              delay: 0.4,
+              ease: [0.21, 0.47, 0.32, 0.98],
+              type: "spring",
+            }}
+            className="mt-16 w-full"
+          >
+            <BentoGrid className="grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <BentoCard
+                name="Instantly Swap Across Chains"
+                className="col-span-1 sm:col-span-2"
+                background={<div className="absolute inset-0 bg-gradient-to-br from-amber-500/30 to-transparent" />}
+                Icon={() => <div className="h-12 w-12 rounded-full bg-amber-500/20" />}
+                description="One-click cross-chain swaps. Fail-safe design with auto-refunds for peace of mind. No middlemen."
+                href="#"
+                cta="Learn more"
+              />
+              <BentoCard
+                name="Completely Decentralized"
+                className="col-span-1 sm:col-span-2"
+                background={<div className="absolute inset-0 bg-gradient-to-bl from-amber-500/30 to-transparent" />}
+                Icon={() => <div className="h-12 w-12 rounded-full bg-amber-500/20" />}
+                description="No central entity. Zero hackable bridges. All on-chain."
+                href="#"
+                cta="Explore"
+              />
+              <BentoCard
+                name="Fully Trustless"
+                className="col-span-1 sm:col-span-1 lg:col-span-2"
+                background={<div className="absolute inset-0 bg-gradient-to-tr from-amber-500/30 to-transparent" />}
+                Icon={() => <div className="h-12 w-12 rounded-full bg-amber-500/20" />}
+                description="Secured by trustless escrows & timeouts."
+                href="#"
+                cta="Learn more"
+              />
+              <BentoCard
+                name="Multichain Ecosystem"
+                className="col-span-1 sm:col-span-1 lg:col-span-2"
+                background={<div className="absolute inset-0 bg-gradient-to-tl from-amber-500/30 to-transparent" />}
+                Icon={() => <div className="h-12 w-12 rounded-full bg-amber-500/20" />}
+                description="Swap across popular L1s/L2s, etc. seamlessly. Earn by providing liquidity to pools on any chain."
+                href="#"
+                cta="Join now"
+              />
+            </BentoGrid>
+          </motion.div>
+        </main>
+
+        <footer className="mt-20 flex flex-wrap items-center justify-center gap-6">
           <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            className="flex items-center gap-2 hover:text-amber-500 hover:underline hover:underline-offset-4"
+            href="#"
             target="_blank"
             rel="noopener noreferrer"
           >
             <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/placeholder.svg?height=16&width=16"
+              alt="Learn icon"
+              width={16}
+              height={16}
+              className="invert"
             />
-            Deploy now
+            Learn
           </a>
           <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            className="flex items-center gap-2 hover:text-amber-500 hover:underline hover:underline-offset-4"
+            href="#"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Read our docs
+            <Image
+              src="/placeholder.svg?height=16&width=16"
+              alt="Examples icon"
+              width={16}
+              height={16}
+              className="invert"
+            />
+            Examples
           </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <a
+            className="flex items-center gap-2 hover:text-amber-500 hover:underline hover:underline-offset-4"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              src="/placeholder.svg?height=16&width=16"
+              alt="Documentation icon"
+              width={16}
+              height={16}
+              className="invert"
+            />
+            Documentation →
+          </a>
+        </footer>
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.15),rgba(251,146,60,0)_50%)]" />
     </div>
-  );
+  )
 }
