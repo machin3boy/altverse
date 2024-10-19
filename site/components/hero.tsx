@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import BlurIn from "@/components/magicui/blurin";
 import Globe from "@/components/magicui/globe";
-import Tiles from "@/components/magicui/tiles";
+import Tiles from "@/components/ui/tiles";
+import Spider from "@/components/ui/spider";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -68,7 +69,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <BentoCard
             name="Instantly Swap Across Chains"
             className="col-span-1 sm:col-span-3"
-            background={<div></div>}
+            background={<Spider />}
             Icon={(props: any) => <Zap {...props} className="text-amber-500" />}
             description="One-click cross-chain swaps. Fail-safe design with auto-refunds for peace of mind. No middlemen."
             href="#"
