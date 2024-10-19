@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/sonner";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -27,6 +28,13 @@ export default function RootLayout({
         )}
       >
         {children}
+        <Toaster
+              richColors
+              theme="dark"
+              toastOptions={{
+                duration: 5000,
+              }}
+            />
       </body>
     </html>
   );
