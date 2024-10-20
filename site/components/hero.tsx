@@ -26,7 +26,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setOpacity(prev => Math.min(prev + 5, 100));
+      setOpacity((prev) => Math.min(prev + 5, 100));
     }, 100);
     return () => clearInterval(intervalId);
   }, []);
@@ -78,7 +78,24 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <BentoCard
             name="Completely Decentralized"
             className="col-span-1 sm:col-span-2"
-            background={<Globe />}
+            background={
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 flex items-center justify-center">
+                  <div className="relative w-full h-full">
+                    <Globe
+                      className="
+              scale-[0.805] translate-x-[25%] translate-y-[20%]
+              sm:scale-[0.7] sm:translate-x-[15%] sm:translate-y-[50%]
+              md:scale-[0.6545] md:translate-x-[15%] md:translate-y-[35%]
+              lg:scale-[0.736] lg:translate-x-[20%] lg:translate-y-[25%]
+              xl:scale-[0.736] xl:translate-x-[25%] xl:translate-y-[25%]
+              2xl:scale-[0.828] 2xl:translate-x-[25%] 2xl:translate-y-[25%]
+            "
+                    />
+                  </div>
+                </div>
+              </div>
+            }
             Icon={(props: any) => (
               <GlobeIcon {...props} className="text-amber-500" />
             )}
@@ -91,16 +108,24 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             className="col-span-1 sm:col-span-2"
             background={
               <div className="absolute inset-0 overflow-hidden transition-all duration-200 ease-out [mask-image:linear-gradient(to_top,transparent_10%,rgba(0,0,0,1)_70%)] group-hover:scale-105">
-                <div 
-                  className="absolute top-1/2 left-1/2 w-[600%] h-[600%] transform -translate-x-1/2 -translate-y-1/2 scale-50 lg:-translate-x-[46.5%] lg:-translate-y-[51%] md:-translate-x-[46.5%] sm:scale-50 sm:-translate-x-[47.6%] sm:-translate-y-[51%] sm:scale-[0.12] md:scale-[0.11] lg:scale-[0.12] transition-opacity duration-1000 ease-out"
-                  style={{ opacity: opacity / 100 }}
-                >
-                  <Image
-                    src="/images/lock.png"
-                    alt=""
-                    layout="fill"
-                    objectFit="contain"
-                  />
+                <div className="absolute inset-0 flex items-center justify-end">
+                  <div className="relative w-2/3 h-full">
+                    <Image
+                      src="/images/lock.png"
+                      alt="Lock"
+                      layout="fill"
+                      objectFit="contain"
+                      className="
+                        2xl:scale-[0.9] 2xl:-translate-x-[4%] 2xl:max-w-[500px]
+                        xl:scale-[0.9] xl:-translate-x-[4%]
+                        lg:scale-[0.9] lg:-translate-x-[4%]
+                        md:scale-[0.98] md:-translate-x-[3%]
+                        min-[640px]:max-[768px]:scale-[0.98] min-[640px]:max-[768px]:-translate-x-[3%]
+                        min-[450px]:max-[639px]:scale-[0.75] min-[450px]:max-[639px]:-translate-x-[8%]
+                        max-[449px]:scale-65 max-[449px]:-translate-x-[10%]
+                      "
+                    />
+                  </div>
                 </div>
               </div>
             }

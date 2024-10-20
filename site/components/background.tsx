@@ -15,21 +15,21 @@ const Background: React.FC = () => {
     <div className="fixed inset-0 z-0 overflow-hidden bg-black">
       <Particles
         className="absolute inset-0 pointer-events-none"
-        quantity={1000}
-        staticity={10}
+        quantity={500}
+        staticity={60}
         ease={70}
-        size={0.3}
-        color="#ffffff"
+        size={0.03}
+        color="#fde68a"
       />
       <div 
         className="pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-out"
         style={{ opacity: opacity / 100 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-amber-800/20 to-amber-400/30"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-800/20 to-amber-400/30"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-800/30 to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-amber-800/30 to-transparent"></div>
-        <div className="absolute inset-[10%] bg-amber-800/10 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-amber-500/20 to-amber-400/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/20 to-amber-400/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-amber-500/30 to-transparent"></div>
+        <div className="absolute inset-[10%] bg-amber-400/10 blur-3xl"></div>
       </div>
     </div>
   );

@@ -41,11 +41,12 @@ export default function Globe({
   config?: COBEOptions;
 }) {
   let phi = 0;
-  let width = 0;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
   const [r, setR] = useState(0);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const updatePointerInteraction = (value: any) => {
     pointerInteracting.current = value;
@@ -66,48 +67,60 @@ export default function Globe({
     (state: Record<string, any>) => {
       if (!pointerInteracting.current) phi += 0.005;
       state.phi = phi + r;
-      state.width = width * 2;
-      state.height = width * 2;
+      state.width = size.width;
+      state.height = size.height;
     },
-    [r],
+    [r, size]
   );
 
-  const onResize = () => {
-    if (canvasRef.current) {
-      width = canvasRef.current.offsetWidth;
-    }
-  };
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        setSize({ width: width * 2, height: height * 2 });
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
-    window.addEventListener("resize", onResize);
-    onResize();
+    if (!canvasRef.current || size.width === 0 || size.height === 0) return;
 
-    const globe = createGlobe(canvasRef.current!, {
+    const globe = createGlobe(canvasRef.current, {
       ...config,
-      width: width * 2,
-      height: width * 2,
+      width: size.width,
+      height: size.height,
       onRender,
     });
 
-    setTimeout(() => (canvasRef.current!.style.opacity = "1"));
+    canvasRef.current.style.opacity = "1";
+
     return () => globe.destroy();
-  }, []);
+  }, [size, config, onRender]);
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px]",
-        className,
+        className
       )}
     >
       <canvas
         className={cn(
-          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]",
+          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]"
         )}
         ref={canvasRef}
         onPointerDown={(e) =>
           updatePointerInteraction(
-            e.clientX - pointerInteractionMovement.current,
+            e.clientX - pointerInteractionMovement.current
           )
         }
         onPointerUp={() => updatePointerInteraction(null)}
