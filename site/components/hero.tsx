@@ -78,7 +78,24 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <BentoCard
             name="Completely Decentralized"
             className="col-span-1 sm:col-span-2"
-            background={<Globe />}
+            background={
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 flex items-center justify-center">
+                  <div className="relative w-full h-full">
+                    <Globe
+                      className="
+              scale-[0.805] translate-x-[25%] translate-y-[20%]
+              sm:scale-[0.7] sm:translate-x-[15%] sm:translate-y-[50%]
+              md:scale-[0.6545] md:translate-x-[15%] md:translate-y-[35%]
+              lg:scale-[0.736] lg:translate-x-[20%] lg:translate-y-[25%]
+              xl:scale-[0.736] xl:translate-x-[25%] xl:translate-y-[25%]
+              2xl:scale-[0.828] 2xl:translate-x-[25%] 2xl:translate-y-[25%]
+            "
+                    />
+                  </div>
+                </div>
+              </div>
+            }
             Icon={(props: any) => (
               <GlobeIcon {...props} className="text-amber-500" />
             )}
