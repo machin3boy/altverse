@@ -1,6 +1,10 @@
 import React from 'react';
 import ZeroLogo from '../ui/zero-logo';
-import { TokenBTC, TokenETH, TokenLINK, IconComponentProps } from '@web3icons/react'
+// import { TokenBTC, TokenETH, TokenLINK, IconComponentProps } from '@web3icons/react'
+
+import BitcoinLogo from '../ui/bitcoin-logo';
+import EthLogo from '../ui/eth-logo';
+import ChainlinkLogo from '../ui/chainlink-logo';
 
 interface CryptoButtonProps {
   name: string;
@@ -25,7 +29,7 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
     >
       <div className="flex items-center justify-center w-16 h-16 mb-2">
         <Icon
-          fill="currentColor"
+        //   fill="currentColor"
           fillColor="currentColor"
           width={48}
           height={48}
@@ -42,9 +46,9 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
 const CryptoRequestGrid: React.FC = () => {
   const cryptos = [
     { name: 'AltCoin', Icon: ZeroLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
-    { name: 'BTC', Icon: TokenBTC, hoverColor: 'hover:text-amber-300 hover:border-amber-300' },
-    { name: 'LINK', Icon: TokenLINK, hoverColor: 'hover:text-blue-500 hover:border-blue-500' },
-    { name: 'ETH', Icon: TokenETH, hoverColor: 'hover:text-indigo-500 hover:border-indigo-500' },
+    { name: 'BTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-300 hover:border-amber-300' },
+    { name: 'LINK', Icon: ChainlinkLogo, hoverColor: 'hover:text-blue-500 hover:border-blue-500' },
+    { name: 'ETH', Icon: EthLogo, hoverColor: 'hover:text-indigo-500 hover:border-indigo-500' },
   ];
 
   return (

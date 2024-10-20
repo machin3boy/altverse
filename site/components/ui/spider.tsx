@@ -55,9 +55,9 @@ export default function Spider({ className }: { className?: string }) {
       const size = 512;
       canvas.width = canvas.height = size;
       if (ctx) {
-        ctx.fillStyle = '#000000'; // Slightly lighter background
+        ctx.fillStyle = '#000000'; // Black background
         ctx.fillRect(0, 0, size, size);
-        ctx.strokeStyle = '#F59E0B'; // Brighter green
+        ctx.strokeStyle = '#F59E0B'; // Bright orange
         ctx.lineWidth = 8; // Thicker lines
         const gridSize = 64;
         for (let i = 0; i <= size; i += gridSize) {
@@ -74,24 +74,17 @@ export default function Spider({ className }: { className?: string }) {
       texture.repeat.set(8, 2);
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-      const material = new THREE.MeshStandardMaterial({ 
+      // Use MeshBasicMaterial for a non-shiny appearance
+      const material = new THREE.MeshBasicMaterial({ 
         map: texture,
-        roughness: 0.3,
-        metalness: 0.2,
-        emissive: new THREE.Color(0x000000),
-        emissiveIntensity: 0.2
       });
 
       const torus = new THREE.Mesh(geometry, material);
       scene.add(torus);
 
-      // Enhance lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      // Simplify lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1);
       scene.add(ambientLight);
-
-      const pointLight = new THREE.PointLight(0xffffff, 1.5);
-      pointLight.position.set(5, 5, 5);
-      scene.add(pointLight);
 
       torus.rotation.y = Math.PI / 3;
       torus.rotation.x = Math.PI;
@@ -100,8 +93,7 @@ export default function Spider({ className }: { className?: string }) {
 
       const animate = () => {
         requestAnimationFrame(animate);
-        // Slow down rotation (2π / 8 seconds = π/4 radians per second)
-        torus.rotation.z += (Math.PI / 4) / 120;
+        torus.rotation.z += (Math.PI / 16) / 120;
         renderer.render(scene, camera);
       };
 
