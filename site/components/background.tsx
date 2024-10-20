@@ -15,11 +15,11 @@ const Background: React.FC = () => {
     <div className="fixed inset-0 z-0 overflow-hidden bg-black">
       <Particles
         className="absolute inset-0 pointer-events-none"
-        quantity={5000}
+        quantity={1000}
         staticity={10}
         ease={70}
-        size={0.015}
-        color="#944115"
+        size={0.3}
+        color="#ffffff"
       />
       <div 
         className="pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-out"
