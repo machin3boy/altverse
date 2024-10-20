@@ -11,7 +11,7 @@ const Circle = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "z-10 flex size-12 items-center justify-center rounded-full border-2 bg-white p-3 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]",
+        "z-10 flex size-8 items-center justify-center rounded-full border-2 bg-white p-3 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]",
         className
       )}
     >
@@ -118,7 +118,7 @@ export default function Spider({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative flex h-[300px] w-full max-w-[800px] items-center justify-center overflow-hidden rounded-lg border bg-background p-10 md:shadow-xl",
+        "relative flex h-[200px] w-full max-w-[800px] items-center justify-center overflow-hidden rounded-lg border bg-background p-10 md:shadow-xl",
         className
       )}
       ref={containerRef}
@@ -226,9 +226,9 @@ export default function Spider({ className }: { className?: string }) {
         duration={7}
         gradientStartColor="#F59E0B"
         gradientStopColor="#644B19"
+        curvature={40}
         startYOffset={-5}
         endYOffset={0}
-        curvature={70}
         delay={2.1} // Delayed start after bidirectional beams
       />
       <AnimatedBeam
@@ -247,7 +247,7 @@ export default function Spider({ className }: { className?: string }) {
         duration={7}
         gradientStartColor="#F59E0B"
         gradientStopColor="#644B19"
-        curvature={-70}
+        curvature={-40}
         startYOffset={5}
         endYOffset={0}
         delay={2.7} // Last beam to start
