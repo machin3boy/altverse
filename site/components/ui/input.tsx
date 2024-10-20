@@ -16,7 +16,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const handleIncrement = () => {
       if (inputRef.current) {
-        const currentValue = parseFloat(internalValue) || 0;
+        const currentValue = parseFloat(internalValue.toString()) || 0;
         const step = parseFloat(inputRef.current.step) || 1;
         const newValue = currentValue + step;
         updateValue(newValue);
@@ -25,7 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const handleDecrement = () => {
       if (inputRef.current) {
-        const currentValue = parseFloat(internalValue) || 0;
+        const currentValue = parseFloat(internalValue.toString()) || 0;
         const step = parseFloat(inputRef.current.step) || 1;
         let newValue;
         if (currentValue <= 1) {
@@ -66,7 +66,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     React.useImperativeHandle(ref, () => inputRef.current!);
 
-    const isDecrementDisabled = parseFloat(internalValue) === 0;
+    const isDecrementDisabled = parseFloat(internalValue.toString()) === 0;
 
     return (
       <div className={cn(
