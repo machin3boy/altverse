@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeftRight, Droplet, ChevronDown } from "lucide-react";
 import { BorderBeam } from "@/components/magicui/border-beam";
+import CryptoRequestGrid from "./modal/faucet";
 
 interface ModalProps {
   isOpen: boolean;
@@ -235,18 +236,7 @@ export default function Modal(
                 </ScrollArea>
               </TabsContent>
               <TabsContent value="faucet" className="h-full p-4 space-y-4">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  Request AltCoin
-                </Button>
-                <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
-                  Request 100 BTC
-                </Button>
-                <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white">
-                  Request 100 ETH
-                </Button>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  Request 100 LINK
-                </Button>
+                <CryptoRequestGrid />
               </TabsContent>
               <TabsContent value="usdc" className="h-full p-4 space-y-4">
                 <div className="space-y-4">
