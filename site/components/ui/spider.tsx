@@ -118,7 +118,7 @@ export default function Spider({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative flex h-[200px] w-full max-w-[800px] items-center justify-center overflow-hidden rounded-lg border bg-background p-10 md:shadow-xl",
+        "relative flex h-[200px] w-full max-w-[800px] items-center justify-center overflow-hidden rounded-lg bg-black p-10",
         className
       )}
       ref={containerRef}
