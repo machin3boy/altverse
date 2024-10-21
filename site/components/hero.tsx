@@ -43,7 +43,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           rel="noopener noreferrer"
           className="mb-2"
         >
-          <button className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-600/10 text-gray-500/80 hover:bg-amber-600/30 hover:text-white/80 duration-300 text-xs font-semibold border border-amber-500/5 hover:border-amber-700/30">
+          <button className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-600/10 text-gray-400/80 hover:bg-amber-600/30 hover:text-white/90 duration-300 text-xs font-semibold border border-gray-500/20 hover:border-amber-500/30">
             <span className="opacity-70">✨</span>
             <span>Learn More</span>
             <ChevronRight size={14} />
@@ -100,7 +100,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             background={
               <div className="absolute inset-0 overflow-hidden transition-all duration-200 ease-out group-hover:scale-105">
                 <div className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 flex items-center justify-center">
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-full opacity-0 transition-opacity duration-[200ms] ease-in" style={{ opacity: `${opacity}%` }}>
                     <Globe
                       className="
                         scale-[0.805] translate-x-[25%] translate-y-[20%]

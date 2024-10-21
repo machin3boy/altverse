@@ -145,18 +145,30 @@ export default function Spider({ className }: { className?: string }) {
           />
         </div>
         <div className="flex items-center">
-          <Circle ref={rightBidirectionalRef}>
+          <Circle
+            ref={rightBidirectionalRef}
+            className="shadow-[0_0_20px_-5px_rgba(14,165,233,0.8)]"
+          >
             <img src="/images/zero-sky-500.svg" />
           </Circle>
         </div>
         <div className="flex flex-col justify-between">
-          <Circle ref={output1Ref}>
+          <Circle
+            ref={output1Ref}
+            className="shadow-[0_0_20px_-5px_rgba(14,165,233,0.8)]"
+          >
             <img src="/images/tokens/branded/BTC.svg" />
           </Circle>
-          <Circle ref={output2Ref}>
+          <Circle
+            ref={output2Ref}
+            className="shadow-[0_0_20px_-5px_rgba(14,165,233,0.8)]"
+          >
             <img src="/images/tokens/branded/SUI.svg" />
           </Circle>
-          <Circle ref={output3Ref}>
+          <Circle
+            ref={output3Ref}
+            className="shadow-[0_0_20px_-5px_rgba(14,165,233,0.8)]"
+          >
             <img src="/images/tokens/branded/SOL.svg" />
           </Circle>
         </div>
@@ -171,9 +183,9 @@ export default function Spider({ className }: { className?: string }) {
         gradientStopColor="#D97706"
         duration={7}
         delay={0}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -182,10 +194,10 @@ export default function Spider({ className }: { className?: string }) {
         gradientStartColor="#F59E0B"
         gradientStopColor="#D97706"
         duration={7}
-        delay={0.2}
-        pathColor="rgba(217, 119, 6, 1)"
+        delay={0.4}
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -195,9 +207,9 @@ export default function Spider({ className }: { className?: string }) {
         gradientStopColor="#D97706"
         duration={7}
         delay={0.6}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
 
       {/* Bidirectional to Bidirectional Beams */}
@@ -212,9 +224,9 @@ export default function Spider({ className }: { className?: string }) {
         curvature={-20}
         duration={7}
         delay={1.2}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -228,9 +240,9 @@ export default function Spider({ className }: { className?: string }) {
         reverse
         duration={7}
         delay={1.5}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
 
       {/* Right Bidirectional to Output Beams */}
@@ -245,9 +257,9 @@ export default function Spider({ className }: { className?: string }) {
         startYOffset={-5}
         endYOffset={0}
         delay={2.1}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -257,9 +269,9 @@ export default function Spider({ className }: { className?: string }) {
         gradientStartColor="#0EA5E9"
         gradientStopColor="#0284C7"
         delay={2.4}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -272,9 +284,9 @@ export default function Spider({ className }: { className?: string }) {
         startYOffset={5}
         endYOffset={0}
         delay={2.7}
-        pathColor="rgba(217, 119, 6, 1)"
+        pathColor="rgba(64,64,64,1)"
         pathWidth={2}
-        pathOpacity={0.2}
+        pathOpacity={0.4}
       />
     </div>
   );
