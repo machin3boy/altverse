@@ -6,7 +6,7 @@ const Background: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setOpacity(prev => Math.min(prev + 0.5, 25));
+      setOpacity(prev => Math.min(prev + 0.5, 35));
     }, 100);
     return () => clearInterval(intervalId);
   }, []);

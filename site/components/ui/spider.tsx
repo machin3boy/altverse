@@ -173,7 +173,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={0}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -182,10 +182,10 @@ export default function Spider({ className }: { className?: string }) {
         gradientStartColor="#F59E0B"
         gradientStopColor="#D97706"
         duration={7}
-        delay={0.25}
+        delay={0.2}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -197,7 +197,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={0.6}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
 
       {/* Bidirectional to Bidirectional Beams */}
@@ -214,7 +214,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={1.2}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -230,7 +230,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={1.5}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
 
       {/* Right Bidirectional to Output Beams */}
@@ -247,7 +247,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={2.1}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -259,7 +259,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={2.4}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
       <AnimatedBeam
         containerRef={containerRef}
@@ -274,7 +274,7 @@ export default function Spider({ className }: { className?: string }) {
         delay={2.7}
         pathColor="rgba(217, 119, 6, 1)"
         pathWidth={2}
-        pathOpacity={0.25}
+        pathOpacity={0.2}
       />
     </div>
   );
