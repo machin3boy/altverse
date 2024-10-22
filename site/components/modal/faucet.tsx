@@ -50,7 +50,7 @@ const CryptoRequestGrid: React.FC = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl">
+    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl mt-8">
       {cryptos.map((crypto, index) => (
         <CryptoButton key={index} {...crypto} />
       ))}

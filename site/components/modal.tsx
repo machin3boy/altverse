@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeftRight, Droplet, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import CryptoRequestGrid from "./modal/faucet";
 
@@ -62,7 +62,7 @@ export default function Modal(
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <div className="flex flex-col h-full">
-          <DialogHeader className="px-4 py-2"> 
+          <DialogHeader className="px-4 py-2">
             <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
           </DialogHeader>
           <Tabs
@@ -73,24 +73,29 @@ export default function Modal(
           >
             <div className="px-4">
               <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="swap">
-                  <ArrowLeftRight className="w-4 h-4 mr-2" />
-                  Swap
+                <TabsTrigger value="swap" className="font-bold">
+                  <span className="-mt-0.5">Swap</span>
                 </TabsTrigger>
-                <TabsTrigger value="pool">
-                  <Droplet className="w-4 h-4 mr-2" />
-                  Pool
+                <TabsTrigger value="pool" className="font-bold">
+                  <span className="-mt-0.5">Pool</span>
                 </TabsTrigger>
-                <TabsTrigger value="escrows">Escrows</TabsTrigger>
-                <TabsTrigger value="faucet">Faucet</TabsTrigger>
-                <TabsTrigger value="usdc">USDC</TabsTrigger>
+                <TabsTrigger value="escrows" className="font-bold">
+                  <span className="-mt-0.5">Escrows</span>
+                </TabsTrigger>
+                <TabsTrigger value="faucet" className="font-bold">
+                  <span className="-mt-0.5">Faucet</span>
+                </TabsTrigger>
+                <TabsTrigger value="usdc" className="font-bold">
+                  <span className="-mt-0.5">USDC</span>
+                </TabsTrigger>
               </TabsList>
             </div>
             <div className="flex-1 overflow-hidden">
               <TabsContent value="swap" className="h-full p-4 space-y-4 mt-8">
                 <div className="relative rounded-lg">
                   <BorderBeam
-                    size={300}
+                    borderWidth={2}
+                    size={450}
                     duration={10}
                     colorFrom="#F59E0B"
                     colorTo="#1C1205"
@@ -225,22 +230,22 @@ export default function Modal(
                 <Button className="w-full">Connect Wallet</Button>
               </TabsContent>
               <TabsContent value="pool" className="h-full p-4 space-y-4">
-                <ScrollArea className="h-[400px] rounded-md border p-4">
-                  <h4 className="mb-4 text-sm font-medium leading-none">
+                <ScrollArea className="h-[400px] rounded-md border-2 p-4">
+                  <h4 className="mb-4 text-medium font-bold leading-none">
                     Your Positions
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground font-bold">
                     No active positions
                   </p>
                 </ScrollArea>
                 <Button className="w-full">Add Liquidity</Button>
               </TabsContent>
               <TabsContent value="escrows" className="h-full p-4">
-                <ScrollArea className="h-[400px] rounded-md border p-4">
-                  <h4 className="mb-4 text-sm font-medium leading-none">
+                <ScrollArea className="h-[400px] rounded-md border-2 p-4">
+                  <h4 className="mb-4 text-medium font-bold leading-none">
                     Active Escrows
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground font-bold">
                     No active escrows
                   </p>
                 </ScrollArea>
@@ -249,15 +254,15 @@ export default function Modal(
                 <CryptoRequestGrid />
               </TabsContent>
               <TabsContent value="usdc" className="h-full p-4 space-y-4">
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium">USDC Pool</h4>
+                <div className="space-y-2 my-2">
+                  <h4 className="text-sm font-bold ml-1">USDC Pool</h4>
                   <Input
                     type="text"
                     placeholder="0.0"
                     readOnly
                     className="font-mono"
                   />
-                  <h4 className="text-sm font-medium">Altcoin Pool</h4>
+                  <h4 className="text-sm font-bold ml-1">Altcoin Pool</h4>
                   <Input
                     type="text"
                     placeholder="0.0"
@@ -265,113 +270,104 @@ export default function Modal(
                     className="font-mono"
                   />
                 </div>
-                <div className="bg-secondary p-4 rounded-lg space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">You pay</span>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Max
-                      </Button>
+                <div className="relative rounded-lg">
+                  <BorderBeam
+                    borderWidth={2}
+                    size={450}
+                    duration={10}
+                    colorFrom="#F59E0B"
+                    colorTo="#1C1205"
+                  />
+                  <div className="bg-secondary p-4 rounded-lg space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">You pay</span>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Max
+                        </Button>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          placeholder="0.0"
+                          className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                          style={{
+                            WebkitAppearance: "none",
+                            MozAppearance: "textfield",
+                          }}
+                        />
+                        <Select
+                          value={altcoinFromToken}
+                          onValueChange={setAltcoinFromToken}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue>
+                              <div className="flex items-center">
+                                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
+                                  {altcoinFromToken === "USDC" ? "$" : "A"}
+                                </span>
+                                <span className="font-mono w-12">
+                                  {altcoinFromToken.padEnd(4)}
+                                </span>
+                              </div>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USDC">
+                              <div className="flex items-center">
+                                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
+                                  $
+                                </span>
+                                <span className="font-mono w-12">USDC</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="ALT">
+                              <div className="flex items-center">
+                                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
+                                  A
+                                </span>
+                                <span className="font-mono w-12">ALT </span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        placeholder="0.0"
-                        className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                        style={{
-                          WebkitAppearance: "none",
-                          MozAppearance: "textfield",
-                        }}
-                      />
-                      <Select
-                        value={altcoinFromToken}
-                        onValueChange={setAltcoinFromToken}
-                      >
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue>
-                            <div className="flex items-center">
-                              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                {altcoinFromToken === "USDC" ? "$" : "A"}
-                              </span>
-                              <span className="font-mono w-12">
-                                {altcoinFromToken.padEnd(4)}
-                              </span>
-                            </div>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USDC">
-                            <div className="flex items-center">
-                              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                $
-                              </span>
-                              <span className="font-mono w-12">USDC</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="ALT">
-                            <div className="flex items-center">
-                              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                A
-                              </span>
-                              <span className="font-mono w-12">ALT </span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="flex justify-center">
+                      <ChevronDown className="w-6 h-6" />
                     </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <ChevronDown className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium">You receive</span>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        placeholder="0.0"
-                        className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                        readOnly
-                        style={{
-                          WebkitAppearance: "none",
-                          MozAppearance: "textfield",
-                        }}
-                      />
-                      <div className="w-[120px] h-10 px-3 py-2 rounded-md border border-input bg-background text-sm flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          {altcoinFromToken === "USDC" ? "A" : "$"}
-                        </span>
-                        <span className="font-mono w-12">
-                          {(altcoinFromToken === "USDC"
-                            ? "ALT "
-                            : "USDC"
-                          ).padEnd(4)}
-                        </span>
+                    <div className="space-y-2">
+                      <span className="text-sm font-medium">You receive</span>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          placeholder="0.0"
+                          className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                          readOnly
+                          style={{
+                            WebkitAppearance: "none",
+                            MozAppearance: "textfield",
+                          }}
+                        />
+                        <div className="w-[120px] h-10 px-3 py-2 rounded-md border border-input bg-background text-sm flex items-center">
+                          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
+                            {altcoinFromToken === "USDC" ? "A" : "$"}
+                          </span>
+                          <span className="font-mono w-12">
+                            {(altcoinFromToken === "USDC"
+                              ? "ALT "
+                              : "USDC"
+                            ).padEnd(4)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <Button className="w-full">
-                  Swap {altcoinFromToken}/
+                  Swap {altcoinFromToken} to{" "}
                   {altcoinFromToken === "USDC" ? "ALT" : "USDC"}
                 </Button>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Your USDC Balance</h4>
-                  <Input
-                    type="text"
-                    placeholder="0.0"
-                    readOnly
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Your Altcoin Balance</h4>
-                  <Input
-                    type="text"
-                    placeholder="0.0"
-                    readOnly
-                    className="font-mono"
-                  />
-                </div>
               </TabsContent>
             </div>
           </Tabs>
