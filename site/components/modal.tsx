@@ -257,7 +257,7 @@ export default function Modal(
                     readOnly
                     className="font-mono"
                   />
-                  <h4 className="text-sm font-medium">AltCoin Pool</h4>
+                  <h4 className="text-sm font-medium">Altcoin Pool</h4>
                   <Input
                     type="text"
                     placeholder="0.0"
@@ -364,7 +364,7 @@ export default function Modal(
                   />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Your AltCoin Balance</h4>
+                  <h4 className="text-sm font-medium">Your Altcoin Balance</h4>
                   <Input
                     type="text"
                     placeholder="0.0"
