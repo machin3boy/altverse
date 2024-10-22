@@ -41,7 +41,7 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
   );
 };
 
-const CryptoRequestGrid: React.FC = () => {
+const Faucet: React.FC = () => {
   const cryptos = [
     { name: 'ALT', Icon: ZeroLogo, hoverColor: 'hover:text-amber-400 hover:border-amber-400' },
     { name: 'BTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
@@ -58,4 +58,4 @@ const CryptoRequestGrid: React.FC = () => {
   );
 };
 
-export default CryptoRequestGrid;
+export default Faucet;
