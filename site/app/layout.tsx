@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/sonner";
+import { StorageProvider } from "@/components/storage";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -27,6 +28,7 @@ export default function RootLayout({
           "min-h-screen bg-black font-sans antialiased",
         )}
       >
+        <StorageProvider>
         {children}
         <Toaster
               richColors
@@ -35,6 +37,7 @@ export default function RootLayout({
                 duration: 5000,
               }}
             />
+        </StorageProvider>
       </body>
     </html>
   );

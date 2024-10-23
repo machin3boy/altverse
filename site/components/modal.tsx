@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -22,6 +21,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeftRight, Droplet, ChevronDown } from "lucide-react";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import CryptoRequestGrid from "./modal/faucet";
+import { useStorage } from "@/components/storage";
+import { toast } from "sonner";
+
 
 interface ModalProps {
   isOpen: boolean;
@@ -49,20 +51,23 @@ export default function Modal(
     { name: "Fuji Testnet", id: "fuji" },
   ];
 
+  // Connect to web3
+  const { connectToWeb3 } = useStorage();
+
+  const handleConnectWallet = async () => {
+    const isConnected = await connectToWeb3();
+    if (isConnected) {
+      console.log("Connected to web3");
+    } else {
+      toast.error("Failed to connect to web3. Ensure you connect from a Web3 connected browser/device.");
+    }
+  };
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent
-        className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark">
         <div className="flex flex-col h-full">
-          <DialogHeader className="px-4 py-2"> 
+          <DialogHeader className="px-4 py-2">
             <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
           </DialogHeader>
           <Tabs
@@ -88,128 +93,6 @@ export default function Modal(
             </div>
             <div className="flex-1 overflow-hidden">
               <TabsContent value="swap" className="h-full p-4 space-y-4 mt-8">
-                <div className="relative rounded-lg">
-                  <BorderBeam
-                    size={300}
-                    duration={10}
-                    colorFrom="#F59E0B"
-                    colorTo="#1C1205"
-                  />
-                  <div className="bg-secondary p-4 rounded-lg space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">You pay</span>
-                        <Button variant="ghost" size="sm" className="text-xs">
-                          Max
-                        </Button>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          placeholder="0.0"
-                          className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          style={{
-                            WebkitAppearance: "none",
-                            MozAppearance: "textfield",
-                          }}
-                        />
-                        <Select
-                          value={swapFromToken}
-                          onValueChange={setSwapFromToken}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue>
-                              <div className="flex items-center">
-                                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                  {
-                                    tokens.find(
-                                      (t) => t.symbol === swapFromToken
-                                    )?.icon
-                                  }
-                                </span>
-                                <span className="font-mono w-12">
-                                  {swapFromToken.padEnd(4)}
-                                </span>
-                              </div>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {tokens.map((token) => (
-                              <SelectItem
-                                key={token.symbol}
-                                value={token.symbol}
-                              >
-                                <div className="flex items-center">
-                                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                    {token.icon}
-                                  </span>
-                                  <span className="font-mono w-12">
-                                    {token.symbol.padEnd(4)}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <ChevronDown className="w-6 h-6" />
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium">You receive</span>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          placeholder="0.0"
-                          className="text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          readOnly
-                          style={{
-                            WebkitAppearance: "none",
-                            MozAppearance: "textfield",
-                          }}
-                        />
-                        <Select
-                          value={swapToToken}
-                          onValueChange={setSwapToToken}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue>
-                              <div className="flex items-center">
-                                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                  {
-                                    tokens.find((t) => t.symbol === swapToToken)
-                                      ?.icon
-                                  }
-                                </span>
-                                <span className="font-mono w-12">
-                                  {swapToToken.padEnd(4)}
-                                </span>
-                              </div>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {tokens.map((token) => (
-                              <SelectItem
-                                key={token.symbol}
-                                value={token.symbol}
-                              >
-                                <div className="flex items-center">
-                                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                                    {token.icon}
-                                  </span>
-                                  <span className="font-mono w-12">
-                                    {token.symbol.padEnd(4)}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 <Select>
                   <SelectTrigger>
                     <SelectValue placeholder="Select destination chain" />
@@ -222,7 +105,12 @@ export default function Modal(
                     ))}
                   </SelectContent>
                 </Select>
-                <Button className="w-full">Connect Wallet</Button>
+                <Button 
+                  className="w-full"
+                  onClick={handleConnectWallet}
+                >
+                  Connect Wallet
+                </Button>
               </TabsContent>
               <TabsContent value="pool" className="h-full p-4 space-y-4">
                 <ScrollArea className="h-[400px] rounded-md border p-4">
