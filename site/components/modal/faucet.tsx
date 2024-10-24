@@ -1,7 +1,5 @@
 import React from 'react';
-import ZeroLogo from '../ui/zero-logo';
-// import { TokenBTC, TokenETH, TokenLINK, IconComponentProps } from '@web3icons/react'
-
+import ZeroLogo from '../ui/alt-logo';
 import BitcoinLogo from '../ui/bitcoin-logo';
 import EthLogo from '../ui/eth-logo';
 import ChainlinkLogo from '../ui/chainlink-logo';
@@ -23,7 +21,7 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
         w-full aspect-square rounded-lg
         transition-all duration-300 ease-in-out
         hover:shadow-lg group
-        hover:border-2 ${hoverBorderColor}
+        border-2 ${hoverBorderColor}
         ${hoverTextColor}
       `}
     >
@@ -43,16 +41,16 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
   );
 };
 
-const CryptoRequestGrid: React.FC = () => {
+const Faucet: React.FC = () => {
   const cryptos = [
-    { name: 'AltCoin', Icon: ZeroLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
-    { name: 'BTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-300 hover:border-amber-300' },
+    { name: 'ALT', Icon: ZeroLogo, hoverColor: 'hover:text-amber-400 hover:border-amber-400' },
+    { name: 'BTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
     { name: 'LINK', Icon: ChainlinkLogo, hoverColor: 'hover:text-blue-500 hover:border-blue-500' },
-    { name: 'ETH', Icon: EthLogo, hoverColor: 'hover:text-indigo-500 hover:border-indigo-500' },
+    { name: 'ETH', Icon: EthLogo, hoverColor: 'hover:text-indigo-300 hover:border-indigo-300' },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl">
+    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl mt-8">
       {cryptos.map((crypto, index) => (
         <CryptoButton key={index} {...crypto} />
       ))}
@@ -60,4 +58,4 @@ const CryptoRequestGrid: React.FC = () => {
   );
 };
 
-export default CryptoRequestGrid;
+export default Faucet;
