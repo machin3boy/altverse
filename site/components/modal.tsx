@@ -13,6 +13,8 @@ import Pool from "@/components/modal/pool";
 import Escrows from "@/components/modal/escrows";
 import Faucet from "@/components/modal/faucet";
 import USDC from "@/components/modal/usdc";
+import { useStorage } from "@/components/storage";
+import { toast } from "sonner";
 
 interface ModalProps {
   isOpen: boolean;
@@ -25,17 +27,8 @@ export default function Modal(
   const [activeTab, setActiveTab] = useState("swap");
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent
-        className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark">
         <div className="flex flex-col h-full">
           <DialogHeader className="px-4 py-2">
             <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
