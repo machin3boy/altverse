@@ -26,9 +26,24 @@ export default function Modal(
 ) {
   const [activeTab, setActiveTab] = useState("swap");
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Only call onClose when the Dialog is actually closing
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+      <DialogContent 
+        className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark"
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+        }}
+      >
         <div className="flex flex-col h-full">
           <DialogHeader className="px-4 py-2">
             <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
