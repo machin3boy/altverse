@@ -4,13 +4,21 @@ import React, { useEffect, useState } from "react";
 import Background from "@/components/background";
 import Hero from "@/components/hero";
 import Modal from "@/components/modal";
-import { Button } from "@/components/ui/button";
 import MetamaskLogo from "@/components/ui/metamask-logo";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
 import Chains from "./constants";
-import CeloLogo from "@/components/ui/celo-logo";
-import { format } from "path";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 declare global {
   interface Window {
@@ -27,13 +35,15 @@ declare global {
 }
 
 const Page: React.FC = () => {
-  const { web3, connectToWeb3, getStorage, setStorage } = useStorage();
+  const { web3, connectToWeb3, getStorage, setStorage, switchChain } =
+    useStorage();
   const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
   const [chainId, setChainId] = useState("");
 
   const chains = Chains;
   const [currentChain, setCurrentChain] = useState(chains[0]);
+  const [otherChain, setOtherChain] = useState(chains[1]);
 
   const handleConnectWallet = async () => {
     const isConnected = await connectToWeb3();
@@ -154,8 +164,10 @@ const Page: React.FC = () => {
   useEffect(() => {
     if (chainId) {
       const chain = chains.find((c) => c.id === formatChainId(chainId));
-      if (chain) {
+      const otherChain = chains.find((c) => c.id !== formatChainId(chainId));
+      if (chain && otherChain) {
         setCurrentChain(chain);
+        setOtherChain(otherChain);
       }
     }
   }, [chainId]);
@@ -185,20 +197,61 @@ const Page: React.FC = () => {
               </span>
             </div>
           </div>
-            <div className={`inline-flex items-center rounded-lg transition-all duration-200 py-1 px-4 
-              ${currentChain.id === '0xaef3' ? 'bg-[#888a2d]/50 hover:bg-[#888a2d]/70' : 'bg-[#7d2324]/50 hover:bg-[#7d2324]/70'}`}>
-            <div className="flex items-center space-x-2 py-1 px-5">
-              {currentChain.logo({
-                className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`, // Use Tailwind color class
-                width: 20,
-                height: 20,
-                fillColor: currentChain.logoFill,
-              })}
-              <span className={`font-mono font-light text-[#FFF] hover:text-[#FFF]  transition-all duration-200`}>
-                {currentChain.name}
-              </span>
-            </div>
-          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <div
+                className={`inline-flex items-center rounded-lg transition-all duration-200 py-1 px-4 cursor-pointer
+        ${
+          currentChain.id === "0xaef3"
+            ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
+            : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
+        }`}
+              >
+                <div className="flex items-center space-x-2 py-1 px-5">
+                  {currentChain.logo({
+                    className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`,
+                    width: 20,
+                    height: 20,
+                    fillColor: currentChain.logoFill,
+                  })}
+                  <span className="font-mono font-light text-[#FFF] hover:text-[#FFF] transition-all duration-200">
+                    {currentChain.name}
+                  </span>
+                </div>
+              </div>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent className="dark rounded-lg">
+              <AlertDialogHeader className="flex">
+                <AlertDialogTitle className="flex text-white">
+                  Do you want to swap chain to {otherChain?.name}?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="flex dark">
+                  The network will be added to your wallet if not already present.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex justify-end mt-8">
+                <div className="flex justify-end items-center space-x-4">
+                  {" "}
+                  {/* Added items-center */}
+                  <AlertDialogCancel className="w-20 text-white h-9">
+                    {" "}
+                    {/* Added explicit height */}
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    className="w-20 h-9 bg-amber-800 hover:bg-amber-800/50 text-white" /* Removed margin, added height */
+                    onClick={async () => {
+                      console.log("Switching chains...");
+                      await switchChain();
+                    }}
+                  >
+                    Swap
+                  </AlertDialogAction>
+                </div>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 
