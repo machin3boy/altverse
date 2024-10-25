@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swap from "@/components/modal/swap";
@@ -15,6 +16,7 @@ import Faucet from "@/components/modal/faucet";
 import USDC from "@/components/modal/usdc";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
+import { Cross2Icon } from "@radix-ui/react-icons";
 
 interface ModalProps {
   isOpen: boolean;
@@ -26,27 +28,32 @@ export default function Modal(
 ) {
   const [activeTab, setActiveTab] = useState("swap");
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      // Only call onClose when the Dialog is actually closing
-      onClose();
-    }
+  const handleClose = (open: boolean): void => {
+    console.log("Close button clicked");
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={handleClose}
+      modal={false}
+    >
       <DialogContent 
         className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark"
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-        }}
-        onEscapeKeyDown={(e) => {
-          e.preventDefault();
-        }}
       >
         <div className="flex flex-col h-full">
           <DialogHeader className="px-4 py-2">
-            <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
+              <button
+                onClick={() => handleClose(true)}
+                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              >
+                <Cross2Icon className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </button>
+            </div>
           </DialogHeader>
           <Tabs
             defaultValue="swap"

@@ -14,8 +14,9 @@ interface StorageContextProps {
   getStorage: (key: string) => string | null | undefined;
   web3: Web3 | null;
   connectToWeb3: () => Promise<boolean>;
+  switchChain: () => Promise<boolean>;
   initializeCoreContract: () => any | undefined | null;
-//   fetchTokenBalances: (address: string) => Promise<any[] | undefined>;
+  //   fetchTokenBalances: (address: string) => Promise<any[] | undefined>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
   splitTo24: (str: string) => string[];
@@ -27,8 +28,9 @@ const StorageContext = createContext<StorageContextProps>({
   getStorage: () => undefined,
   web3: null,
   connectToWeb3: async () => true || false,
+  switchChain: async () => true || false,
   initializeCoreContract: async () => {},
-//   fetchTokenBalances: async () => [],
+  //   fetchTokenBalances: async () => [],
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
   splitTo24: () => ["", ""],
@@ -112,6 +114,87 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const switchChain = async () => {
+    if ((window as any).ethereum) {
+      try {
+        // Get the current chain ID
+        const currentChainId = await (window as any).ethereum.request({
+          method: "eth_chainId",
+        });
+
+        let targetChainId;
+        if (currentChainId === "0xaef3") {
+          targetChainId = "0xa869"; // Swap to Avalanche Fuji
+        } else if (currentChainId === "0xa869") {
+          targetChainId = "0xaef3"; // Swap to Arbitrum Sepolia
+        } else {
+          console.error("Current chain is not supported for swapping");
+          return false;
+        }
+
+        try {
+          // Attempt to switch to the target network
+          await (window as any).ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: targetChainId }],
+          });
+        } catch (switchError) {
+          // If the target network doesn't exist, add it
+          if ((switchError as any).code === 4902) {
+            try {
+              let chainParams;
+              if (targetChainId === "0xaef3") {
+                chainParams = {
+                  chainId: "0xaef3",
+                  chainName: "Celo Alfajores Testnet",
+                  rpcUrls: ["https://alfajores-forno.celo-testnet.org"],
+                  nativeCurrency: {
+                    name: "CELO",
+                    symbol: "CELO",
+                    decimals: 18,
+                  },
+                  blockExplorerUrls: ["https://alfajores.celoscan.io"],
+                };
+              } else if (targetChainId === "0xa869") {
+                chainParams = {
+                  chainId: "0xa869",
+                  chainName: "Avalanche Fuji",
+                  rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
+                  nativeCurrency: {
+                    name: "AVAX",
+                    symbol: "AVAX",
+                    decimals: 18,
+                  },
+                  blockExplorerUrls: ["https://testnet.snowtrace.io/"],
+                };
+              }
+              await (window as any).ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [chainParams],
+              });
+            } catch (addError) {
+              console.error("Failed to add network:", addError);
+              return false;
+            }
+          } else {
+            console.error("Failed to switch network:", switchError);
+            return false;
+          }
+        }
+        let newChain =
+          targetChainId === "0xa869" ? "Avalanche Fuji" : "Celo Alfajores";
+        toast.info("Swapped chain successfully to " + newChain);
+        return true;
+      } catch (error) {
+        console.error("Failed to swap chain:", error);
+        return false;
+      }
+    } else {
+      console.error("MetaMask not detected");
+      return false;
+    }
+  };
+
   const initializeCoreContract = async () => {
     if (web3) {
       const coreContractAddress = "0xb6eA1AC42c3efff1b81b20EA797CA2a9148606fB";
@@ -133,180 +216,180 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-//   const fetchTokenBalances = async (address: string) => {
-//     if (!web3) {
-//       return;
-//     }
+  //   const fetchTokenBalances = async (address: string) => {
+  //     if (!web3) {
+  //       return;
+  //     }
 
-//     const API_KEY = "N8D9KVEZ9IE2GNURJ8ZGM9H6GWZ5SY8WX4";
-//     const BASE_URL = "https://api-testnet.bttcscan.com/api";
+  //     const API_KEY = "N8D9KVEZ9IE2GNURJ8ZGM9H6GWZ5SY8WX4";
+  //     const BASE_URL = "https://api-testnet.bttcscan.com/api";
 
-//     try {
-//       const accounts = await (web3 as any).eth.getAccounts();
+  //     try {
+  //       const accounts = await (web3 as any).eth.getAccounts();
 
-//       const erc20Response = await fetch(
-//         `${BASE_URL}?module=account&action=tokentx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
-//       );
-//       const erc20Data = await erc20Response.json();
+  //       const erc20Response = await fetch(
+  //         `${BASE_URL}?module=account&action=tokentx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
+  //       );
+  //       const erc20Data = await erc20Response.json();
 
-//       const erc721Response = await fetch(
-//         `${BASE_URL}?module=account&action=tokennfttx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
-//       );
-//       const erc721Data = await erc721Response.json();
+  //       const erc721Response = await fetch(
+  //         `${BASE_URL}?module=account&action=tokennfttx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
+  //       );
+  //       const erc721Data = await erc721Response.json();
 
-//       console.log(erc20Data);
-//       console.log(erc721Data);
+  //       console.log(erc20Data);
+  //       console.log(erc721Data);
 
-//       const erc20Addresses: string[] = [];
-//       for (const tx of erc20Data.result) {
-//         if (!erc20Addresses.includes(tx.contractAddress)) {
-//           erc20Addresses.push(tx.contractAddress);
-//         }
-//       }
+  //       const erc20Addresses: string[] = [];
+  //       for (const tx of erc20Data.result) {
+  //         if (!erc20Addresses.includes(tx.contractAddress)) {
+  //           erc20Addresses.push(tx.contractAddress);
+  //         }
+  //       }
 
-//       const erc721Addresses: string[] = [];
-//       const erc721TokenIds: string[] = [];
-//       for (const tx of erc721Data.result) {
-//         if (!erc721Addresses.includes(tx.contractAddress)) {
-//           erc721Addresses.push(tx.contractAddress);
-//           erc721TokenIds.push(tx.tokenID);
-//         }
-//       }
+  //       const erc721Addresses: string[] = [];
+  //       const erc721TokenIds: string[] = [];
+  //       for (const tx of erc721Data.result) {
+  //         if (!erc721Addresses.includes(tx.contractAddress)) {
+  //           erc721Addresses.push(tx.contractAddress);
+  //           erc721TokenIds.push(tx.tokenID);
+  //         }
+  //       }
 
-//       console.log(erc20Addresses);
-//       console.log(erc721Addresses);
-//       console.log(erc721TokenIds);
+  //       console.log(erc20Addresses);
+  //       console.log(erc721Addresses);
+  //       console.log(erc721TokenIds);
 
-//       const tokenDataRetrieverContract = new web3.eth.Contract(
-//         TokenDataRetrieverABI,
-//         "0x4A8829650B47fA716fdd774956e1418c05284e27"
-//       );
+  //       const tokenDataRetrieverContract = new web3.eth.Contract(
+  //         TokenDataRetrieverABI,
+  //         "0x4A8829650B47fA716fdd774956e1418c05284e27"
+  //       );
 
-//       console.log("data retriever loaded");
+  //       console.log("data retriever loaded");
 
-//       const erc20TokenData = await tokenDataRetrieverContract.methods
-//         .getERC20TokenData(erc20Addresses, accounts[0])
-//         .call();
+  //       const erc20TokenData = await tokenDataRetrieverContract.methods
+  //         .getERC20TokenData(erc20Addresses, accounts[0])
+  //         .call();
 
-//       console.log("erc20 token data fetched");
+  //       console.log("erc20 token data fetched");
 
-//       const erc721TokenData = await tokenDataRetrieverContract.methods
-//         .getERC721TokenData(erc721Addresses, erc721TokenIds, accounts[0])
-//         .call();
+  //       const erc721TokenData = await tokenDataRetrieverContract.methods
+  //         .getERC721TokenData(erc721Addresses, erc721TokenIds, accounts[0])
+  //         .call();
 
-//       console.log("erc721 token data fetched");
+  //       console.log("erc721 token data fetched");
 
-//       const updatedAssets: any[] = [];
-//       const mirroredERC20Addresses: string[] = [];
-//       const mirroredERC721Addresses: string[] = [];
+  //       const updatedAssets: any[] = [];
+  //       const mirroredERC20Addresses: string[] = [];
+  //       const mirroredERC721Addresses: string[] = [];
 
-//       console.log(updatedAssets);
-//       console.log(mirroredERC20Addresses);
-//       console.log(mirroredERC721Addresses);
+  //       console.log(updatedAssets);
+  //       console.log(mirroredERC20Addresses);
+  //       console.log(mirroredERC721Addresses);
 
-//       for (const tokenData of erc20TokenData as any) {
-//         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
-//           mirroredERC20Addresses.push(tokenData.tokenAddress);
-//         } else {
-//           updatedAssets.push({
-//             token: tokenData.name,
-//             tokenAddress: tokenData.tokenAddress,
-//             tokenId: "0",
-//             ticker: tokenData.symbol,
-//             bal: (
-//               parseFloat(tokenData.balance.toString()) /
-//               Math.pow(10, parseInt(tokenData.decimals.toString()))
-//             ).toFixed(3),
-//             vaulted: tokenData.vaulted,
-//             locked: tokenData.locked,
-//             authOptions: [],
-//             vaultAuthOptions: tokenData.vaultAuthOptions,
-//             lockAuthOptions: tokenData.lockAuthOptions,
-//             isERC20: true,
-//           });
-//         }
-//       }
+  //       for (const tokenData of erc20TokenData as any) {
+  //         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
+  //           mirroredERC20Addresses.push(tokenData.tokenAddress);
+  //         } else {
+  //           updatedAssets.push({
+  //             token: tokenData.name,
+  //             tokenAddress: tokenData.tokenAddress,
+  //             tokenId: "0",
+  //             ticker: tokenData.symbol,
+  //             bal: (
+  //               parseFloat(tokenData.balance.toString()) /
+  //               Math.pow(10, parseInt(tokenData.decimals.toString()))
+  //             ).toFixed(3),
+  //             vaulted: tokenData.vaulted,
+  //             locked: tokenData.locked,
+  //             authOptions: [],
+  //             vaultAuthOptions: tokenData.vaultAuthOptions,
+  //             lockAuthOptions: tokenData.lockAuthOptions,
+  //             isERC20: true,
+  //           });
+  //         }
+  //       }
 
-//       for (const tokenData of erc721TokenData as any) {
-//         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
-//           mirroredERC721Addresses.push(tokenData.tokenAddress);
-//         } else {
-//           updatedAssets.push({
-//             token: tokenData.name,
-//             tokenAddress: tokenData.tokenAddress,
-//             tokenId: tokenData.tokenId.toString(),
-//             ticker: tokenData.symbol,
-//             bal: tokenData.balance.toString(),
-//             vaulted: tokenData.vaulted,
-//             locked: tokenData.locked,
-//             authOptions: [],
-//             vaultAuthOptions: tokenData.vaultAuthOptions,
-//             lockAuthOptions: tokenData.lockAuthOptions,
-//             isERC20: false,
-//           });
-//         }
-//       }
+  //       for (const tokenData of erc721TokenData as any) {
+  //         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
+  //           mirroredERC721Addresses.push(tokenData.tokenAddress);
+  //         } else {
+  //           updatedAssets.push({
+  //             token: tokenData.name,
+  //             tokenAddress: tokenData.tokenAddress,
+  //             tokenId: tokenData.tokenId.toString(),
+  //             ticker: tokenData.symbol,
+  //             bal: tokenData.balance.toString(),
+  //             vaulted: tokenData.vaulted,
+  //             locked: tokenData.locked,
+  //             authOptions: [],
+  //             vaultAuthOptions: tokenData.vaultAuthOptions,
+  //             lockAuthOptions: tokenData.lockAuthOptions,
+  //             isERC20: false,
+  //           });
+  //         }
+  //       }
 
-//       if (
-//         mirroredERC20Addresses.length > 0 ||
-//         mirroredERC721Addresses.length > 0
-//       ) {
-//         const mirroredERC20TokenData = await tokenDataRetrieverContract.methods
-//           .getMirroredERC20TokenData(mirroredERC20Addresses, accounts[0])
-//           .call();
+  //       if (
+  //         mirroredERC20Addresses.length > 0 ||
+  //         mirroredERC721Addresses.length > 0
+  //       ) {
+  //         const mirroredERC20TokenData = await tokenDataRetrieverContract.methods
+  //           .getMirroredERC20TokenData(mirroredERC20Addresses, accounts[0])
+  //           .call();
 
-//         const mirroredERC721TokenData = await tokenDataRetrieverContract.methods
-//           .getMirroredERC721TokenData(mirroredERC721Addresses, accounts[0])
-//           .call();
+  //         const mirroredERC721TokenData = await tokenDataRetrieverContract.methods
+  //           .getMirroredERC721TokenData(mirroredERC721Addresses, accounts[0])
+  //           .call();
 
-//         for (const tokenData of mirroredERC20TokenData as any) {
-//           updatedAssets.push({
-//             token: tokenData.name,
-//             tokenAddress: tokenData.tokenAddress,
-//             tokenId: "0",
-//             ticker: tokenData.symbol,
-//             bal: (
-//               parseFloat(tokenData.balance.toString()) /
-//               Math.pow(10, parseInt(tokenData.decimals.toString()))
-//             ).toFixed(3),
-//             vaulted: tokenData.vaulted,
-//             locked: tokenData.locked,
-//             authOptions: [],
-//             vaultAuthOptions: tokenData.vaultAuthOptions,
-//             lockAuthOptions: tokenData.lockAuthOptions,
-//             isERC20: true,
-//           });
-//         }
+  //         for (const tokenData of mirroredERC20TokenData as any) {
+  //           updatedAssets.push({
+  //             token: tokenData.name,
+  //             tokenAddress: tokenData.tokenAddress,
+  //             tokenId: "0",
+  //             ticker: tokenData.symbol,
+  //             bal: (
+  //               parseFloat(tokenData.balance.toString()) /
+  //               Math.pow(10, parseInt(tokenData.decimals.toString()))
+  //             ).toFixed(3),
+  //             vaulted: tokenData.vaulted,
+  //             locked: tokenData.locked,
+  //             authOptions: [],
+  //             vaultAuthOptions: tokenData.vaultAuthOptions,
+  //             lockAuthOptions: tokenData.lockAuthOptions,
+  //             isERC20: true,
+  //           });
+  //         }
 
-//         for (const tokenData of mirroredERC721TokenData as any) {
-//           updatedAssets.push({
-//             token: tokenData.name,
-//             tokenAddress: tokenData.tokenAddress,
-//             tokenId: tokenData.tokenId.toString(),
-//             ticker: tokenData.symbol,
-//             bal: tokenData.balance.toString(),
-//             vaulted: tokenData.vaulted,
-//             locked: tokenData.locked,
-//             authOptions: [],
-//             vaultAuthOptions: tokenData.vaultAuthOptions,
-//             lockAuthOptions: tokenData.lockAuthOptions,
-//             isERC20: false,
-//           });
-//         }
-//       }
+  //         for (const tokenData of mirroredERC721TokenData as any) {
+  //           updatedAssets.push({
+  //             token: tokenData.name,
+  //             tokenAddress: tokenData.tokenAddress,
+  //             tokenId: tokenData.tokenId.toString(),
+  //             ticker: tokenData.symbol,
+  //             bal: tokenData.balance.toString(),
+  //             vaulted: tokenData.vaulted,
+  //             locked: tokenData.locked,
+  //             authOptions: [],
+  //             vaultAuthOptions: tokenData.vaultAuthOptions,
+  //             lockAuthOptions: tokenData.lockAuthOptions,
+  //             isERC20: false,
+  //           });
+  //         }
+  //       }
 
-//       updatedAssets.sort((a, b) => (a.token as any).localeCompare(b.token));
-//       const filteredAssets = updatedAssets.filter(
-//         (asset) => asset.bal !== "0.000" && asset.bal !== "0"
-//       );
+  //       updatedAssets.sort((a, b) => (a.token as any).localeCompare(b.token));
+  //       const filteredAssets = updatedAssets.filter(
+  //         (asset) => asset.bal !== "0.000" && asset.bal !== "0"
+  //       );
 
-//       console.log(filteredAssets);
-//       return filteredAssets;
-//     } catch (error) {
-//       console.error("Error fetching token balances:", error);
-//       return [];
-//     }
-//   };
+  //       console.log(filteredAssets);
+  //       return filteredAssets;
+  //     } catch (error) {
+  //       console.error("Error fetching token balances:", error);
+  //       return [];
+  //     }
+  //   };
 
   const hashSHA256 = async (message: string) => {
     const encoder = new TextEncoder();
@@ -356,6 +439,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         getStorage: getStorageValue,
         web3,
         connectToWeb3,
+        switchChain,
         initializeCoreContract,
         // fetchTokenBalances,
         stringToBigInt,
