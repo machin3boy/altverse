@@ -45,7 +45,17 @@ export default function Modal(
         <div className="flex flex-col h-full">
           <DialogHeader className="px-4 py-2">
             <div className="flex justify-between items-center">
-              <DialogTitle className="text-2xl font-bold">AltVerse</DialogTitle>
+            <DialogTitle 
+  className="relative text-2xl font-black font-semibold tracking-wider text-amber-100
+    drop-shadow-[0_0_15px_rgba(217,119,6,0.3)]
+    py-1"
+>
+  <span className="relative">
+    AltVerse
+    {/* <span className="absolute -top-1 -right-3 w-1.5 h-1.5 bg-amber-600 rounded-full 
+      animate-pulse opacity-75"></span> */}
+  </span>
+</DialogTitle>
               <button
                 onClick={() => handleClose(true)}
                 className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
