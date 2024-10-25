@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import MetamaskLogo from "@/components/ui/metamask-logo";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
+import Chains from "./constants";
+import CeloLogo from "@/components/ui/celo-logo";
+import { format } from "path";
 
 declare global {
   interface Window {
@@ -28,6 +31,9 @@ const Page: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
   const [chainId, setChainId] = useState("");
+
+  const chains = Chains;
+  const [currentChain, setCurrentChain] = useState(chains[0]);
 
   const handleConnectWallet = async () => {
     const isConnected = await connectToWeb3();
@@ -115,6 +121,10 @@ const Page: React.FC = () => {
     setShowModal(false);
   };
 
+  const formatChainId = (chainId: string): string => {
+    return "0x" + parseInt(chainId).toString(16);
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.ethereum) {
       // Listen for account changes
@@ -141,6 +151,15 @@ const Page: React.FC = () => {
     fetchAddress();
   }, [showModal]);
 
+  useEffect(() => {
+    if (chainId) {
+      const chain = chains.find((c) => c.id === formatChainId(chainId));
+      if (chain) {
+        setCurrentChain(chain);
+      }
+    }
+  }, [chainId]);
+
   return (
     <>
       <div className="relative min-h-screen bg-black text-white overflow-hidden flex items-center dark">
@@ -151,7 +170,8 @@ const Page: React.FC = () => {
       </div>
 
       {showModal && (
-        <div className="fixed top-4 right-4 z-[60]">
+        <div className="fixed top-4 right-4 z-[60] flex flex-col space-y-2">
+          {/* Added flex-col and space-y-2 */}
           <div className="inline-flex items-center bg-orange-900/50 hover:bg-orange-800/70 rounded-lg transition-all duration-200 py-1 px-4">
             <div className="flex items-center space-x-2 py-1 px-5">
               <MetamaskLogo
@@ -162,6 +182,20 @@ const Page: React.FC = () => {
               />
               <span className="font-mono font-light text-orange-300 hover:text-orange-200 transition-all duration-200">
                 {address.substring(0, 6)}...{address.substring(38)}
+              </span>
+            </div>
+          </div>
+            <div className={`inline-flex items-center rounded-lg transition-all duration-200 py-1 px-4 
+              ${currentChain.id === '0xaef3' ? 'bg-[#888a2d]/50 hover:bg-[#888a2d]/70' : 'bg-[#7d2324]/50 hover:bg-[#7d2324]/70'}`}>
+            <div className="flex items-center space-x-2 py-1 px-5">
+              {currentChain.logo({
+                className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`, // Use Tailwind color class
+                width: 20,
+                height: 20,
+                fillColor: currentChain.logoFill,
+              })}
+              <span className={`font-mono font-light text-[#FFF] hover:text-[#FFF]  transition-all duration-200`}>
+                {currentChain.name}
               </span>
             </div>
           </div>
