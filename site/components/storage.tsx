@@ -64,12 +64,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         const chainId = await (window as any).ethereum.request({
           method: "eth_chainId",
         });
-        if (chainId !== "0x405") {
+        if (chainId !== "0xaef3" && chainId !== "0xa869") {
           try {
             // Attempt to switch to the desired network
             await (window as any).ethereum.request({
               method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x405" }],
+              params: [{ chainId: "0xaef3" }],
             });
           } catch (switchError) {
             // If the network doesn't exist, add it
@@ -79,15 +79,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
                   method: "wallet_addEthereumChain",
                   params: [
                     {
-                      chainId: "0x405",
-                      chainName: "BitTorrent Chain Donau",
-                      rpcUrls: ["https://pre-rpc.bt.io"],
+                      chainId: "0xaef3",
+                      chainName: "Celo Alfajores Testnet",
+                      rpcUrls: ["https://alfajores-forno.celo-testnet.org"],
                       nativeCurrency: {
-                        name: "BTT",
-                        symbol: "BTT",
+                        name: "CELO",
+                        symbol: "CELO",
                         decimals: 18,
                       },
-                      blockExplorerUrls: ["https://testscan.bt.io"],
+                      blockExplorerUrls: ["https://alfajores.celoscan.io"],
                     },
                   ],
                 });
