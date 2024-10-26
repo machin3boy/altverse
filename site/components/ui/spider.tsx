@@ -139,7 +139,7 @@ export default function Spider({ className }: { className?: string }) {
         gradientStopColor="#D97706"
         startYOffset={10}
         endYOffset={10}
-        curvature={-20}
+        curvature={-15}
         duration={7}
         delay={1.2}
         pathColor="rgba(64,64,64,1)"
@@ -154,7 +154,7 @@ export default function Spider({ className }: { className?: string }) {
         gradientStopColor="#0284C7"
         startYOffset={-10}
         endYOffset={-10}
-        curvature={20}
+        curvature={15}
         reverse
         duration={7}
         delay={1.5}
