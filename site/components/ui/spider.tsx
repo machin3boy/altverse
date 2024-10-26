@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { AnimatedBeam } from "@/components/magicui/animated-beam";
-import * as THREE from "three";
 
 const Circle = React.forwardRef<
   HTMLDivElement,
@@ -32,80 +31,6 @@ export default function Spider({ className }: { className?: string }) {
   const output1Ref = useRef<HTMLDivElement>(null);
   const output2Ref = useRef<HTMLDivElement>(null);
   const output3Ref = useRef<HTMLDivElement>(null);
-  const torusRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (torusRef.current) {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-      const renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: true,
-      });
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(210, 210);
-
-      torusRef.current.appendChild(renderer.domElement);
-
-      const geometry = new THREE.TorusGeometry(4.2, 1.4, 100, 100);
-
-      // Create a higher resolution grid texture with thicker, brighter lines
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const size = 512;
-      canvas.width = canvas.height = size;
-      if (ctx) {
-        ctx.fillStyle = "#000000"; // Black background
-        ctx.fillRect(0, 0, size, size);
-        ctx.strokeStyle = "#F59E0B"; // Bright orange
-        ctx.lineWidth = 8; // Thicker lines
-        const gridSize = 64;
-        for (let i = 0; i <= size; i += gridSize) {
-          ctx.moveTo(i, 0);
-          ctx.lineTo(i, size);
-          ctx.moveTo(0, i);
-          ctx.lineTo(size, i);
-        }
-        ctx.stroke();
-      }
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(8, 2);
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-      // Use MeshBasicMaterial for a non-shiny appearance
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-      });
-
-      const torus = new THREE.Mesh(geometry, material);
-      scene.add(torus);
-
-      // Simplify lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-      scene.add(ambientLight);
-
-      torus.rotation.y = Math.PI / 3;
-      torus.rotation.x = Math.PI;
-
-      camera.position.z = 15;
-
-      const animate = () => {
-        requestAnimationFrame(animate);
-        torus.rotation.z += Math.PI / 16 / 120;
-        renderer.render(scene, camera);
-      };
-
-      animate();
-
-      return () => {
-        if (torusRef.current) {
-          torusRef.current.removeChild(renderer.domElement);
-        }
-      };
-    }
-  }, []);
 
   return (
     <div
@@ -136,13 +61,6 @@ export default function Spider({ className }: { className?: string }) {
           <Circle ref={leftBidirectionalRef}>
             <img src="/images/tokens/branded/ALT.svg" />
           </Circle>
-        </div>
-        <div className="flex items-center justify-center">
-          <div
-            ref={torusRef}
-            className="absolute"
-            style={{ width: "210px", height: "210px" }}
-          />
         </div>
         <div className="flex items-center">
           <Circle
