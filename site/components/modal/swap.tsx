@@ -9,28 +9,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useStorage } from "../storage";
+import web3 from "web3";
 
 const tokens = [
-  { symbol: "ALT ", icon: "A" },
-  { symbol: "USDC", icon: "$" },
-  { symbol: "wBTC", icon: "₿" },
-  { symbol: "wETH", icon: "Ξ" },
-  { symbol: "wLNK", icon: "⬡" },
+  { symbol: "ALT", icon: "A", address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B" },
+  { symbol: "USDC", icon: "$" , address: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"},
+  { symbol: "wBTC", icon: "₿", address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36" },
+  { symbol: "wETH", icon: "Ξ", address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9" },
+  { symbol: "wLINK", icon: "⬡", address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb" },
 ];
 
 const chains = [
-  { name: "Celo Testnet", id: "celo" },
-  { name: "Fuji Testnet", id: "fuji" },
+  { name: "Celo Testnet", id: "celo", chainId: 43113 },
+  { name: "Fuji Testnet", id: "fuji", chainId: 44787 },
 ];
 
 export default function Swap() {
-  const [swapFromToken, setSwapFromToken] = useState("ALT ");
+  const [swapFromToken, setSwapFromToken] = useState("ALT");
   const [swapToToken, setSwapToToken] = useState("wBTC");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
+  const [targetChain, setTargetChain] = useState("Celo Testnet");
+  const { initiateCrossChainSwap, calculateCrossChainAmount } = useStorage();
 
-  const handleAmountChange = (e: any) => {
+  const handleAmountChange = async (e: any) => {
+    debugger;
     const value = e.target.value;
+    const result = await calculateCrossChainAmount({
+      fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+      toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+      amountIn: web3.utils.toWei(amount, "ether"),
+      targetChain: chains.find((c) => c.id === targetChain)?.chainId || -1,
+    });
 
     // Handle empty input case
     if (value === "") {
@@ -183,16 +194,17 @@ export default function Swap() {
           </div>
         </div>
       </div>
-      <Select>
+      <Select onValueChange={setTargetChain} value={targetChain}>
         <SelectTrigger className="border-2 border-gray-700 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-transparent">
           <SelectValue placeholder="Select destination chain" />
         </SelectTrigger>
-        <SelectContent className="bg-black text-white border-amber-500/20 border-2">
+        <SelectContent className="bg-black text-white border-amber-500/20 border-2" >
           {chains.map((chain) => (
             <SelectItem
               key={chain.id}
               value={chain.id}
               className="font-semibold data-[highlighted]:bg-amber-500 data-[highlighted]:text-white"
+            
             >
               {chain.name}
             </SelectItem>
