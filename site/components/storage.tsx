@@ -16,7 +16,8 @@ interface StorageContextProps {
   connectToWeb3: () => Promise<boolean>;
   switchChain: () => Promise<boolean>;
   initializeCoreContract: () => any | undefined | null;
-  //   fetchTokenBalances: (address: string) => Promise<any[] | undefined>;
+  fetchTokenBalances: (address: string) => Promise<any[] | undefined>;
+  requestTokenFromFaucet: (tokenSymbol: string) => Promise<boolean>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
   splitTo24: (str: string) => string[];
@@ -30,11 +31,48 @@ const StorageContext = createContext<StorageContextProps>({
   connectToWeb3: async () => true || false,
   switchChain: async () => true || false,
   initializeCoreContract: async () => {},
-  //   fetchTokenBalances: async () => [],
+  fetchTokenBalances: async () => [],
+  requestTokenFromFaucet: async () => true || false,
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
   splitTo24: () => ["", ""],
 });
+
+interface TokenBalance {
+  symbol: string;
+  balance: string;
+  rawBalance: bigint;
+  address: string;
+}
+
+interface TokenConfig {
+  address: string;
+  symbol: string;
+  abi: AbiItem[];
+}
+
+const tokens: TokenConfig[] = [
+  {
+    address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+    symbol: "ALT",
+    abi: coreContractABI as AbiItem[]
+  },
+  {
+    address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
+    symbol: "wBTC",
+    abi: FaucetERC20ABI as AbiItem[]
+  },
+  {
+    address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
+    symbol: "wETH",
+    abi: FaucetERC20ABI as AbiItem[]
+  },
+  {
+    address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
+    symbol: "wLINK",
+    abi: FaucetERC20ABI as AbiItem[]
+  }
+];
 
 export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -216,180 +254,165 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  //   const fetchTokenBalances = async (address: string) => {
-  //     if (!web3) {
-  //       return;
-  //     }
+  const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return;
+    }
+  
+    try {
+      const tokens = [
+        { 
+          address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+          symbol: "ALT"
+        },
+        { 
+          address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
+          symbol: "wBTC"
+        },
+        { 
+          address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
+          symbol: "wETH"
+        },
+        { 
+          address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
+          symbol: "wLINK"
+        }
+      ];
+  
+      // Get native token balance with BigInt conversion
+      const nativeBalance = await web3.eth.getBalance(address);
+      const chainId = await web3.eth.getChainId();
+      
+      // Convert native balance to BigInt for consistent handling
+      const nativeBigInt = BigInt(nativeBalance);
+      
+      // Format native balance with proper decimal handling
+      const formattedNativeBalance = parseFloat(web3.utils.fromWei(nativeBalance, 'ether'))
+        .toFixed(18)  // Use 18 decimals for consistency
+        .replace(/\.?0+$/, ''); // Remove trailing zeros
+  
+      // Initialize balances array with native token
+      const balances: TokenBalance[] = [{
+        symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
+        balance: formattedNativeBalance,
+        rawBalance: nativeBigInt,
+        address: "0x0000000000000000000000000000000000000000"
+      }];
+  
+      // Fetch ERC20 token balances in parallel
+      const tokenPromises = tokens.map(async (token) => {
+        try {
+          const contract = new web3.eth.Contract(
+            ERC20ABI as AbiItem[],
+            token.address
+          );
+          
+          // Get balance and decimals with proper typing
+          const balance = await contract.methods.balanceOf(address).call() as string;
+          const decimals = await contract.methods.decimals().call() as string;
+  
+          // Convert balance to BigInt
+          const balanceBigInt = BigInt(balance);
+  
+          // Determine the correct unit based on decimals
+          let unit: 'ether' | 'mwei' | 'gwei';
+          switch(decimals) {
+            case '6':
+              unit = 'mwei';
+              break;
+            case '8':
+              unit = 'gwei';
+              break;
+            default:
+              unit = 'ether';
+          }
+  
+          // Format the balance with proper decimal handling
+          const formattedBalance = parseFloat(web3.utils.fromWei(balance, unit))
+            .toFixed(Number(decimals))  // Use token's decimals
+            .replace(/\.?0+$/, ''); // Remove trailing zeros
+  
+          return {
+            symbol: token.symbol,
+            balance: formattedBalance,
+            rawBalance: balanceBigInt,
+            address: token.address
+          };
+        } catch (error) {
+          console.error(`Error fetching balance for token ${token.symbol}:`, error);
+          toast.error(`Failed to fetch ${token.symbol} balance`);
+          return null;
+        }
+      });
+  
+      const tokenBalances = await Promise.all(tokenPromises);
+      
+      const validBalances = balances.concat(
+        tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
+      );
+  
+      return validBalances;
+  
+    } catch (error) {
+      console.error("Error fetching token balances:", error);
+      toast.error("Failed to fetch token balances");
+      return undefined;
+    }
+  };
 
-  //     const API_KEY = "N8D9KVEZ9IE2GNURJ8ZGM9H6GWZ5SY8WX4";
-  //     const BASE_URL = "https://api-testnet.bttcscan.com/api";
+  const requestTokenFromFaucet = async (tokenSymbol: string): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return false;
+    }
 
-  //     try {
-  //       const accounts = await (web3 as any).eth.getAccounts();
+    const loadingToastId = `faucet-${tokenSymbol}-${Date.now()}`;
+  
+    try {
+      // Get user's address
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
+  
+      // Find the token configuration
+      const token = tokens.find(t => t.symbol === tokenSymbol);
+      if (!token) {
+        toast.error("Invalid token symbol");
+        return false;
+      }
+  
+      // Create contract instance
+      const contract = new web3.eth.Contract(token.abi, token.address);
+  
+      // Call faucet function
+      toast.loading(`Requesting ${tokenSymbol} from faucet...`, {
+        id: loadingToastId,
+        duration: 20000 // Max duration of 20 seconds
+      });
+      
+      const tx = await contract.methods.faucet().send({
+        from: accounts[0],
+      });
 
-  //       const erc20Response = await fetch(
-  //         `${BASE_URL}?module=account&action=tokentx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
-  //       );
-  //       const erc20Data = await erc20Response.json();
-
-  //       const erc721Response = await fetch(
-  //         `${BASE_URL}?module=account&action=tokennfttx&address=${accounts[0]}&page=1&offset=100&sort=asc&apikey=${API_KEY}`
-  //       );
-  //       const erc721Data = await erc721Response.json();
-
-  //       console.log(erc20Data);
-  //       console.log(erc721Data);
-
-  //       const erc20Addresses: string[] = [];
-  //       for (const tx of erc20Data.result) {
-  //         if (!erc20Addresses.includes(tx.contractAddress)) {
-  //           erc20Addresses.push(tx.contractAddress);
-  //         }
-  //       }
-
-  //       const erc721Addresses: string[] = [];
-  //       const erc721TokenIds: string[] = [];
-  //       for (const tx of erc721Data.result) {
-  //         if (!erc721Addresses.includes(tx.contractAddress)) {
-  //           erc721Addresses.push(tx.contractAddress);
-  //           erc721TokenIds.push(tx.tokenID);
-  //         }
-  //       }
-
-  //       console.log(erc20Addresses);
-  //       console.log(erc721Addresses);
-  //       console.log(erc721TokenIds);
-
-  //       const tokenDataRetrieverContract = new web3.eth.Contract(
-  //         TokenDataRetrieverABI,
-  //         "0x4A8829650B47fA716fdd774956e1418c05284e27"
-  //       );
-
-  //       console.log("data retriever loaded");
-
-  //       const erc20TokenData = await tokenDataRetrieverContract.methods
-  //         .getERC20TokenData(erc20Addresses, accounts[0])
-  //         .call();
-
-  //       console.log("erc20 token data fetched");
-
-  //       const erc721TokenData = await tokenDataRetrieverContract.methods
-  //         .getERC721TokenData(erc721Addresses, erc721TokenIds, accounts[0])
-  //         .call();
-
-  //       console.log("erc721 token data fetched");
-
-  //       const updatedAssets: any[] = [];
-  //       const mirroredERC20Addresses: string[] = [];
-  //       const mirroredERC721Addresses: string[] = [];
-
-  //       console.log(updatedAssets);
-  //       console.log(mirroredERC20Addresses);
-  //       console.log(mirroredERC721Addresses);
-
-  //       for (const tokenData of erc20TokenData as any) {
-  //         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
-  //           mirroredERC20Addresses.push(tokenData.tokenAddress);
-  //         } else {
-  //           updatedAssets.push({
-  //             token: tokenData.name,
-  //             tokenAddress: tokenData.tokenAddress,
-  //             tokenId: "0",
-  //             ticker: tokenData.symbol,
-  //             bal: (
-  //               parseFloat(tokenData.balance.toString()) /
-  //               Math.pow(10, parseInt(tokenData.decimals.toString()))
-  //             ).toFixed(3),
-  //             vaulted: tokenData.vaulted,
-  //             locked: tokenData.locked,
-  //             authOptions: [],
-  //             vaultAuthOptions: tokenData.vaultAuthOptions,
-  //             lockAuthOptions: tokenData.lockAuthOptions,
-  //             isERC20: true,
-  //           });
-  //         }
-  //       }
-
-  //       for (const tokenData of erc721TokenData as any) {
-  //         if (tokenData.name.toLowerCase().startsWith("mirrored ")) {
-  //           mirroredERC721Addresses.push(tokenData.tokenAddress);
-  //         } else {
-  //           updatedAssets.push({
-  //             token: tokenData.name,
-  //             tokenAddress: tokenData.tokenAddress,
-  //             tokenId: tokenData.tokenId.toString(),
-  //             ticker: tokenData.symbol,
-  //             bal: tokenData.balance.toString(),
-  //             vaulted: tokenData.vaulted,
-  //             locked: tokenData.locked,
-  //             authOptions: [],
-  //             vaultAuthOptions: tokenData.vaultAuthOptions,
-  //             lockAuthOptions: tokenData.lockAuthOptions,
-  //             isERC20: false,
-  //           });
-  //         }
-  //       }
-
-  //       if (
-  //         mirroredERC20Addresses.length > 0 ||
-  //         mirroredERC721Addresses.length > 0
-  //       ) {
-  //         const mirroredERC20TokenData = await tokenDataRetrieverContract.methods
-  //           .getMirroredERC20TokenData(mirroredERC20Addresses, accounts[0])
-  //           .call();
-
-  //         const mirroredERC721TokenData = await tokenDataRetrieverContract.methods
-  //           .getMirroredERC721TokenData(mirroredERC721Addresses, accounts[0])
-  //           .call();
-
-  //         for (const tokenData of mirroredERC20TokenData as any) {
-  //           updatedAssets.push({
-  //             token: tokenData.name,
-  //             tokenAddress: tokenData.tokenAddress,
-  //             tokenId: "0",
-  //             ticker: tokenData.symbol,
-  //             bal: (
-  //               parseFloat(tokenData.balance.toString()) /
-  //               Math.pow(10, parseInt(tokenData.decimals.toString()))
-  //             ).toFixed(3),
-  //             vaulted: tokenData.vaulted,
-  //             locked: tokenData.locked,
-  //             authOptions: [],
-  //             vaultAuthOptions: tokenData.vaultAuthOptions,
-  //             lockAuthOptions: tokenData.lockAuthOptions,
-  //             isERC20: true,
-  //           });
-  //         }
-
-  //         for (const tokenData of mirroredERC721TokenData as any) {
-  //           updatedAssets.push({
-  //             token: tokenData.name,
-  //             tokenAddress: tokenData.tokenAddress,
-  //             tokenId: tokenData.tokenId.toString(),
-  //             ticker: tokenData.symbol,
-  //             bal: tokenData.balance.toString(),
-  //             vaulted: tokenData.vaulted,
-  //             locked: tokenData.locked,
-  //             authOptions: [],
-  //             vaultAuthOptions: tokenData.vaultAuthOptions,
-  //             lockAuthOptions: tokenData.lockAuthOptions,
-  //             isERC20: false,
-  //           });
-  //         }
-  //       }
-
-  //       updatedAssets.sort((a, b) => (a.token as any).localeCompare(b.token));
-  //       const filteredAssets = updatedAssets.filter(
-  //         (asset) => asset.bal !== "0.000" && asset.bal !== "0"
-  //       );
-
-  //       console.log(filteredAssets);
-  //       return filteredAssets;
-  //     } catch (error) {
-  //       console.error("Error fetching token balances:", error);
-  //       return [];
-  //     }
-  //   };
+      toast.dismiss(loadingToastId);
+  
+      if (tx.status) {
+        toast.success(`Successfully received ${tokenSymbol} from faucet!`);
+        return true;
+      } else {
+        toast.error(`Failed to receive ${tokenSymbol} from faucet`);
+        return false;
+      }
+  
+    } catch (error) {
+      console.error(`Error requesting ${tokenSymbol} from faucet:`, error);
+      toast.error(`Failed to request ${tokenSymbol}: ${(error as Error).message}`);
+      return false;
+    }
+  };
 
   const hashSHA256 = async (message: string) => {
     const encoder = new TextEncoder();
@@ -441,7 +464,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         connectToWeb3,
         switchChain,
         initializeCoreContract,
-        // fetchTokenBalances,
+        fetchTokenBalances,
+        requestTokenFromFaucet,
         stringToBigInt,
         bigIntToString,
         splitTo24,
