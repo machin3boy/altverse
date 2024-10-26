@@ -19,22 +19,21 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
         flex flex-col items-center justify-center
         bg-neutral-900 text-neutral-400
         w-full aspect-square rounded-lg
-        transition-all duration-300 ease-in-out
-        hover:shadow-lg group
         border-2 ${hoverBorderColor}
         ${hoverTextColor}
+        transition-all duration-200 ease-in-out
+        hover:shadow-lg group
       `}
     >
       <div className="flex items-center justify-center w-16 h-16 mb-2">
         <Icon
-        //   fill="currentColor"
           fillColor="currentColor"
           width={48}
           height={48}
-          className="transition-colors duration-300 ease-in-out text-neutral-400 group-hover:text-current"
+          className="text-neutral-400 group-hover:text-current"
         />
       </div>
-      <span className="font-medium transition-colors duration-300 ease-in-out group-hover:text-current">
+      <span className="font-medium text-neutral-400 group-hover:text-current">
         Request {name}
       </span>
     </button>
