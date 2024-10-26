@@ -255,7 +255,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
-    debugger;
     if (!web3) {
       toast.error("Web3 not initialized");
       return;
@@ -363,7 +362,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const requestTokenFromFaucet = async (tokenSymbol: string): Promise<boolean> => {
-    debugger;
     if (!web3) {
       toast.error("Web3 not initialized");
       return false;
