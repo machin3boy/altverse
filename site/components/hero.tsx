@@ -100,7 +100,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             background={
               <div className="absolute inset-0 overflow-hidden transition-all duration-200 ease-out group-hover:scale-105">
                 <div className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 flex items-center justify-center">
-                  <div className="relative w-full h-full opacity-0 transition-opacity duration-[200ms] ease-in" style={{ opacity: `${opacity}%` }}>
+                  <div className="relative w-full h-full opacity-0 transition-opacity duration-200 ease-in" style={{ opacity: `${opacity}%` }}>
                     <Globe
                       className="
                         scale-[0.805] translate-x-[25%] translate-y-[20%]
