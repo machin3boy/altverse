@@ -3,18 +3,21 @@ import ZeroLogo from '../ui/alt-logo';
 import BitcoinLogo from '../ui/bitcoin-logo';
 import EthLogo from '../ui/eth-logo';
 import ChainlinkLogo from '../ui/chainlink-logo';
+import { useStorage } from '../storage';
 
 interface CryptoButtonProps {
   name: string;
   Icon: any;
   hoverColor: string;
+  onRequest: () => Promise<void>;
 }
 
-const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) => {
+const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor, onRequest }) => {
   const [hoverTextColor, hoverBorderColor] = hoverColor.split(' ');
   
   return (
     <button
+      onClick={onRequest}
       className={`
         flex flex-col items-center justify-center
         bg-neutral-900 text-neutral-400
@@ -41,17 +44,27 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({ name, Icon, hoverColor }) =
 };
 
 const Faucet: React.FC = () => {
+  const { requestTokenFromFaucet } = useStorage();
+
   const cryptos = [
     { name: 'ALT', Icon: ZeroLogo, hoverColor: 'hover:text-amber-400 hover:border-amber-400' },
-    { name: 'BTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
-    { name: 'LINK', Icon: ChainlinkLogo, hoverColor: 'hover:text-blue-500 hover:border-blue-500' },
-    { name: 'ETH', Icon: EthLogo, hoverColor: 'hover:text-indigo-300 hover:border-indigo-300' },
+    { name: 'wBTC', Icon: BitcoinLogo, hoverColor: 'hover:text-amber-500 hover:border-amber-500' },
+    { name: 'wLINK', Icon: ChainlinkLogo, hoverColor: 'hover:text-blue-500 hover:border-blue-500' },
+    { name: 'wETH', Icon: EthLogo, hoverColor: 'hover:text-indigo-300 hover:border-indigo-300' },
   ];
+
+  const handleRequest = async (tokenName: string) => {
+    await requestTokenFromFaucet(tokenName);
+  };
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl mt-8">
       {cryptos.map((crypto, index) => (
-        <CryptoButton key={index} {...crypto} />
+        <CryptoButton 
+          key={index} 
+          {...crypto} 
+          onRequest={() => handleRequest(crypto.name)}
+        />
       ))}
     </div>
   );
