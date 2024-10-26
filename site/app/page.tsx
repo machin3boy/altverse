@@ -35,8 +35,15 @@ declare global {
 }
 
 const Page: React.FC = () => {
-  const { web3, connectToWeb3, getStorage, setStorage, switchChain, fetchTokenBalances, requestTokenFromFaucet } =
-    useStorage();
+  const {
+    web3,
+    connectToWeb3,
+    getStorage,
+    setStorage,
+    switchChain,
+    fetchTokenBalances,
+    requestTokenFromFaucet,
+  } = useStorage();
   const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
   const [chainId, setChainId] = useState("");
@@ -183,37 +190,53 @@ const Page: React.FC = () => {
 
       {showModal && (
         <div className="fixed top-4 right-4 z-[60] flex flex-col space-y-2">
-          {/* Added flex-col and space-y-2 */}
-          <div className="inline-flex items-center bg-orange-900/50 hover:bg-orange-800/70 rounded-lg transition-all duration-200 py-1 px-4">
-            <div className="flex items-center space-x-2 py-1 px-5">
-              <MetamaskLogo
-                className="text-sky-500 bg-transparent fill-transparent stroke-orange-500"
-                width={1}
-                height={1}
-                fillColor="orange-500"
-              />
+          {/* Metamask Address Button */}
+          <div className="inline-flex items-center bg-orange-900/50 hover:bg-orange-800/70 rounded-lg transition-all duration-200 h-10">
+            {" "}
+            {/* Added fixed height */}
+            <div className="flex items-center space-x-3 px-4">
+              {" "}
+              {/* Standardized padding */}
+              <div className="w-5 h-5 flex items-center justify-center">
+                {" "}
+                {/* Fixed size container for icon */}
+                <MetamaskLogo
+                  className="text-sky-500 bg-transparent fill-transparent stroke-orange-500"
+                  width={20}
+                  height={20}
+                  fillColor="orange-500"
+                />
+              </div>
               <span className="font-mono font-light text-orange-300 hover:text-orange-200 transition-all duration-200">
                 {address.substring(0, 6)}...{address.substring(38)}
               </span>
             </div>
           </div>
+
+          {/* Chain Selection Button */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <div
-                className={`inline-flex items-center rounded-lg transition-all duration-200 py-1 px-4 cursor-pointer
-        ${
-          currentChain.id === "0xaef3"
-            ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
-            : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
-        }`}
+                className={`inline-flex items-center rounded-lg transition-all duration-200 h-10 cursor-pointer
+            ${
+              currentChain.id === "0xaef3"
+                ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
+                : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
+            }`}
               >
-                <div className="flex items-center space-x-2 py-1 px-5">
-                  {currentChain.logo({
-                    className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`,
-                    width: 20,
-                    height: 20,
-                    fillColor: currentChain.logoFill,
-                  })}
+                <div className="flex items-center space-x-3 px-4">
+                  {" "}
+                  {/* Matched padding with above */}
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    {" "}
+                    {/* Fixed size container for icon */}
+                    {currentChain.logo({
+                      className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`,
+                      width: 20,
+                      height: 20,
+                      fillColor: currentChain.logoFill,
+                    })}
+                  </div>
                   <span className="font-mono font-light text-[#FFF] hover:text-[#FFF] transition-all duration-200">
                     {currentChain.name}
                   </span>
@@ -227,7 +250,8 @@ const Page: React.FC = () => {
                   Do you want to swap chain to {otherChain?.name}?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="flex dark">
-                  The network will be added to your wallet if not already present.
+                  The network will be added to your wallet if not already
+                  present.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex justify-end mt-8">
