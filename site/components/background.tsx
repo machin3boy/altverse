@@ -73,7 +73,7 @@ const Tunnel: React.FC<{}> = ({}) => {
     if (!containerRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.4);
+    scene.fog = new THREE.FogExp2(0x000000, 0.285);
 
     const camera = new THREE.PerspectiveCamera(
       75,
