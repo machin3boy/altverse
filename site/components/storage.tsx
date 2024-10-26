@@ -408,6 +408,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       }
   
     } catch (error) {
+      toast.dismiss(loadingToastId);
       console.error(`Error requesting ${tokenSymbol} from faucet:`, error);
       toast.error(`Failed to request ${tokenSymbol}: ${(error as Error).message}`);
       return false;
