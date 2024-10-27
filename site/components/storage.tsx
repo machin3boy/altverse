@@ -22,7 +22,6 @@ interface StorageContextProps {
   calculateCrossChainAmount: (params: CrossChainAmountParams) => Promise<CrossChainAmountResult | undefined>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
-  splitTo24: (str: string) => string[];
 }
 
 const StorageContext = createContext<StorageContextProps>({
@@ -39,7 +38,6 @@ const StorageContext = createContext<StorageContextProps>({
   calculateCrossChainAmount: async () => undefined,
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
-  splitTo24: () => ["", ""],
 });
 
 interface TokenBalance {
@@ -752,15 +750,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.error(`Failed to add liquidity: ${(error as Error).message}`);
       return false;
     }
-  };
-
-  const hashSHA256 = async (message: string) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(message);
-    const hash = await window.crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(hash))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
   };
 
   const stringToBigInt = (str = "") => {

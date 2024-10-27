@@ -13,11 +13,31 @@ import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 
 const tokens = [
-  { symbol: "ALT", icon: "A", address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B" },
-  { symbol: "USDC", icon: "$" , address: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"},
-  { symbol: "wBTC", icon: "₿", address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36" },
-  { symbol: "wETH", icon: "Ξ", address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9" },
-  { symbol: "wLINK", icon: "⬡", address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb" },
+  {
+    symbol: "ALT",
+    icon: "A",
+    address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+  },
+  {
+    symbol: "USDC",
+    icon: "$",
+    address: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B",
+  },
+  {
+    symbol: "wBTC",
+    icon: "₿",
+    address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
+  },
+  {
+    symbol: "wETH",
+    icon: "Ξ",
+    address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
+  },
+  {
+    symbol: "wLINK",
+    icon: "⬡",
+    address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
+  },
 ];
 
 const chains = [
@@ -168,15 +188,8 @@ export default function Swap() {
 
   return (
     <>
-      <div className="relative rounded-lg">
-        <BorderBeam
-          borderWidth={2}
-          size={350}
-          duration={10}
-          colorFrom="#F59E0B"
-          colorTo="#1C1205"
-        />
-        <div className="bg-secondary p-4 rounded-lg space-y-6">
+      <div className="relative rounded-lg border-amber-500/50">
+        <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-mono font-bold">You pay</span>
@@ -205,7 +218,7 @@ export default function Swap() {
                 }}
               />
               <Select value={swapFromToken} onValueChange={setSwapFromToken}>
-                <SelectTrigger className="w-[120px] border-2 border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
+                <SelectTrigger className="w-[120px]  border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
                   <SelectValue>
                     <div className="flex items-center">
                       <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -217,7 +230,7 @@ export default function Swap() {
                     </div>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-black text-white border-amber-500/20 border-2">
+                <SelectContent className="bg-black text-white border-amber-500/20 ">
                   {tokens.map((token) => (
                     <SelectItem
                       key={token.symbol}
@@ -259,7 +272,7 @@ export default function Swap() {
         readOnly
       />
               <Select value={swapToToken} onValueChange={setSwapToToken}>
-                <SelectTrigger className="w-[120px] border-2 border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
+                <SelectTrigger className="w-[120px]  border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
                   <SelectValue>
                     <div className="flex items-center">
                       <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -271,7 +284,7 @@ export default function Swap() {
                     </div>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-black text-white border-amber-500/20 border-2">
+                <SelectContent className="bg-black text-white border-amber-500/20 ">
                   {tokens.map((token) => (
                     <SelectItem
                       key={token.symbol}
@@ -294,49 +307,53 @@ export default function Swap() {
           </div>
         </div>
       </div>
-      <Select 
-        value={destinationChain.id} 
-        disabled // Since there's only one option, we can disable it
-      >
-        <SelectTrigger className="border-2 border-gray-700 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-transparent">
-          <SelectValue>{destinationChain.name}</SelectValue>
+      <Select value={targetChain} onValueChange={setTargetChain}>
+        <SelectTrigger className="w-full font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 text-white">
+          <SelectValue
+            placeholder="Select destination chain"
+            className="placeholder:text-white"
+          />
         </SelectTrigger>
-        <SelectContent className="bg-black text-white border-amber-500/20 border-2">
-          <SelectItem
-            value={destinationChain.id}
-            className="font-semibold data-[highlighted]:bg-amber-500 data-[highlighted]:text-white"
-          >
-            {destinationChain.name}
-          </SelectItem>
+        <SelectContent className="bg-black text-white border-amber-500/20">
+          {chains.map((chain) => (
+            <SelectItem
+              key={chain.id}
+              value={chain.id}
+              className="font-semibold data-[highlighted]:bg-amber-500 data-[highlighted]:text-white"
+            >
+              {chain.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
-      <Button 
-  className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
-    hover:from-amber-800 hover:to-amber-700
-    active:from-amber-950 active:to-amber-900
-    border border-amber-500/20 hover:border-amber-500/40
-    text-amber-200 hover:text-amber-100
-    shadow-lg hover:shadow-amber-900/20
-    transition-all duration-200
-    font-semibold
-    py-2.5
-    rounded-lg
-    relative
-    overflow-hidden
-    group
-    active:ring-amber-500/20
-    before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-    before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-    before:blur-md"
->
-  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-  <div className="relative w-full px-8">
-    <div className="flex justify-center items-center">
-      <span className="tracking-wide">Swap</span>
-      <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">⇆</span>
-    </div>
-  </div>
-</Button>
+      <Button
+        className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
+          hover:from-amber-800 hover:to-amber-700
+          active:from-amber-950 active:to-amber-900
+           border-amber-500/20 hover:border-amber-500/40
+          text-white hover:text-amber-100
+          shadow-lg hover:shadow-amber-900/20
+          transition-all duration-200
+          font-semibold
+          py-2.5
+          relative
+          overflow-hidden
+          group
+          active:ring-amber-500/20
+          before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
+          before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
+          before:blur-md"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        <div className="relative w-full px-8">
+          <div className="flex justify-center items-center">
+            <span className="tracking-wide">Swap</span>
+            <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
+              ⇆
+            </span>
+          </div>
+        </div>
+      </Button>
     </>
   );
 }
