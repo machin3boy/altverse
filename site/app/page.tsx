@@ -279,7 +279,7 @@ const Page: React.FC = () => {
         </div>
       )}
 
-      {showModal && <Modal isOpen={true} onClose={handleCloseModal} />}
+      {showModal && <Modal isOpen={true} onClose={handleCloseModal} chain={currentChain}/>}
     </>
   );
 };
