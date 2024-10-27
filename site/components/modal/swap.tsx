@@ -272,7 +272,7 @@ export default function Swap() {
                   readOnly
                 />
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
-                  <SelectTrigger className="w-[120px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
+                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
                       <div className="flex items-center">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -284,12 +284,12 @@ export default function Swap() {
                       </div>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-black text-white border-amber-500/20">
+                  <SelectContent className="bg-black text-white border-sky-500/20">
                     {tokens.map((token) => (
                       <SelectItem
                         key={token.symbol}
                         value={token.symbol}
-                        className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
+                        className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
                       >
                         <div className="flex items-center">
                           <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
