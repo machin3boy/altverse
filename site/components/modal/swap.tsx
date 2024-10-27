@@ -192,7 +192,7 @@ export default function Swap() {
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-mono font-bold">You pay</span>
+                <span className="text-md font-mono font-semibold text-amber-500">You Pay</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -252,7 +252,7 @@ export default function Swap() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-sm font-mono font-bold">You receive</span>
+              <span className="text-md font-mono font-semibold text-sky-500">You Receive</span>
               <div className="flex items-center space-x-2">
                 <Input
                   type="text"

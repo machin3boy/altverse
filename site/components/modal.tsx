@@ -26,7 +26,11 @@ interface ModalProps {
 }
 
 export default function Modal(
-  { isOpen, onClose, chain }: ModalProps = { isOpen: true, onClose: () => {} , chain: Chains[0] }
+  { isOpen, onClose, chain }: ModalProps = {
+    isOpen: true,
+    onClose: () => {},
+    chain: Chains[0],
+  }
 ) {
   const [activeTab, setActiveTab] = useState("swap");
 
@@ -39,29 +43,27 @@ export default function Modal(
     <Dialog open={isOpen} onOpenChange={handleClose} modal={false}>
       <DialogContent className="sm:max-w-[425px] bg-background text-foreground border-2 border-amber-500 h-[600px] p-0 overflow-hidden dark">
         <div className="flex flex-col h-full">
-        <DialogHeader className="px-4 py-2">
-  <div className="flex justify-between items-center">
-    <DialogTitle
-      className="relative text-2xl font-semibold tracking-wider text-white
+          <DialogHeader className="px-4 py-2">
+            <div className="flex justify-between items-center">
+              <DialogTitle
+                className="relative text-2xl font-semibold tracking-wider text-white
         drop-shadow-[0_0_15px_rgba(217,119,6,0.3)]"
-    >
-      <span className="relative">
-        AltVerse
-      </span>
-    </DialogTitle>
-    <button
-      onClick={() => handleClose(true)}
-      className="rounded-sm opacity-70 transition-opacity
+              >
+                <span className="relative">AltVerse</span>
+              </DialogTitle>
+              <button
+                onClick={() => handleClose(true)}
+                className="rounded-sm opacity-70 transition-opacity
         hover:opacity-100
         active:bg-gray-800
         focus:outline-none focus:ring-1 focus:ring-amber-500 focus:ring-offset-0
         disabled:pointer-events-none p-1"
-    >
-      <Cross2Icon className="h-4 w-4 text-white" />
-      <span className="sr-only">Close</span>
-    </button>
-  </div>
-</DialogHeader>
+              >
+                <Cross2Icon className="h-4 w-4 text-white" />
+                <span className="sr-only">Close</span>
+              </button>
+            </div>
+          </DialogHeader>
           <Tabs
             defaultValue="swap"
             className="flex-1 flex flex-col"

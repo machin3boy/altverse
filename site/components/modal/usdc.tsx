@@ -44,20 +44,20 @@ export default function USDC() {
     <div className="flex flex-col h-full min-h-[400px]">
       <div className="flex-1">
         <div className="space-y-2 my-2">
-          <h4 className="text-md font-bold ml-1">USDC Pool</h4>
-          <p className="ml-[4px] text-md font-semibold font-mono tracking-tighter text-sky-500">
-            <NumberTicker value={7630.47} decimalPlaces={2} />
-          </p>
-          <h4 className="text-md font-bold ml-1 pt-2">ALT Pool</h4>
+          <h4 className="text-md font-bold ml-1">ALT Pool</h4>
           <p className="ml-1 text-md font-semibold font-mono tracking-tighter text-amber-500">
             <NumberTicker value={1132259387.22} decimalPlaces={2} />
+          </p>
+          <h4 className="text-md font-bold ml-1 pt-2">USDC Pool</h4>
+          <p className="ml-[4px] text-md font-semibold font-mono tracking-tighter text-sky-500">
+            <NumberTicker value={7630.47} decimalPlaces={2} />
           </p>
         </div>
         <div className="relative rounded-lg border-amber-500/50 mt-7">
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-mono font-bold">You pay</span>
+                <span className="text-md font-mono font-semibold text-amber-500">You Pay</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -123,7 +123,7 @@ export default function USDC() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-sm font-mono font-bold">You receive</span>
+              <span className="text-md font-mono font-semibold text-sky-500">You Receive</span>
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
