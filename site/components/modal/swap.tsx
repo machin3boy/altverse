@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStorage } from "../storage";
-import web3 from "web3";
+import { useEffect, useMemo, useCallback } from "react";
 
 const tokens = [
   {
@@ -46,26 +46,124 @@ const chains = [
 ];
 
 export default function Swap() {
+
+  const { initiateCrossChainSwap, calculateCrossChainAmount } = useStorage();
+
+  const { web3, setStorage, getStorage } = useStorage();
   const [swapFromToken, setSwapFromToken] = useState("ALT");
   const [swapToToken, setSwapToToken] = useState("wBTC");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
-  const [targetChain, setTargetChain] = useState("Celo Testnet");
-  const { initiateCrossChainSwap, calculateCrossChainAmount } = useStorage();
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [currentChain, setCurrentChain] = useState(parseInt(getStorage("currentChain") || "44787"));
+  // Set initial target chain based on current chain
+  const [targetChain, setTargetChain] = useState(() => {
+    // Default to empty string, will be set in useEffect
+    return "";
+  });
+
+  const destinationChain = useMemo(() => {
+    return currentChain === 44787 
+      ? { name: "Fuji Testnet", id: "fuji", chainId: 43113 }
+      : { name: "Celo Testnet", id: "celo", chainId: 44787 };
+  }, [currentChain]);
+
+  useEffect(() => {
+    const initializeChain = async () => {
+      if (web3) {
+        try {
+          const chainId = await web3.eth.getChainId();
+          setCurrentChain(Number(chainId));
+          // No need to set targetChain as it will be derived from destinationChain
+        } catch (error) {
+          console.error("Error getting chain ID:", error);
+        }
+      }
+    };
+
+    initializeChain();
+  }, [web3]);
+
+  useEffect(() => {
+    const setInitialTargetChain = async () => {
+      if (web3) {
+        try {
+          const chainId = await web3.eth.getChainId();
+          // If we're on Celo (44787), set target to Fuji, and vice versa
+          if (Number(chainId) === 44787) {
+            setTargetChain("fuji");
+          } else if (Number(chainId) === 43113) {
+            setTargetChain("celo");
+          }
+        } catch (error) {
+          console.error("Error getting chain ID:", error);
+          // Default to Fuji if we can't get chain ID
+          setTargetChain("fuji");
+        }
+      }
+    };
+
+    setInitialTargetChain();
+  }, [web3]);
+
+  const calculateReceivedAmount = useCallback(async (inputAmount: string) => {
+    if (!inputAmount || inputAmount === "0" || !destinationChain) {
+      setReceivedAmount("");
+      return;
+    }
+
+    setIsCalculating(true);
+    setReceivedAmount("Calculating...");
+
+
+    try {
+      if (web3) {
+      console.warn("Calculating received amount with params:", {
+        fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+        toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+        amountIn: web3.utils.toWei(inputAmount, "ether"),
+        targetChain: destinationChain.chainId,
+        currentChain: currentChain,
+      }
+      )
+      const result = await calculateCrossChainAmount({
+        fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+        toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+        amountIn: web3.utils.toWei(inputAmount, "ether"),
+        targetChain: destinationChain.chainId,
+      });
+
+      if (result) {
+        const formattedOutput = web3.utils.fromWei(result.estimatedOutput, "ether");
+        const roundedOutput = Number(formattedOutput).toFixed(6);
+        setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
+      } else {
+        setReceivedAmount("");
+      }
+      } else {
+        setReceivedAmount("");
+      }
+    } catch (error) {
+      console.error("Error calculating received amount:", error);
+      setReceivedAmount("");
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [swapFromToken, swapToToken, destinationChain, calculateCrossChainAmount]);
+
+  useEffect(() => {
+    if (amount) {
+      calculateReceivedAmount(amount);
+    }
+  }, [amount, swapFromToken, swapToToken, calculateReceivedAmount]);
 
   const handleAmountChange = async (e: any) => {
-    debugger;
     const value = e.target.value;
-    const result = await calculateCrossChainAmount({
-      fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-      toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
-      amountIn: web3.utils.toWei(amount, "ether"),
-      targetChain: chains.find((c) => c.id === targetChain)?.chainId || -1,
-    });
-
+    
     // Handle empty input case
     if (value === "") {
       setAmount("");
+      setReceivedAmount("");
       return;
     }
 
@@ -81,7 +179,7 @@ export default function Swap() {
       return;
     }
 
-    // If we get here, the input is valid - update the state
+    // Update amount (calculation will be triggered by useEffect)
     setAmount(value);
   };
 
@@ -156,21 +254,23 @@ export default function Swap() {
           <div className="space-y-4 pt-4">
             <span className="text-sm font-mono font-bold">You receive</span>
             <div className="flex items-center space-x-2">
-              <Input
-                type="text"
-                value={receivedAmount}
-                placeholder="0.0"
-                className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                  receivedAmount === ""
-                    ? "text-gray-500 placeholder:text-gray-500"
-                    : "text-white"
-                }`}
-                style={{
-                  WebkitAppearance: "none",
-                  MozAppearance: "textfield",
-                }}
-                readOnly
-              />
+            <Input
+        type="text"
+        value={isCalculating ? "Calculating..." : receivedAmount}
+        placeholder="0.0"
+        className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
+          isCalculating 
+            ? "text-amber-500/50 animate-pulse" 
+            : receivedAmount === ""
+              ? "text-gray-500 placeholder:text-gray-500"
+              : "text-white"
+        }`}
+        style={{
+          WebkitAppearance: "none",
+          MozAppearance: "textfield",
+        }}
+        readOnly
+      />
               <Select value={swapToToken} onValueChange={setSwapToToken}>
                 <SelectTrigger className="w-[120px]  border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
                   <SelectValue>

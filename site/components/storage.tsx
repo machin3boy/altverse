@@ -103,11 +103,24 @@ interface Pool {
   totalShares: bigint;
 }
 
+const CHAIN_ID_TO_WORMHOLE_CHAIN_ID: Record<number, number> = {
+  44787: 14,  // Celo Alfajores
+  43113: 6    // Avalanche Fuji
+};
+
+const FALLBACK_FEES: Record<number, string> = {
+  43113: "100000000000000000",    // 0.1 AVAX
+  44787: "500000000000000000"     // 0.5 CELO
+};
+
+const ALT_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+
 interface AddLiquidityParams {
   tokenAddress: string;
   tokenAmount: string;
   altAmount: string;
 }
+
 
 export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -539,35 +552,31 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   const calculateCrossChainAmount = async (
     params: CrossChainAmountParams
   ): Promise<CrossChainAmountResult | undefined> => {
-    debugger;
     if (!web3) {
       toast.error("Web3 not initialized");
       return undefined;
     }
-  
+
     try {
-      // Create source chain contract instance
       const sourceContract = new web3.eth.Contract(
         coreContractABI as AbiItem[],
         "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B"
       );
-  
-      // Create target chain Web3 instance
+
       const targetRPC = params.targetChain === 43113 
         ? "https://api.avax-test.network/ext/bc/C/rpc"
         : "https://alfajores-forno.celo-testnet.org";
       const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
       
-      // Create target chain contract instance
       const targetContract = new targetWeb3.eth.Contract(
         coreContractABI as AbiItem[],
         "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B"
       );
-  
+
       let sourceAltAmount: string;
       let finalAmount: string;
       let priceImpact = "0.00";
-  
+
       // Handle ALT as source token
       if (params.fromToken === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
         sourceAltAmount = params.amountIn;
@@ -576,7 +585,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         if (params.toToken === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
           finalAmount = params.amountIn;
         } else {
-          // Need to check destination pool for ALT -> token swap
           const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
           
           if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
@@ -585,13 +593,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
             toast.error("Target pool not initialized or has no liquidity");
             return undefined;
           }
-  
+
           finalAmount = await targetContract.methods.getAmountOut(
             sourceAltAmount,
             targetPool.altReserve.toString(),
             targetPool.tokenReserve.toString()
           ).call() as string;
-  
+
           const targetPrice = (BigInt(targetPool.tokenReserve) * BigInt(1e18)) / 
             BigInt(targetPool.altReserve);
           priceImpact = targetPrice.toString();
@@ -607,22 +615,21 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           toast.error("Source pool not initialized or has no liquidity");
           return undefined;
         }
-  
+
         sourceAltAmount = await sourceContract.methods.getAmountOut(
           params.amountIn,
           sourcePool.tokenReserve.toString(),
           sourcePool.altReserve.toString()
         ).call() as string;
-  
+
         finalAmount = sourceAltAmount;
-  
+
         const sourcePrice = (BigInt(sourcePool.altReserve) * BigInt(1e18)) / 
           BigInt(sourcePool.tokenReserve);
         priceImpact = sourcePrice.toString();
       }
       // Handle token -> token swap
       else {
-        // Check source pool for token -> ALT
         const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
         
         if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
@@ -631,15 +638,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           toast.error("Source pool not initialized or has no liquidity");
           return undefined;
         }
-  
-        // Get ALT amount from source token
+
         sourceAltAmount = await sourceContract.methods.getAmountOut(
           params.amountIn,
           sourcePool.tokenReserve.toString(),
           sourcePool.altReserve.toString()
         ).call() as string;
-  
-        // Check target pool for ALT -> token
+
         const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
         
         if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
@@ -648,15 +653,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           toast.error("Target pool not initialized or has no liquidity");
           return undefined;
         }
-  
-        // Calculate final token amount
+
         finalAmount = await targetContract.methods.getAmountOut(
           sourceAltAmount,
           targetPool.altReserve.toString(),
           targetPool.tokenReserve.toString()
         ).call() as string;
-  
-        // Calculate combined price impact
+
         const sourcePrice = (BigInt(sourcePool.altReserve) * BigInt(1e18)) / 
           BigInt(sourcePool.tokenReserve);
         const targetPrice = (BigInt(targetPool.tokenReserve) * BigInt(1e18)) / 
@@ -665,18 +668,30 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           (Number(targetPrice - sourcePrice) / Number(sourcePrice)) * 100
         ).toFixed(2);
       }
-  
-      // Get cross-chain fee (needed for all cases)
-      const crossChainFee = await sourceContract.methods
-        .quoteCrossChainCost(params.targetChain)
-        .call() as string;
-  
+
+      // Get cross-chain fee with Wormhole chain ID conversion
+      let crossChainFee: string;
+      try {
+        const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
+        if (!wormholeChainId) {
+          throw new Error(`Unsupported chain ID: ${params.targetChain}`);
+        }
+
+        crossChainFee = await sourceContract.methods
+          .quoteCrossChainCost(wormholeChainId)
+          .call() as string;
+
+      } catch (error) {
+        console.warn("Error getting cross-chain fee, using fallback:", error);
+        crossChainFee = FALLBACK_FEES[params.targetChain] || web3.utils.toWei("0.2", "ether");
+      }
+
       return {
         estimatedOutput: finalAmount,
-        priceImpact: priceImpact,
+        priceImpact,
         fees: crossChainFee
       };
-  
+
     } catch (error) {
       console.error("Error calculating cross-chain amount:", error);
       toast.error(`Failed to calculate cross-chain amount: ${(error as Error).message}`);

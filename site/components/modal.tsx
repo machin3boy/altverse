@@ -17,14 +17,16 @@ import USDC from "@/components/modal/usdc";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
 import { Cross2Icon } from "@radix-ui/react-icons";
+import Chains, { Chain } from "../app/constants";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  chain: Chain;
 }
 
 export default function Modal(
-  { isOpen, onClose }: ModalProps = { isOpen: true, onClose: () => {} }
+  { isOpen, onClose, chain }: ModalProps = { isOpen: true, onClose: () => {} , chain: Chains[0] }
 ) {
   const [activeTab, setActiveTab] = useState("swap");
 
