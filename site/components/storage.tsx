@@ -777,12 +777,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     return result;
   };
 
-  const splitTo24 = (str = "") => {
-    const firstElement = str.substring(0, 24);
-    const secondElement = str.length > 24 ? str.substring(24, 48) : "";
-    return [firstElement, secondElement];
-  };
-
   return (
     <StorageContext.Provider
       value={{
@@ -799,7 +793,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         calculateCrossChainAmount,
         stringToBigInt,
         bigIntToString,
-        splitTo24,
       }}
     >
       {children}
