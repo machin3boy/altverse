@@ -121,7 +121,7 @@ const Tunnel: React.FC<{}> = ({}) => {
     scene.add(tubeLines);
 
     const updateCamera = (time: number) => {
-      const looptime = 50 * 1000;
+      const looptime = 30 * 1000;
       const p = ((time * 0.04) % looptime) / looptime;
       const pos = tubeGeo.parameters.path.getPointAt(p);
       const lookAt = tubeGeo.parameters.path.getPointAt((p + 0.02) % 1);
