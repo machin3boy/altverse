@@ -27,7 +27,7 @@ export default function Escrows() {
 
   return (
     <>
-      <ScrollArea className="h-[450px] rounded-md border-2 p-2">
+      <ScrollArea className="h-[450px] rounded-md border-2 p-2 border-amber-500/20">
         {sampleEscrows.length === 0 ? (
           <>
             <h4 className="mb-2 text-medium font-bold leading-none px-2 pt-2">

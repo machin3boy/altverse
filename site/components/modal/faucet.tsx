@@ -41,7 +41,7 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({
           className="text-current"
         />
       </div>
-      <span className="font-medium text-current">Request {name}</span>
+      <span className="font-medium text-current">Request <span className="font-bold font-mono">{name}</span></span>
     </button>
 
   );
@@ -54,12 +54,12 @@ const Faucet: React.FC = () => {
     {
       name: "ALT",
       Icon: ZeroLogo,
-      hoverColor: "hover:text-amber-400 hover:border-amber-400",
+      hoverColor: "hover:text-amber-500 hover:border-amber-500",
     },
     {
       name: "wBTC",
       Icon: BitcoinLogo,
-      hoverColor: "hover:text-amber-500 hover:border-amber-500",
+      hoverColor: "hover:text-amber-600 hover:border-amber-600",
     },
     {
       name: "wLINK",
