@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BorderBeam } from "@/components/magicui/border-beam";
 import NumberTicker from "@/components/magicui/number-ticker";
 import {
   Select,
@@ -12,7 +11,7 @@ import {
 } from "@/components/ui/select";
 
 export default function USDC() {
-  const [altcoinFromToken, setAltcoinFromToken] = useState("USDC");
+  const [altcoinFromToken, setAltcoinFromToken] = useState("ALT");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
 

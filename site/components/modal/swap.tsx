@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BorderBeam } from "@/components/magicui/border-beam";
 import {
   Select,
   SelectContent,
@@ -260,7 +259,7 @@ export default function Swap() {
                   placeholder="0.0"
                   className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
                     isCalculating
-                      ? "text-amber-500/50 animate-pulse"
+                      ? "text-sky-500/50 animate-pulse"
                       : receivedAmount === ""
                       ? "text-gray-500 placeholder:text-gray-500"
                       : "text-white"

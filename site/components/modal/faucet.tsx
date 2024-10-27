@@ -50,28 +50,28 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({
 const Faucet: React.FC = () => {
   const { requestTokenFromFaucet } = useStorage();
 
-  const cryptos = [
-    {
-      name: "ALT",
-      Icon: ZeroLogo,
-      hoverColor: "hover:text-amber-500 hover:border-amber-500",
-    },
-    {
-      name: "wBTC",
-      Icon: BitcoinLogo,
-      hoverColor: "hover:text-amber-600 hover:border-amber-600",
-    },
-    {
-      name: "wLINK",
-      Icon: ChainlinkLogo,
-      hoverColor: "hover:text-blue-500 hover:border-blue-500",
-    },
-    {
-      name: "wETH",
-      Icon: EthLogo,
-      hoverColor: "hover:text-indigo-300 hover:border-indigo-300",
-    },
-  ];
+const cryptos = [
+  {
+    name: "ALT",
+    Icon: ZeroLogo,
+    hoverColor: "hover:text-amber-500 hover:border-amber-500",
+  },
+  {
+    name: "wBTC",
+    Icon: BitcoinLogo,
+    hoverColor: "hover:text-[#F7931A] hover:border-[#F7931A]", // Changed to Bitcoin orange
+  },
+  {
+    name: "wLINK",
+    Icon: ChainlinkLogo,
+    hoverColor: "hover:text-blue-500 hover:border-blue-500",
+  },
+  {
+    name: "wETH",
+    Icon: EthLogo,
+    hoverColor: "hover:text-indigo-300 hover:border-indigo-300",
+  },
+];
 
   const handleRequest = async (tokenName: string) => {
     await requestTokenFromFaucet(tokenName);
