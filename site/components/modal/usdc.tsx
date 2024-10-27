@@ -44,7 +44,7 @@ export default function USDC() {
     <>
       <div className="space-y-2 my-2">
         <h4 className="text-md font-bold ml-1">USDC Pool</h4>
-        <p className="ml-1 text-md font-semibold font-mono tracking-tighter text-sky-500">
+        <p className="ml-[4px] text-md font-semibold font-mono tracking-tighter text-sky-500">
           <NumberTicker value={7630.47} decimalPlaces={2} />
         </p>
         <h4 className="text-md font-bold ml-1">ALT Pool</h4>
@@ -52,15 +52,8 @@ export default function USDC() {
           <NumberTicker value={1132259387.22} decimalPlaces={2} />
         </p>
       </div>
-      <div className="relative rounded-lg">
-        <BorderBeam
-          borderWidth={2}
-          size={350}
-          duration={10}
-          colorFrom="#F59E0B"
-          colorTo="#1C1205"
-        />
-        <div className="bg-secondary p-4 rounded-lg space-y-6">
+      <div className="relative rounded-lg border-amber-500/50">
+        <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-mono font-bold">You pay</span>
@@ -92,7 +85,7 @@ export default function USDC() {
                 value={altcoinFromToken}
                 onValueChange={setAltcoinFromToken}
               >
-                <SelectTrigger className="w-[120px] border-2 border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10">
+                <SelectTrigger className="w-[120px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
                   <SelectValue>
                     <div className="flex items-center">
                       <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -104,7 +97,7 @@ export default function USDC() {
                     </div>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-black text-white border-amber-500/20 border-2">
+                <SelectContent className="bg-black text-white border-amber-500/20">
                   <SelectItem
                     value="USDC"
                     className="font-semibold data-[highlighted]:bg-amber-500 data-[highlighted]:text-white"
@@ -149,12 +142,12 @@ export default function USDC() {
                 }}
                 readOnly
               />
-              <div className="h-9 w-[120px] border-2 border-amber-500/10 font-semibold bg-amber-500/10 rounded-md flex items-center px-3">
+              <div className="h-9 w-[120px] bg-amber-500/10 rounded-md flex items-center px-3 border border-amber-500/10 font-mono font-bold text-sm">
                 <div className="flex items-center">
-                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-3">
+                  <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-3.5">
                     {altcoinFromToken === "USDC" ? "A" : "$"}
                   </span>
-                  <span className="font-mono w-16">
+                  <span className="font-mono w-16 pt-[2.25px]">
                     {(altcoinFromToken === "USDC" ? "ALT " : "USDC").padEnd(4)}
                   </span>
                 </div>
@@ -165,22 +158,21 @@ export default function USDC() {
       </div>
       <Button
         className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
-    hover:from-amber-800 hover:to-amber-700
-    active:from-amber-950 active:to-amber-900
-    border border-amber-500/20 hover:border-amber-500/40
-    text-amber-200 hover:text-amber-100
-    shadow-lg hover:shadow-amber-900/20
-    transition-all duration-200
-    font-semibold
-    py-2.5
-    rounded-lg
-    relative
-    overflow-hidden
-    group
-    active:ring-amber-500/20
-    before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-    before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-    before:blur-md"
+          hover:from-amber-800 hover:to-amber-700
+          active:from-amber-950 active:to-amber-900
+           border-amber-500/20 hover:border-amber-500/40
+          text-white hover:text-amber-100
+          shadow-lg hover:shadow-amber-900/20
+          transition-all duration-200
+          font-semibold
+          py-2.5
+          relative
+          overflow-hidden
+          group
+          active:ring-amber-500/20
+          before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
+          before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
+          before:blur-md"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         <div className="relative w-full px-8">
