@@ -283,7 +283,7 @@ useEffect(() => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500"
+                  className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
                 >
                   max
                 </Button>
@@ -421,22 +421,22 @@ useEffect(() => {
           onClick={handleSwap}
           disabled={!amount || amount === "0" || isCalculating}
           className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
-      hover:from-amber-800 hover:to-amber-700
-      active:from-amber-950 active:to-amber-900
-      border-amber-500/20 hover:border-amber-500/40
-      text-white hover:text-amber-100
-      shadow-lg hover:shadow-amber-900/20
-      transition-all duration-200
-      font-semibold
-      py-2.5
-      relative
-      overflow-hidden
-      group
-      active:ring-amber-500/20
-      disabled:opacity-50 disabled:cursor-not-allowed
-      before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-      before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-      before:blur-md"
+            hover:from-amber-800 hover:to-amber-700
+            active:from-amber-950 active:to-amber-900
+            border-amber-500/20 hover:border-amber-500/40
+            text-white hover:text-amber-100
+            shadow-lg hover:shadow-amber-900/20
+            transition-all duration-200
+            font-semibold
+            py-2.5
+            relative
+            overflow-hidden
+            group
+            active:ring-amber-500/20
+            disabled:opacity-50 disabled:cursor-not-allowed
+            before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
+            before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
+            before:blur-md"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           <div className="relative w-full px-8">
