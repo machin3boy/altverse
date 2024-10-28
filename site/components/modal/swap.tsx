@@ -60,6 +60,8 @@ export default function Swap() {
   const [targetChain, setTargetChain] = useState(() => {
     return "";
   });
+  const [currentCalculation, setCurrentCalculation] = useState<AbortController | null>(null);
+
 
   const destinationChain = useMemo(() => {
     return currentChain === 44787
@@ -102,64 +104,91 @@ export default function Swap() {
     setInitialTargetChain();
   }, [web3]);
 
-  const calculateReceivedAmount = useCallback(
-    async (inputAmount: string) => {
-      if (!inputAmount || inputAmount === "0" || !destinationChain) {
-        setReceivedAmount("");
-        return;
-      }
-
-      setIsCalculating(true);
-      setReceivedAmount("Calculating...");
-
-      try {
-        if (web3) {
-          console.warn("Calculating received amount with params:", {
-            fromToken:
-              tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-            toToken:
-              tokens.find((t) => t.symbol === swapToToken)?.address || "",
-            amountIn: web3.utils.toWei(inputAmount, "ether"),
-            targetChain: destinationChain.chainId,
-            currentChain: currentChain,
-          });
-          const result = await calculateCrossChainAmount({
-            fromToken:
-              tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-            toToken:
-              tokens.find((t) => t.symbol === swapToToken)?.address || "",
-            amountIn: web3.utils.toWei(inputAmount, "ether"),
-            targetChain: destinationChain.chainId,
-          });
-
-          if (result) {
-            const formattedOutput = web3.utils.fromWei(
-              result.estimatedOutput,
-              "ether"
-            );
-            const roundedOutput = Number(formattedOutput).toFixed(6);
-            setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
-          } else {
-            setReceivedAmount("");
-          }
+  const calculateReceivedAmount = useCallback(async (inputAmount: string, abortController: AbortController) => {
+    if (!inputAmount || inputAmount === "0" || !destinationChain) {
+      setReceivedAmount("");
+      return;
+    }
+  
+    setIsCalculating(true);
+    setReceivedAmount("Calculating...");
+  
+    try {
+      if (web3) {
+        // Check if calculation was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
+  
+        console.warn("Calculating received amount with params:", {
+          fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+          toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+          amountIn: web3.utils.toWei(inputAmount, "ether"),
+          targetChain: destinationChain.chainId,
+          currentChain: currentChain,
+        });
+  
+        const result = await calculateCrossChainAmount({
+          fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+          toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+          amountIn: web3.utils.toWei(inputAmount, "ether"),
+          targetChain: destinationChain.chainId,
+        });
+  
+        // Check if calculation was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
+  
+        if (result) {
+          const formattedOutput = web3.utils.fromWei(result.estimatedOutput, "ether");
+          const roundedOutput = Number(formattedOutput).toFixed(6);
+          setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
         } else {
           setReceivedAmount("");
         }
-      } catch (error) {
+      } else {
+        setReceivedAmount("");
+      }
+    } catch (error) {
+      if (!abortController.signal.aborted) {
         console.error("Error calculating received amount:", error);
         setReceivedAmount("");
-      } finally {
+      }
+    } finally {
+      if (!abortController.signal.aborted) {
         setIsCalculating(false);
       }
-    },
-    [swapFromToken, swapToToken, destinationChain, calculateCrossChainAmount]
-  );
-
-  useEffect(() => {
-    if (amount) {
-      calculateReceivedAmount(amount);
     }
-  }, [amount, swapFromToken, swapToToken, calculateReceivedAmount]);
+  }, [swapFromToken, swapToToken, destinationChain, calculateCrossChainAmount, web3]);
+
+
+useEffect(() => {
+  if (amount) {
+    // Cancel any ongoing calculation
+    if (currentCalculation) {
+      currentCalculation.abort();
+    }
+
+    // Create new AbortController for this calculation
+    const newController = new AbortController();
+    setCurrentCalculation(newController);
+
+    // Start the calculation
+    calculateReceivedAmount(amount, newController);
+  } else {
+    setReceivedAmount("");
+    setIsCalculating(false);
+  }
+
+  // Cleanup function
+  return () => {
+    if (currentCalculation) {
+      currentCalculation.abort();
+    }
+  };
+}, [amount, calculateReceivedAmount]);
+
 
   const handleAmountChange = async (e: any) => {
     const value = e.target.value;
