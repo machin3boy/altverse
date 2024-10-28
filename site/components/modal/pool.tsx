@@ -315,8 +315,8 @@ const Pool: React.FC = () => {
   const [showGeneralModal, setShowGeneralModal] = useState(false);
 
   return (
-    <>
-      <ScrollArea className="h-[400px] rounded-md border-2 border-amber-500/20 p-2">
+    <div className="flex flex-col min-h-full">
+      <ScrollArea className="h-[400px] rounded-md border-2 border-amber-500/20 p-2 flex-grow mb-4">
         {samplePools.length === 0 ? (
           <>
             <h4 className="mb-2 text-medium font-bold leading-none px-2 pt-2">
@@ -384,37 +384,39 @@ const Pool: React.FC = () => {
         />
       </Dialog>
 
-      <Button
-        onClick={() => setShowGeneralModal(true)}
-        className="w-full bg-gradient-to-r from-amber-900 to-amber-800
-            hover:from-amber-800 hover:to-amber-700
-            active:from-amber-950 active:to-amber-900
-            border-amber-500/20 hover:border-amber-500/40
-            text-white hover:text-amber-100
-            shadow-lg hover:shadow-amber-900/20
-            transition-all duration-200
-            font-semibold
-            py-2.5
-            relative
-            overflow-hidden
-            group
-            active:ring-amber-500/20
-            before:absolute before:inset-0
-            before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-            before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-            before:blur-md"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-        <div className="relative w-full px-8">
-          <div className="flex justify-center items-center">
-            <span className="tracking-wide">Add Liquidity</span>
-            <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
-              <Droplets className="w-4 h-4" />
-            </span>
+      <div className="mt-auto mb-4">
+        <Button
+          onClick={() => setShowGeneralModal(true)}
+          className="w-full bg-gradient-to-r from-amber-900 to-amber-800
+              hover:from-amber-800 hover:to-amber-700
+              active:from-amber-950 active:to-amber-900
+              border-amber-500/20 hover:border-amber-500/40
+              text-white hover:text-amber-100
+              shadow-lg hover:shadow-amber-900/20
+              transition-all duration-200
+              font-semibold
+              py-2.5
+              relative
+              overflow-hidden
+              group
+              active:ring-amber-500/20
+              before:absolute before:inset-0
+              before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
+              before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
+              before:blur-md"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <div className="relative w-full px-8">
+            <div className="flex justify-center items-center">
+              <span className="tracking-wide">Add Liquidity</span>
+              <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
+                <Droplets className="w-4 h-4" />
+              </span>
+            </div>
           </div>
-        </div>
-      </Button>
-    </>
+        </Button>
+      </div>
+    </div>
   );
 };
 
