@@ -469,84 +469,108 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
   
-    // Create a unique ID for the loading toast
     const loadingToastId = `swap-${Date.now()}`;
   
     try {
-      // Get user's address
       const accounts = await web3.eth.getAccounts();
       if (!accounts[0]) {
         toast.error("No account connected");
         return false;
       }
   
-      // Create contract instance
-      const contract = new web3.eth.Contract(
-        coreContractABI as AbiItem[],
-        "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B" // Altverse contract address
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // uint256.max
+  
+      // Create contract instances
+      const sourceTokenContract = new web3.eth.Contract(
+        ERC20ABI as AbiItem[],
+        params.fromToken
       );
   
-      // Show loading toast
-      toast.loading(`Initiating cross-chain swap...`, {
-        id: loadingToastId,
-        duration: 20000 // Max duration of 20 seconds
-      });
+      // Check existing allowance
+      const currentAllowance = await sourceTokenContract.methods
+        .allowance(accounts[0], ALTVERSE_ADDRESS)
+        .call() as string;
   
-      // First approve the contract to spend tokens if fromToken is not ALT
-      if (params.fromToken !== "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
-        const tokenContract = new web3.eth.Contract(
-          ERC20ABI as AbiItem[],
-          params.fromToken
-        );
+      console.log("Current allowance:", currentAllowance);
   
+      // If allowance is insufficient, request approval
+      if (BigInt(currentAllowance) < BigInt(params.amountIn)) {
+        console.log("Requesting approval for token spend...");
         try {
-          const tx = await tokenContract.methods
-            .approve("0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B", params.amountIn)
+          const approveTx = await sourceTokenContract.methods
+            .approve(ALTVERSE_ADDRESS, MAX_UINT256)
             .send({ from: accounts[0] });
-          
-          if (!tx.status) {
-            toast.dismiss(loadingToastId);
+  
+          if (!approveTx.status) {
             toast.error("Approval failed");
             return false;
           }
-        } catch (error) {
-          toast.dismiss(loadingToastId);
+          console.log("Approval successful");
+        } catch (error: any) {
           console.error("Approval error:", error);
-          toast.error(`Approval failed: ${(error as Error).message}`);
+          toast.error(`Approval failed: ${error.message}`);
           return false;
         }
+      } else {
+        console.log("Sufficient allowance exists");
       }
   
-      // Execute the cross-chain swap
+      // Now proceed with the swap
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+  
+      const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
+      const crossChainFee = await contract.methods
+        .quoteCrossChainCost(wormholeChainId)
+        .call() as string;
+  
+      console.log("Cross-chain fee:", web3.utils.fromWei(crossChainFee, 'ether'));
+  
+      toast.loading(`Initiating cross-chain swap...`, {
+        id: loadingToastId,
+        duration: 20000
+      });
+      console.warn("Cross-chain swap initiated with params:");
+      console.warn({
+        fromToken: params.fromToken,
+        toToken: params.toToken,
+        amountIn: params.amountIn,
+        wormholeChainId,
+        targetAddress: params.targetAddress
+      })
       const tx = await contract.methods.initiateCrossChainSwap(
         params.fromToken,
         params.toToken,
         params.amountIn,
-        params.targetChain,
+        wormholeChainId.toString,
         params.targetAddress
       ).send({
-        from: accounts[0]
+        from: accounts[0],
+        value: crossChainFee,
+        gas: '500000',
       });
   
-      // Dismiss loading toast before showing result
       toast.dismiss(loadingToastId);
   
       if (tx.status) {
         toast.success("Cross-chain swap initiated successfully!");
         return true;
-      } else {
-        toast.error("Cross-chain swap failed");
-        return false;
       }
-  
-    } catch (error) {
-      // Dismiss loading toast before showing error
-      toast.dismiss(loadingToastId);
       
-      console.error("Cross-chain swap error:", error);
-      toast.error(`Cross-chain swap failed: ${(error as Error).message}`);
+      toast.error("Cross-chain swap failed");
+      return false;
+  
+    } catch (error: any) {
+      toast.dismiss(loadingToastId);
+      console.error("Detailed error:", error);
+      toast.error(`Cross-chain swap failed: ${error.message}`);
       return false;
     }
+    
+    return false;
   };
 
   const calculateCrossChainAmount = async (
