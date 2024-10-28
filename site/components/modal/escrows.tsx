@@ -27,7 +27,7 @@ export default function Escrows() {
 
   return (
     <>
-      <ScrollArea className="h-[450px] rounded-md border-2 p-2 border-amber-500/20">
+      <ScrollArea className="h-[450px] rounded-md border p-2 border-amber-500/20">
         {sampleEscrows.length === 0 ? (
           <>
             <h4 className="mb-2 text-medium font-bold leading-none px-2 pt-2">
@@ -43,7 +43,7 @@ export default function Escrows() {
             .map((escrow, index) => (
               <Card
                 key={index}
-                className="mb-2 border-2 rounded-md hover:border-amber-500 transition-colors duration-200 last:mb-0"
+                className="mb-2 border rounded-md hover:border-amber-500 transition-colors duration-200 last:mb-0"
               >
                 <CardContent className="p-3 font-mono font-bold">
                   <div className="flex justify-between items-center mb-1.5">
@@ -54,9 +54,7 @@ export default function Escrows() {
                   </div>
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="text-sm">Status:</span>
-                    <span className="text-sm text-green-500">
-                      Active
-                    </span>
+                    <span className="text-sm text-green-500">Active</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Timeout:</span>
@@ -68,7 +66,7 @@ export default function Escrows() {
                 <CardFooter className="p-3 pt-0">
                   <Button
                     variant="secondary"
-                    className="w-full h-8 text-sm bg-zinc-800 hover:bg-zinc-700"
+                    className="w-full h-8 text-sm bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 font-semibold hover:text-sky-400 border border-sky-500/10"
                     disabled={escrow.timeout > Date.now()}
                   >
                     {escrow.timeout <= Date.now()
