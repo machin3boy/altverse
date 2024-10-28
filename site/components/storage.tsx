@@ -94,7 +94,6 @@ interface CrossChainAmountParams {
 interface CrossChainAmountResult {
   estimatedOutput: string;
   priceImpact: string;
-  fees: string;
 }
 interface Pool {
   token: string;
@@ -283,7 +282,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const initializeCoreContract = async () => {
     if (web3) {
-      const coreContractAddress = "0xb6eA1AC42c3efff1b81b20EA797CA2a9148606fB";
+      const coreContractAddress = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
       const contract = new web3.eth.Contract(
         coreContractABI as AbiItem[],
         coreContractAddress
@@ -523,11 +522,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       );
   
       const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
-      const crossChainFee = await contract.methods
-        .quoteCrossChainCost(wormholeChainId)
-        .call() as string;
-  
-      console.log("Cross-chain fee:", web3.utils.fromWei(crossChainFee, 'ether'));
   
       toast.loading(`Initiating cross-chain swap...`, {
         id: loadingToastId,
@@ -549,7 +543,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         params.targetAddress
       ).send({
         from: accounts[0],
-        value: crossChainFee,
         gas: '500000',
       });
   
@@ -570,158 +563,186 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
     
-    return false;
   };
 
-  const calculateCrossChainAmount = async (
-    params: CrossChainAmountParams
-  ): Promise<CrossChainAmountResult | undefined> => {
-    if (!web3) {
-      toast.error("Web3 not initialized");
-      return undefined;
+// Helper function for price impact calculation
+const calculatePriceImpact = (
+  amountIn: string,
+  reserveIn: string,
+  reserveOut: string,
+  amountOut: string
+): string => {
+  try {
+    // Get spot price before trade (reserveOut/reserveIn)
+    const spotPrice = (BigInt(reserveOut) * BigInt(1e18)) / BigInt(reserveIn);
+    
+    // Get execution price (amountOut/amountIn)
+    const executionPrice = (BigInt(amountOut) * BigInt(1e18)) / BigInt(amountIn);
+    
+    // Calculate price impact percentage: ((spotPrice - executionPrice) / spotPrice) * 100
+    const impact = ((spotPrice - executionPrice) * BigInt(10000)) / spotPrice;
+    
+    // Convert to percentage with 2 decimal places
+    return (Number(impact) / 100).toFixed(2);
+  } catch (error) {
+    console.error("Error calculating price impact:", error);
+    return "0.00";
+  }
+};
+
+const calculateCrossChainAmount = async (
+  params: CrossChainAmountParams
+): Promise<CrossChainAmountResult | undefined> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return undefined;
+  }
+
+  try {
+    const ALT_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    
+    const sourceContract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALT_ADDRESS
+    );
+
+    const targetRPC = params.targetChain === 43113 
+      ? "https://api.avax-test.network/ext/bc/C/rpc"
+      : "https://alfajores-forno.celo-testnet.org";
+    const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
+    
+    const targetContract = new targetWeb3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALT_ADDRESS
+    );
+
+    let finalAmount: string;
+    let priceImpact = "0.00";
+
+    // Case 1: ALT to ALT
+    if (params.fromToken === ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
+      finalAmount = params.amountIn;
+      // No price impact for ALT to ALT as it's a 1:1 transfer
+      priceImpact = "0.00";
     }
-
-    try {
-      const sourceContract = new web3.eth.Contract(
-        coreContractABI as AbiItem[],
-        "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B"
-      );
-
-      const targetRPC = params.targetChain === 43113 
-        ? "https://api.avax-test.network/ext/bc/C/rpc"
-        : "https://alfajores-forno.celo-testnet.org";
-      const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
+    // Case 2: ALT to Token
+    else if (params.fromToken === ALT_ADDRESS && params.toToken !== ALT_ADDRESS) {
+      const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
       
-      const targetContract = new targetWeb3.eth.Contract(
-        coreContractABI as AbiItem[],
-        "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B"
+      if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
+          BigInt(targetPool.tokenReserve) === BigInt(0) ||
+          BigInt(targetPool.altReserve) === BigInt(0)) {
+        toast.error("Target pool not initialized or has no liquidity");
+        return undefined;
+      }
+
+      // Calculate output amount
+      finalAmount = await targetContract.methods.getAmountOut(
+        params.amountIn,
+        targetPool.altReserve.toString(),
+        targetPool.tokenReserve.toString()
+      ).call() as string;
+
+      // Calculate price impact for ALT → Token swap
+      priceImpact = calculatePriceImpact(
+        params.amountIn,
+        targetPool.altReserve.toString(),
+        targetPool.tokenReserve.toString(),
+        finalAmount
+      );
+    }
+    // Case 3: Token to ALT
+    else if (params.fromToken !== ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
+      const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
+      
+      if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
+          BigInt(sourcePool.tokenReserve) === BigInt(0) ||
+          BigInt(sourcePool.altReserve) === BigInt(0)) {
+        toast.error("Source pool not initialized or has no liquidity");
+        return undefined;
+      }
+
+      // Calculate output amount
+      finalAmount = await sourceContract.methods.getAmountOut(
+        params.amountIn,
+        sourcePool.tokenReserve.toString(),
+        sourcePool.altReserve.toString()
+      ).call() as string;
+
+      // Calculate price impact for Token → ALT swap
+      priceImpact = calculatePriceImpact(
+        params.amountIn,
+        sourcePool.tokenReserve.toString(),
+        sourcePool.altReserve.toString(),
+        finalAmount
+      );
+    }
+    // Case 4: Token to Token
+    else {
+      const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
+      
+      if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
+          BigInt(sourcePool.tokenReserve) === BigInt(0) ||
+          BigInt(sourcePool.altReserve) === BigInt(0)) {
+        toast.error("Source pool not initialized or has no liquidity");
+        return undefined;
+      }
+
+      // First swap: Token → ALT
+      const altAmount = await sourceContract.methods.getAmountOut(
+        params.amountIn,
+        sourcePool.tokenReserve.toString(),
+        sourcePool.altReserve.toString()
+      ).call() as string;
+
+      const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
+      
+      if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
+          BigInt(targetPool.tokenReserve) === BigInt(0) ||
+          BigInt(targetPool.altReserve) === BigInt(0)) {
+        toast.error("Target pool not initialized or has no liquidity");
+        return undefined;
+      }
+
+      // Second swap: ALT → Token
+      finalAmount = await targetContract.methods.getAmountOut(
+        altAmount,
+        targetPool.altReserve.toString(),
+        targetPool.tokenReserve.toString()
+      ).call() as string;
+
+      // Calculate combined price impact from both swaps
+      const sourceImpact = calculatePriceImpact(
+        params.amountIn,
+        sourcePool.tokenReserve.toString(),
+        sourcePool.altReserve.toString(),
+        altAmount
       );
 
-      let sourceAltAmount: string;
-      let finalAmount: string;
-      let priceImpact = "0.00";
+      const targetImpact = calculatePriceImpact(
+        altAmount,
+        targetPool.altReserve.toString(),
+        targetPool.tokenReserve.toString(),
+        finalAmount
+      );
 
-      // Handle ALT as source token
-      if (params.fromToken === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
-        sourceAltAmount = params.amountIn;
-        
-        // If destination is also ALT, no swap needed
-        if (params.toToken === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
-          finalAmount = params.amountIn;
-        } else {
-          const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
-          
-          if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
-              BigInt(targetPool.tokenReserve) === BigInt(0) ||
-              BigInt(targetPool.altReserve) === BigInt(0)) {
-            toast.error("Target pool not initialized or has no liquidity");
-            return undefined;
-          }
-
-          finalAmount = await targetContract.methods.getAmountOut(
-            sourceAltAmount,
-            targetPool.altReserve.toString(),
-            targetPool.tokenReserve.toString()
-          ).call() as string;
-
-          const targetPrice = (BigInt(targetPool.tokenReserve) * BigInt(1e18)) / 
-            BigInt(targetPool.altReserve);
-          priceImpact = targetPrice.toString();
-        }
-      }
-      // Handle ALT as destination token
-      else if (params.toToken === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B") {
-        const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
-        
-        if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
-            BigInt(sourcePool.tokenReserve) === BigInt(0) ||
-            BigInt(sourcePool.altReserve) === BigInt(0)) {
-          toast.error("Source pool not initialized or has no liquidity");
-          return undefined;
-        }
-
-        sourceAltAmount = await sourceContract.methods.getAmountOut(
-          params.amountIn,
-          sourcePool.tokenReserve.toString(),
-          sourcePool.altReserve.toString()
-        ).call() as string;
-
-        finalAmount = sourceAltAmount;
-
-        const sourcePrice = (BigInt(sourcePool.altReserve) * BigInt(1e18)) / 
-          BigInt(sourcePool.tokenReserve);
-        priceImpact = sourcePrice.toString();
-      }
-      // Handle token -> token swap
-      else {
-        const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
-        
-        if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
-            BigInt(sourcePool.tokenReserve) === BigInt(0) ||
-            BigInt(sourcePool.altReserve) === BigInt(0)) {
-          toast.error("Source pool not initialized or has no liquidity");
-          return undefined;
-        }
-
-        sourceAltAmount = await sourceContract.methods.getAmountOut(
-          params.amountIn,
-          sourcePool.tokenReserve.toString(),
-          sourcePool.altReserve.toString()
-        ).call() as string;
-
-        const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
-        
-        if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
-            BigInt(targetPool.tokenReserve) === BigInt(0) ||
-            BigInt(targetPool.altReserve) === BigInt(0)) {
-          toast.error("Target pool not initialized or has no liquidity");
-          return undefined;
-        }
-
-        finalAmount = await targetContract.methods.getAmountOut(
-          sourceAltAmount,
-          targetPool.altReserve.toString(),
-          targetPool.tokenReserve.toString()
-        ).call() as string;
-
-        const sourcePrice = (BigInt(sourcePool.altReserve) * BigInt(1e18)) / 
-          BigInt(sourcePool.tokenReserve);
-        const targetPrice = (BigInt(targetPool.tokenReserve) * BigInt(1e18)) / 
-          BigInt(targetPool.altReserve);
-        priceImpact = Math.abs(
-          (Number(targetPrice - sourcePrice) / Number(sourcePrice)) * 100
-        ).toFixed(2);
-      }
-
-      // Get cross-chain fee with Wormhole chain ID conversion
-      let crossChainFee: string;
-      try {
-        const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
-        if (!wormholeChainId) {
-          throw new Error(`Unsupported chain ID: ${params.targetChain}`);
-        }
-
-        crossChainFee = await sourceContract.methods
-          .quoteCrossChainCost(wormholeChainId)
-          .call() as string;
-
-      } catch (error) {
-        console.warn("Error getting cross-chain fee, using fallback:", error);
-        crossChainFee = FALLBACK_FEES[params.targetChain] || web3.utils.toWei("0.2", "ether");
-      }
-
-      return {
-        estimatedOutput: finalAmount,
-        priceImpact,
-        fees: crossChainFee
-      };
-
-    } catch (error) {
-      console.error("Error calculating cross-chain amount:", error);
-      toast.error(`Failed to calculate cross-chain amount: ${(error as Error).message}`);
-      return undefined;
+      // Combine price impacts
+      priceImpact = (
+        Number(sourceImpact) + Number(targetImpact)
+      ).toFixed(2);
     }
-  };
+
+    return {
+      estimatedOutput: finalAmount,
+      priceImpact,
+    };
+
+  } catch (error) {
+    console.error("Error calculating cross-chain amount:", error);
+    toast.error(`Failed to calculate cross-chain amount: ${(error as Error).message}`);
+    return undefined;
+  }
+};
   
   // Helper function to add liquidity to a pool (you'll need this first)
   const addInitialLiquidity = async (
