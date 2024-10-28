@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 
 const tokens = [
   {
@@ -182,6 +183,62 @@ export default function Swap() {
     setAmount(value);
   };
 
+  const handleSwap = useCallback(async () => {
+    debugger;
+    if (!web3) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    if (!amount || amount === "0") {
+      toast.error("Please enter an amount");
+      return;
+    }
+
+    if (!destinationChain) {
+      toast.error("Please select a destination chain");
+      return;
+    }
+
+    try {
+      // Get user's address
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return;
+      }
+
+      const swapParams = {
+        fromToken:
+          tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+        toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
+        amountIn: web3.utils.toWei(amount, "ether"),
+        targetChain: destinationChain.chainId,
+        targetAddress: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+      };
+
+      console.log("Initiating swap with params:", swapParams);
+
+      const success = await initiateCrossChainSwap(swapParams);
+
+      if (success) {
+        // Reset form
+        setAmount("");
+        setReceivedAmount("");
+      }
+    } catch (error) {
+      console.error("Swap error:", error);
+      toast.error(`Swap failed: ${(error as Error).message}`);
+    }
+  }, [
+    web3,
+    amount,
+    swapFromToken,
+    swapToToken,
+    destinationChain,
+    initiateCrossChainSwap,
+  ]);
+
   const isGrayText = amount === "";
 
   return (
@@ -191,7 +248,9 @@ export default function Swap() {
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-md font-mono font-semibold text-amber-500">You Pay</span>
+                <span className="text-md font-mono font-semibold text-amber-500">
+                  You Pay
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -251,7 +310,9 @@ export default function Swap() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-md font-mono font-semibold text-sky-500">You Receive</span>
+              <span className="text-md font-mono font-semibold text-sky-500">
+                You Receive
+              </span>
               <div className="flex items-center space-x-2">
                 <Input
                   type="text"
@@ -328,27 +389,32 @@ export default function Swap() {
           </SelectContent>
         </Select>
         <Button
+          onClick={handleSwap}
+          disabled={!amount || amount === "0" || isCalculating}
           className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
-          hover:from-amber-800 hover:to-amber-700
-          active:from-amber-950 active:to-amber-900
-           border-amber-500/20 hover:border-amber-500/40
-          text-white hover:text-amber-100
-          shadow-lg hover:shadow-amber-900/20
-          transition-all duration-200
-          font-semibold
-          py-2.5
-          relative
-          overflow-hidden
-          group
-          active:ring-amber-500/20
-          before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-          before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-          before:blur-md"
+      hover:from-amber-800 hover:to-amber-700
+      active:from-amber-950 active:to-amber-900
+      border-amber-500/20 hover:border-amber-500/40
+      text-white hover:text-amber-100
+      shadow-lg hover:shadow-amber-900/20
+      transition-all duration-200
+      font-semibold
+      py-2.5
+      relative
+      overflow-hidden
+      group
+      active:ring-amber-500/20
+      disabled:opacity-50 disabled:cursor-not-allowed
+      before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
+      before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
+      before:blur-md"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           <div className="relative w-full px-8">
             <div className="flex justify-center items-center">
-              <span className="tracking-wide">Swap</span>
+              <span className="tracking-wide">
+                {isCalculating ? "Calculating..." : "Swap"}
+              </span>
               <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
                 ⇆
               </span>
