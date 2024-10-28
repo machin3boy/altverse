@@ -545,7 +545,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         params.fromToken,
         params.toToken,
         params.amountIn,
-        wormholeChainId.toString,
+        wormholeChainId,
         params.targetAddress
       ).send({
         from: accounts[0],
