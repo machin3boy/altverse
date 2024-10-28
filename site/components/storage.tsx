@@ -478,7 +478,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       }
   
       const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-      const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // uint256.max
+      const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+  
+      // Check if current chain matches target chain
+      const currentChainId = await web3.eth.getChainId();
+      const isSameChain = Number(currentChainId) === params.targetChain;
   
       // Create contract instances
       const sourceTokenContract = new web3.eth.Contract(
@@ -521,48 +525,69 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         ALTVERSE_ADDRESS
       );
   
-      const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
-  
-      toast.loading(`Initiating cross-chain swap...`, {
+      toast.loading(`Initiating ${isSameChain ? "swap" : "cross-chain swap"}...`, {
         id: loadingToastId,
         duration: 20000
       });
-      console.warn("Cross-chain swap initiated with params:");
-      console.warn({
-        fromToken: params.fromToken,
-        toToken: params.toToken,
-        amountIn: params.amountIn,
-        wormholeChainId,
-        targetAddress: params.targetAddress
-      })
-      const tx = await contract.methods.initiateCrossChainSwap(
-        params.fromToken,
-        params.toToken,
-        params.amountIn,
-        wormholeChainId,
-        params.targetAddress
-      ).send({
-        from: accounts[0],
-        gas: '500000',
-      });
+  
+      let tx;
+      if (isSameChain) {
+        // For same-chain swaps, use regular swap function
+        console.warn("Same-chain swap initiated with params:", {
+          fromToken: params.fromToken,
+          toToken: params.toToken,
+          amountIn: params.amountIn,
+        });
+        
+        // Call your regular swap function here
+        tx = await contract.methods.swap(
+          params.fromToken,
+          params.toToken,
+          params.amountIn
+        ).send({
+          from: accounts[0],
+          gas: '500000',
+        });
+      } else {
+        // For cross-chain swaps, use wormhole
+        const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
+        
+        console.warn("Cross-chain swap initiated with params:", {
+          fromToken: params.fromToken,
+          toToken: params.toToken,
+          amountIn: params.amountIn,
+          wormholeChainId,
+          targetAddress: params.targetAddress
+        });
+  
+        tx = await contract.methods.initiateCrossChainSwap(
+          params.fromToken,
+          params.toToken,
+          params.amountIn,
+          wormholeChainId,
+          params.targetAddress
+        ).send({
+          from: accounts[0],
+          gas: '500000',
+        });
+      }
   
       toast.dismiss(loadingToastId);
   
       if (tx.status) {
-        toast.success("Cross-chain swap initiated successfully!");
+        toast.success(`${isSameChain ? "Swap" : "Cross-chain swap"} initiated successfully!`);
         return true;
       }
       
-      toast.error("Cross-chain swap failed");
+      toast.error(`${isSameChain ? "Swap" : "Cross-chain swap"} failed`);
       return false;
   
     } catch (error: any) {
       toast.dismiss(loadingToastId);
       console.error("Detailed error:", error);
-      toast.error(`Cross-chain swap failed: ${error.message}`);
+      toast.error(`Swap failed: ${error.message}`);
       return false;
     }
-    
   };
 
 // Helper function for price impact calculation

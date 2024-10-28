@@ -19,11 +19,6 @@ const tokens = [
     address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
   },
   {
-    symbol: "USDC",
-    icon: "$",
-    address: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B",
-  },
-  {
     symbol: "wBTC",
     icon: "₿",
     address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
@@ -85,6 +80,12 @@ export default function Swap() {
   }, [web3]);
 
   useEffect(() => {
+    debugger;
+    const currentChainFromStorage = getStorage("currentChain");
+    console.log("currentChainFromStorage", currentChainFromStorage);
+  }, [getStorage, web3]);
+
+  useEffect(() => {
     const setInitialTargetChain = async () => {
       if (web3) {
         try {
@@ -105,34 +106,36 @@ export default function Swap() {
   }, [web3]);
 
   const calculateReceivedAmount = useCallback(async (inputAmount: string, abortController: AbortController) => {
-    if (!inputAmount || inputAmount === "0" || !destinationChain) {
+    if (!inputAmount || inputAmount === "0" || !targetChain) {
       setReceivedAmount("");
       return;
     }
-  
+
     setIsCalculating(true);
     setReceivedAmount("Calculating...");
-  
+
     try {
       if (web3) {
-        // Check if calculation was aborted
         if (abortController.signal.aborted) {
           return;
         }
-  
+
+        const targetChainId = parseInt(targetChain);
+        
         console.warn("Calculating received amount with params:", {
           fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
           toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
           amountIn: web3.utils.toWei(inputAmount, "ether"),
-          targetChain: destinationChain.chainId,
+          targetChain: targetChainId,
           currentChain: currentChain,
+          isCrossChain: currentChain !== targetChainId
         });
-  
+
         const result = await calculateCrossChainAmount({
           fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
           toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
           amountIn: web3.utils.toWei(inputAmount, "ether"),
-          targetChain: destinationChain.chainId,
+          targetChain: targetChainId,
         });
   
         // Check if calculation was aborted
@@ -160,7 +163,7 @@ export default function Swap() {
         setIsCalculating(false);
       }
     }
-  }, [swapFromToken, swapToToken, destinationChain, calculateCrossChainAmount, web3]);
+  }, [swapFromToken, swapToToken, targetChain, calculateCrossChainAmount, web3, currentChain]);
 
 
 useEffect(() => {
@@ -398,25 +401,33 @@ useEffect(() => {
         </div>
       </div>
       <div className="mt-auto space-y-4 mb-10">
-        <Select value={targetChain} onValueChange={setTargetChain}>
-          <SelectTrigger className="w-full font-semibold data-[state=open]:border-amber-500 bg-neutral-800/70 border-amber-500/20 focus:ring-0 focus:ring-offset-0 text-white">
-            <SelectValue
-              placeholder="Select destination chain"
-              className="placeholder:text-white"
-            />
-          </SelectTrigger>
-          <SelectContent className="bg-black text-white border-amber-500/20">
-            {chains.map((chain) => (
+      <Select 
+        value={targetChain} 
+        onValueChange={setTargetChain}
+      >
+        <SelectTrigger className="w-full font-semibold data-[state=open]:border-amber-500 bg-neutral-800/70 border-amber-500/20 focus:ring-0 focus:ring-offset-0 text-white">
+          <SelectValue placeholder="Select chain" />
+        </SelectTrigger>
+        <SelectContent className="bg-black text-white border-amber-500/20">
+          {chains.map((chain) => {
+            const isSameChain = currentChain === chain.chainId;
+            return (
               <SelectItem
                 key={chain.id}
                 value={chain.id}
                 className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
               >
-                {chain.name}
+                <div className="flex items-center justify-between w-full">
+                  <span>{chain.name}</span>
+                  {isSameChain && (
+                    <span className="text-xs text-amber-500">(Current)</span>
+                  )}
+                </div>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            );
+          })}
+        </SelectContent>
+      </Select>
         <Button
           onClick={handleSwap}
           disabled={!amount || amount === "0" || isCalculating}
