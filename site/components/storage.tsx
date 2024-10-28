@@ -15,6 +15,8 @@ interface StorageContextProps {
   web3: Web3 | null;
   connectToWeb3: () => Promise<boolean>;
   switchChain: () => Promise<boolean>;
+  currentChain: number;
+  setCurrentChain: (chainId: number) => void;
   initializeCoreContract: () => any | undefined | null;
   fetchTokenBalances: (address: string) => Promise<any[] | undefined>;
   requestTokenFromFaucet: (tokenSymbol: string) => Promise<boolean>;
@@ -31,6 +33,8 @@ const StorageContext = createContext<StorageContextProps>({
   web3: null,
   connectToWeb3: async () => true || false,
   switchChain: async () => true || false,
+  currentChain: 44787,
+  setCurrentChain: () => {},
   initializeCoreContract: async () => {},
   fetchTokenBalances: async () => [],
   requestTokenFromFaucet: async () => true || false,
@@ -107,25 +111,13 @@ const CHAIN_ID_TO_WORMHOLE_CHAIN_ID: Record<number, number> = {
   43113: 6    // Avalanche Fuji
 };
 
-const FALLBACK_FEES: Record<number, string> = {
-  43113: "100000000000000000",    // 0.1 AVAX
-  44787: "500000000000000000"     // 0.5 CELO
-};
-
-const ALT_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-
-interface AddLiquidityParams {
-  tokenAddress: string;
-  tokenAmount: string;
-  altAmount: string;
-}
-
 
 export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [storage, setStorage] = useState<{ [key: string]: string }>({});
   const [web3, setWeb3] = useState<Web3 | null>(null);
+  const [currentChain, setCurrentChain] = useState<number>(44787); 
 
   const setStorageValue = (key: string, value: string) => {
     setStorage((prevStorage) => ({ ...prevStorage, [key]: value }));
@@ -269,6 +261,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         let newChain =
           targetChainId === "0xa869" ? "Avalanche Fuji" : "Celo Alfajores";
         toast.info("Swapped chain successfully to " + newChain);
+        console.log("Setting current chain to " + parseInt(targetChainId, 16));
+        console.log("Storing current chain as " + targetChainId);
+        setCurrentChain(parseInt(targetChainId, 16));
+        setStorage({"currentChain": targetChainId});
         return true;
       } catch (error) {
         console.error("Failed to swap chain:", error);
@@ -279,6 +275,41 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
   };
+
+  useEffect(() => {
+    const updateChain = async () => {
+      if (web3) {
+        try {
+          const chainId = await web3.eth.getChainId();
+          console.log("Setting current chain to " + Number(chainId));
+          console.log("Storing current chain as " + chainId.toString());
+          setCurrentChain(Number(chainId));
+          setStorage({"currentChain": chainId.toString()});
+        } catch (error) {
+          console.error("Error getting chain ID:", error);
+        }
+      }
+    };
+
+    updateChain();
+
+    // Listen for chain changes
+    if ((window as any).ethereum) {
+      (window as any).ethereum.on('chainChanged', (chainId: string) => {
+        const numericChainId = parseInt(chainId, 16);
+        console.log("Setting current chain to " + numericChainId);
+        console.log("Storing current chain as " + numericChainId.toString());
+        setCurrentChain(numericChainId);
+        setStorage({"currentChain": numericChainId.toString()});
+      });
+    }
+
+    return () => {
+      if ((window as any).ethereum) {
+        (window as any).ethereum.removeListener('chainChanged', () => {});
+      }
+    };
+  }, [web3]);
 
   const initializeCoreContract = async () => {
     if (web3) {
@@ -856,6 +887,8 @@ const calculateCrossChainAmount = async (
         web3,
         connectToWeb3,
         switchChain,
+        currentChain,
+        setCurrentChain,
         initializeCoreContract,
         fetchTokenBalances,
         requestTokenFromFaucet,

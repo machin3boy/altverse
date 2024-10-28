@@ -38,11 +38,7 @@ const Page: React.FC = () => {
   const {
     web3,
     connectToWeb3,
-    getStorage,
-    setStorage,
     switchChain,
-    fetchTokenBalances,
-    requestTokenFromFaucet,
   } = useStorage();
   const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
