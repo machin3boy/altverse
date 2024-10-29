@@ -11,6 +11,18 @@ import {
 import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import CeloLogo from "../ui/celo-logo";
+import AvaxLogo from "../ui/avax-logo";
+import LogoProps from "../ui/logo-props";
+
+type ChainId = "celo" | "fuji";
+
+interface Chain {
+  name: string;
+  id: ChainId;
+  chainId: number;
+  logo: React.FC<LogoProps>;
+}
 
 const tokens = [
   {
@@ -35,163 +47,226 @@ const tokens = [
   },
 ];
 
-const chains = [
-  { name: "Celo Testnet", id: "celo", chainId: 43113 },
-  { name: "Fuji Testnet", id: "fuji", chainId: 44787 },
+const chains: Chain[] = [
+  {
+    name: "Celo Testnet",
+    id: "celo",
+    chainId: 44787,
+    logo: CeloLogo,
+  },
+  {
+    name: "Fuji Testnet",
+    id: "fuji",
+    chainId: 43113,
+    logo: AvaxLogo,
+  },
 ];
 
-export default function Swap() {
-  const { initiateCrossChainSwap, calculateCrossChainAmount } = useStorage();
+interface TokenBalance {
+  symbol: string;
+  balance: string;
+  rawBalance: bigint;
+  address: string;
+}
 
-  const { web3, setStorage, getStorage } = useStorage();
+export default function Swap() {
+  const {
+    initiateCrossChainSwap,
+    calculateCrossChainAmount,
+    currentChain,
+    web3,
+    fetchTokenBalances,
+  } = useStorage();
+
   const [swapFromToken, setSwapFromToken] = useState("ALT");
   const [swapToToken, setSwapToToken] = useState("wBTC");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
   const [isCalculating, setIsCalculating] = useState(false);
-  const [currentChain, setCurrentChain] = useState(
-    parseInt(getStorage("currentChain") || "44787")
-  );
+  const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
+  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
+
   const [targetChain, setTargetChain] = useState(() => {
-    return "";
+    return "fuji";
   });
-  const [currentCalculation, setCurrentCalculation] = useState<AbortController | null>(null);
+  const [currentCalculation, setCurrentCalculation] =
+    useState<AbortController | null>(null);
 
+  const ChainSelectValue = React.forwardRef<HTMLDivElement, { value: ChainId }>(
+    (props, ref) => {
+      const chain = chains.find((c) => c.id === props.value);
+      const Logo = chain?.logo;
 
-  const destinationChain = useMemo(() => {
-    return currentChain === 44787
-      ? { name: "Fuji Testnet", id: "fuji", chainId: 43113 }
-      : { name: "Celo Testnet", id: "celo", chainId: 44787 };
-  }, [currentChain]);
-
-  useEffect(() => {
-    const initializeChain = async () => {
-      if (web3) {
-        try {
-          const chainId = await web3.eth.getChainId();
-          setCurrentChain(Number(chainId));
-        } catch (error) {
-          console.error("Error getting chain ID:", error);
-        }
-      }
-    };
-
-    initializeChain();
-  }, [web3]);
-
-  useEffect(() => {
-    debugger;
-    const currentChainFromStorage = getStorage("currentChain");
-    console.log("currentChainFromStorage", currentChainFromStorage);
-  }, [getStorage, web3]);
-
-  useEffect(() => {
-    const setInitialTargetChain = async () => {
-      if (web3) {
-        try {
-          const chainId = await web3.eth.getChainId();
-          if (Number(chainId) === 44787) {
-            setTargetChain("fuji");
-          } else if (Number(chainId) === 43113) {
-            setTargetChain("celo");
-          }
-        } catch (error) {
-          console.error("Error getting chain ID:", error);
-          setTargetChain("fuji");
-        }
-      }
-    };
-
-    setInitialTargetChain();
-  }, [web3]);
-
-  const calculateReceivedAmount = useCallback(async (inputAmount: string, abortController: AbortController) => {
-    if (!inputAmount || inputAmount === "0" || !targetChain) {
-      setReceivedAmount("");
-      return;
+      return (
+        <div className="flex items-center gap-2" ref={ref}>
+          {Logo && (
+            <Logo
+              fillColor="rgb(14 165 233)"
+              width={16}
+              height={16}
+              className="opacity-80"
+            />
+          )}
+          <span>{chain?.name}</span>
+        </div>
+      );
     }
+  );
 
-    setIsCalculating(true);
-    setReceivedAmount("Calculating...");
+  const calculateReceivedAmount = useCallback(
+    async (inputAmount: string, abortController: AbortController) => {
+      if (!inputAmount || inputAmount === "0" || !targetChain) {
+        setReceivedAmount("");
+        return;
+      }
 
-    try {
-      if (web3) {
-        if (abortController.signal.aborted) {
-          return;
-        }
+      setIsCalculating(true);
+      setReceivedAmount("Calculating...");
 
-        const targetChainId = parseInt(targetChain);
-        
-        console.warn("Calculating received amount with params:", {
-          fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-          toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
-          amountIn: web3.utils.toWei(inputAmount, "ether"),
-          targetChain: targetChainId,
-          currentChain: currentChain,
-          isCrossChain: currentChain !== targetChainId
-        });
+      try {
+        if (web3) {
+          if (abortController.signal.aborted) {
+            return;
+          }
 
-        const result = await calculateCrossChainAmount({
-          fromToken: tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-          toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
-          amountIn: web3.utils.toWei(inputAmount, "ether"),
-          targetChain: targetChainId,
-        });
-  
-        // Check if calculation was aborted
-        if (abortController.signal.aborted) {
-          return;
-        }
-  
-        if (result) {
-          const formattedOutput = web3.utils.fromWei(result.estimatedOutput, "ether");
-          const roundedOutput = Number(formattedOutput).toFixed(6);
-          setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
+          const targetChainId = chains.find(
+            (chain) => chain.id === targetChain
+          )?.chainId;
+          if (!targetChainId) {
+            throw new Error("Invalid target chain");
+          }
+
+          console.warn("Calculating received amount with params:", {
+            fromToken:
+              tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+            toToken:
+              tokens.find((t) => t.symbol === swapToToken)?.address || "",
+            amountIn: web3.utils.toWei(inputAmount, "ether"),
+            targetChain: targetChainId,
+            currentChain: currentChain,
+            isCrossChain: currentChain !== targetChainId,
+          });
+
+          const result = await calculateCrossChainAmount({
+            fromToken:
+              tokens.find((t) => t.symbol === swapFromToken)?.address || "",
+            toToken:
+              tokens.find((t) => t.symbol === swapToToken)?.address || "",
+            amountIn: web3.utils.toWei(inputAmount, "ether"),
+            targetChain: targetChainId,
+          });
+
+          // Check if calculation was aborted
+          if (abortController.signal.aborted) {
+            return;
+          }
+
+          if (result) {
+            const formattedOutput = web3.utils.fromWei(
+              result.estimatedOutput,
+              "ether"
+            );
+            const roundedOutput = Number(formattedOutput).toFixed(6);
+            setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
+          } else {
+            setReceivedAmount("");
+          }
         } else {
           setReceivedAmount("");
         }
-      } else {
-        setReceivedAmount("");
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.error("Error calculating received amount:", error);
+          setReceivedAmount("");
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsCalculating(false);
+        }
       }
-    } catch (error) {
-      if (!abortController.signal.aborted) {
-        console.error("Error calculating received amount:", error);
-        setReceivedAmount("");
+    },
+    [
+      swapFromToken,
+      swapToToken,
+      targetChain,
+      calculateCrossChainAmount,
+      web3,
+      currentChain,
+    ]
+  );
+
+  useEffect(() => {
+    if (amount) {
+      // Cancel any ongoing calculation
+      if (currentCalculation) {
+        currentCalculation.abort();
       }
-    } finally {
-      if (!abortController.signal.aborted) {
-        setIsCalculating(false);
+
+      // Create new AbortController for this calculation
+      const newController = new AbortController();
+      setCurrentCalculation(newController);
+
+      // Start the calculation
+      calculateReceivedAmount(amount, newController);
+    } else {
+      setReceivedAmount("");
+      setIsCalculating(false);
+    }
+
+    // Cleanup function
+    return () => {
+      if (currentCalculation) {
+        currentCalculation.abort();
       }
+    };
+  }, [amount, calculateReceivedAmount]);
+
+  useEffect(() => {
+    const loadBalances = async () => {
+      if (web3) {
+        setIsLoadingBalances(true);
+        try {
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0]) {
+            const balances = await fetchTokenBalances(accounts[0]);
+            if (balances) {
+              setTokenBalances(balances);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading balances:", error);
+        }
+        setIsLoadingBalances(false);
+      }
+    };
+
+    loadBalances();
+  }, [web3, currentChain, swapFromToken, fetchTokenBalances]);
+
+  const getCurrentTokenBalance = useCallback(() => {
+    const token = tokens.find((t) => t.symbol === swapFromToken);
+    if (!token) return "0";
+
+    const balance = tokenBalances.find(
+      (b) => b.address.toLowerCase() === token.address.toLowerCase()
+    );
+    return balance ? balance.rawBalance.toString() : "0";
+  }, [tokenBalances, swapFromToken]);
+
+  // Handle max button click
+  const handleMaxClick = useCallback(async () => {
+    if (!web3) return;
+
+    const rawBalance = getCurrentTokenBalance();
+    if (rawBalance === "0") {
+      toast.warning("No balance available");
+      return;
     }
-  }, [swapFromToken, swapToToken, targetChain, calculateCrossChainAmount, web3, currentChain]);
 
-
-useEffect(() => {
-  if (amount) {
-    // Cancel any ongoing calculation
-    if (currentCalculation) {
-      currentCalculation.abort();
-    }
-
-    // Create new AbortController for this calculation
-    const newController = new AbortController();
-    setCurrentCalculation(newController);
-
-    // Start the calculation
-    calculateReceivedAmount(amount, newController);
-  } else {
-    setReceivedAmount("");
-    setIsCalculating(false);
-  }
-
-  // Cleanup function
-  return () => {
-    if (currentCalculation) {
-      currentCalculation.abort();
-    }
-  };
-}, [amount, calculateReceivedAmount]);
-
+    // Convert from wei to ether for display
+    const formattedBalance = web3.utils.fromWei(rawBalance, "ether");
+    setAmount(formattedBalance);
+  }, [web3, getCurrentTokenBalance]);
 
   const handleAmountChange = async (e: any) => {
     const value = e.target.value;
@@ -216,7 +291,6 @@ useEffect(() => {
   };
 
   const handleSwap = useCallback(async () => {
-    debugger;
     if (!web3) {
       toast.error("Please connect your wallet");
       return;
@@ -227,8 +301,13 @@ useEffect(() => {
       return;
     }
 
-    if (!destinationChain) {
+    if (!targetChain) {
       toast.error("Please select a destination chain");
+      return;
+    }
+    const targetChainId = chains.find((chain) => chain.id === targetChain)?.chainId;
+    if (targetChainId === currentChain) {
+      toast.error("We currently only support cross-chain swaps.");
       return;
     }
 
@@ -240,12 +319,15 @@ useEffect(() => {
         return;
       }
 
+      const targetChainId = chains.find((chain) => chain.id === targetChain)
+        ?.chainId as number;
+
       const swapParams = {
         fromToken:
           tokens.find((t) => t.symbol === swapFromToken)?.address || "",
         toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
         amountIn: web3.utils.toWei(amount, "ether"),
-        targetChain: destinationChain.chainId,
+        targetChain: targetChainId,
         targetAddress: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
       };
 
@@ -267,7 +349,7 @@ useEffect(() => {
     amount,
     swapFromToken,
     swapToToken,
-    destinationChain,
+    targetChain,
     initiateCrossChainSwap,
   ]);
 
@@ -287,9 +369,26 @@ useEffect(() => {
                   variant="ghost"
                   size="sm"
                   className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
+                  onClick={handleMaxClick}
+                  disabled={isLoadingBalances}
                 >
-                  max
+                  {isLoadingBalances ? "Loading..." : "max"}
                 </Button>
+              </div>
+
+              {/* Balance display with icon */}
+              <div className="text-xs text-gray-400 font-mono flex items-center gap-1">
+                Balance:{" "}
+                <span className="flex items-center gap-1">
+                  {tokens.find((t) => t.symbol === swapFromToken)?.icon}{" "}
+                  {tokenBalances.find(
+                    (b) =>
+                      b.address.toLowerCase() ===
+                      tokens
+                        .find((t) => t.symbol === swapFromToken)
+                        ?.address.toLowerCase()
+                  )?.balance || "0"}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Input
@@ -342,9 +441,73 @@ useEffect(() => {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-md font-mono font-semibold text-sky-500">
-                You Receive
+              <div className="flex justify-between items-center">
+                <span className="text-md font-mono font-semibold text-sky-500">
+                  You Receive
+                </span>
+                <Select value={targetChain} onValueChange={setTargetChain}>
+  <SelectTrigger
+    className="w-[160px] text-xs 
+      bg-gradient-to-r from-sky-500/10 to-sky-400/5
+      hover:from-sky-500/20 hover:to-sky-400/10
+      text-sky-500/90 
+      border-sky-500/20 
+      hover:border-sky-500/40
+      font-semibold 
+      data-[state=open]:border-sky-500/30 
+      focus:ring-0 
+      focus:ring-offset-0
+      shadow-sm
+      hover:shadow-sky-900/20
+      transition-all 
+      duration-200"
+  >
+    <SelectValue>
+      <ChainSelectValue value={targetChain as ChainId} />
+    </SelectValue>
+  </SelectTrigger>
+  <SelectContent
+    className="bg-neutral-900/95
+      border-sky-500/20 
+      shadow-lg 
+      shadow-sky-900/10"
+  >
+    {chains.map((chain) => {
+      const isSameChain = currentChain === chain.chainId;
+      const Logo = chain.logo;
+      return (
+        <SelectItem
+          key={chain.id}
+          value={chain.id}
+          className="font-semibold 
+            text-neutral-200
+            hover:bg-sky-500/10
+            data-[highlighted]:bg-sky-500/15 
+            data-[highlighted]:text-sky-400
+            transition-all
+            duration-150
+            ease-in-out"
+        >
+          <div className="flex items-center gap-2 w-full">
+            <Logo
+              fillColor="rgb(14 165 233)"
+              width={16}
+              height={16}
+              className="opacity-80 transition-opacity duration-150 data-[highlighted]:opacity-100"
+            />
+            <span>{chain.name}</span>
+            {isSameChain && (
+              <span className="text-xs text-sky-500/70 ml-auto">
+                (Current)
               </span>
+            )}
+          </div>
+        </SelectItem>
+      );
+    })}
+  </SelectContent>
+</Select>
+              </div>
               <div className="flex items-center space-x-2">
                 <Input
                   type="text"
@@ -364,7 +527,7 @@ useEffect(() => {
                   readOnly
                 />
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
-                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
                       <div className="flex items-center">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -400,34 +563,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      <div className="mt-auto space-y-4 mb-10">
-      <Select 
-        value={targetChain} 
-        onValueChange={setTargetChain}
-      >
-        <SelectTrigger className="w-full font-semibold data-[state=open]:border-amber-500 bg-neutral-800/70 border-amber-500/20 focus:ring-0 focus:ring-offset-0 text-white">
-          <SelectValue placeholder="Select chain" />
-        </SelectTrigger>
-        <SelectContent className="bg-black text-white border-amber-500/20">
-          {chains.map((chain) => {
-            const isSameChain = currentChain === chain.chainId;
-            return (
-              <SelectItem
-                key={chain.id}
-                value={chain.id}
-                className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span>{chain.name}</span>
-                  {isSameChain && (
-                    <span className="text-xs text-amber-500">(Current)</span>
-                  )}
-                </div>
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
+      <div className="mt-auto mb-10">
         <Button
           onClick={handleSwap}
           disabled={!amount || amount === "0" || isCalculating}
