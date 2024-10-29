@@ -56,11 +56,23 @@ export default function USDC() {
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-md font-mono font-semibold text-amber-500">You Pay</span>
+                <span
+                  className={`text-md font-mono font-semibold ${
+                    altcoinFromToken === "USDC"
+                      ? "text-sky-500"
+                      : "text-amber-500"
+                  }`}
+                >
+                  You Pay
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500"
+                  className={`text-xs ${
+                    altcoinFromToken === "USDC"
+                      ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
+                      : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
+                  } font-semibold`}
                 >
                   max
                 </Button>
@@ -81,8 +93,19 @@ export default function USDC() {
                     MozAppearance: "textfield",
                   }}
                 />
-                <Select value={altcoinFromToken} onValueChange={setAltcoinFromToken}>
-                  <SelectTrigger className={`w-[120px] font-semibold data-[state=open]:border-${altcoinFromToken === 'USDC' ? 'sky' : 'amber'}-500 focus:ring-0 focus:ring-offset-0 bg-${altcoinFromToken === 'USDC' ? 'sky' : 'amber'}-500/10 border-${altcoinFromToken === 'USDC' ? 'sky' : 'amber'}-500/10 py-4`}>
+                <Select
+                  value={altcoinFromToken}
+                  onValueChange={setAltcoinFromToken}
+                >
+                  <SelectTrigger
+                    className={`w-[120px] font-semibold data-[state=open]:border-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500 focus:ring-0 focus:ring-offset-0 bg-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500/10 border-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500/10 py-4`}
+                  >
                     <SelectValue>
                       <div className="flex items-center">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -94,7 +117,11 @@ export default function USDC() {
                       </div>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className={`bg-black text-white border-${altcoinFromToken === 'USDC' ? 'sky' : 'amber'}-500/20`}>
+                  <SelectContent
+                    className={`bg-black text-white border-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500/20`}
+                  >
                     <SelectItem
                       value="USDC"
                       className={`font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white`}
@@ -122,7 +149,15 @@ export default function USDC() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-md font-mono font-semibold text-sky-500">You Receive</span>
+              <span
+                className={`text-md font-mono font-semibold ${
+                  altcoinFromToken === "USDC"
+                    ? "text-amber-500"
+                    : "text-sky-500"
+                }`}
+              >
+                You Receive
+              </span>
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
@@ -139,13 +174,21 @@ export default function USDC() {
                   }}
                   readOnly
                 />
-                <div className={`h-9 w-[120px] bg-${altcoinFromToken === 'USDC' ? 'amber' : 'sky'}-500/10 rounded-md flex items-center px-3 border border-${altcoinFromToken === 'USDC' ? 'amber' : 'sky'}-500/10 font-mono font-bold text-sm`}>
+                <div
+                  className={`h-9 w-[120px] bg-${
+                    altcoinFromToken === "USDC" ? "amber" : "sky"
+                  }-500/10 rounded-md flex items-center px-3 border border-${
+                    altcoinFromToken === "USDC" ? "amber" : "sky"
+                  }-500/10 font-mono font-bold text-sm`}
+                >
                   <div className="flex items-center">
                     <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-3.5">
                       {altcoinFromToken === "USDC" ? "A" : "$"}
                     </span>
                     <span className="font-mono w-16 pt-[2.25px]">
-                      {(altcoinFromToken === "USDC" ? "ALT " : "USDC").padEnd(4)}
+                      {(altcoinFromToken === "USDC" ? "ALT " : "USDC").padEnd(
+                        4
+                      )}
                     </span>
                   </div>
                 </div>

@@ -368,7 +368,7 @@ export default function Swap() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500"
+                  className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
                   onClick={handleMaxClick}
                   disabled={isLoadingBalances}
                 >
