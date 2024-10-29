@@ -22,6 +22,14 @@ interface StorageContextProps {
   requestTokenFromFaucet: (tokenSymbol: string) => Promise<boolean>;
   initiateCrossChainSwap: (params: CrossChainSwapParams) => Promise<boolean>;
   calculateCrossChainAmount: (params: CrossChainAmountParams) => Promise<CrossChainAmountResult | undefined>;
+  swapALTForUSDC: (altAmount: string) => Promise<boolean>;
+  swapUSDCForALT: (usdcAmount: string) => Promise<boolean>;
+  getPoolBalances: () => Promise<{
+    usdcBalance: string;
+    altBalance: string;
+    rawUsdcBalance: string;
+    rawAltBalance: string;
+  } | null>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
 }
@@ -40,6 +48,9 @@ const StorageContext = createContext<StorageContextProps>({
   requestTokenFromFaucet: async () => true || false,
   initiateCrossChainSwap: async () => true || false,
   calculateCrossChainAmount: async () => undefined,
+  swapALTForUSDC: async () => true || false,
+  swapUSDCForALT: async () => true || false,
+  getPoolBalances: async () => null,
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
 });
@@ -332,6 +343,23 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const formatTokenBalance = (balance: string, decimals: string): string => {
+    const balanceNum = BigInt(balance);
+    const divisor = BigInt(10 ** Number(decimals));
+    const wholePart = balanceNum / divisor;
+    const fracPart = balanceNum % divisor;
+    
+    let formatted = wholePart.toString();
+    if (fracPart > 0) {
+      // Add fractional part and pad with leading zeros if needed
+      const fracString = fracPart.toString().padStart(Number(decimals), '0');
+      formatted = `${formatted}.${fracString}`;
+    }
+    
+    // Remove trailing zeros after decimal
+    return formatted.replace(/\.?0+$/, '');
+  };
+
   const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
     if (!web3) {
       toast.error("Web3 not initialized");
@@ -339,7 +367,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   
     try {
-      const tokens = [
+      // Get chain ID first to determine USDC address
+      const chainId = await web3.eth.getChainId();
+      
+      // Base tokens list
+      const baseTokens = [
         { 
           address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
           symbol: "ALT"
@@ -358,17 +390,23 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       ];
   
-      // Get native token balance with BigInt conversion
+      // Add USDC based on chain
+      const usdcAddress = Number(chainId) === 43113 
+        ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
+        : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
+  
+      const tokens = [
+        ...baseTokens,
+        {
+          address: usdcAddress,
+          symbol: "USDC"
+        }
+      ];
+  
+      // Get native token balance
       const nativeBalance = await web3.eth.getBalance(address);
-      const chainId = await web3.eth.getChainId();
-      
-      // Convert native balance to BigInt for consistent handling
       const nativeBigInt = BigInt(nativeBalance);
-      
-      // Format native balance with proper decimal handling
-      const formattedNativeBalance = parseFloat(web3.utils.fromWei(nativeBalance, 'ether'))
-        .toFixed(18)  // Use 18 decimals for consistency
-        .replace(/\.?0+$/, ''); // Remove trailing zeros
+      const formattedNativeBalance = formatTokenBalance(nativeBalance.toString(), '18');
   
       // Initialize balances array with native token
       const balances: TokenBalance[] = [{
@@ -381,35 +419,22 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       // Fetch ERC20 token balances in parallel
       const tokenPromises = tokens.map(async (token) => {
         try {
+          console.log(`Fetching balance for ${token.symbol} at ${token.address}`);
+          
           const contract = new web3.eth.Contract(
             ERC20ABI as AbiItem[],
             token.address
           );
           
-          // Get balance and decimals with proper typing
           const balance = await contract.methods.balanceOf(address).call() as string;
           const decimals = await contract.methods.decimals().call() as string;
   
-          // Convert balance to BigInt
+          console.log(`Raw balance for ${token.symbol}: ${balance}, decimals: ${decimals}`);
+  
           const balanceBigInt = BigInt(balance);
+          const formattedBalance = formatTokenBalance(balance, decimals);
   
-          // Determine the correct unit based on decimals
-          let unit: 'ether' | 'mwei' | 'gwei';
-          switch(decimals) {
-            case '6':
-              unit = 'mwei';
-              break;
-            case '8':
-              unit = 'gwei';
-              break;
-            default:
-              unit = 'ether';
-          }
-  
-          // Format the balance with proper decimal handling
-          const formattedBalance = parseFloat(web3.utils.fromWei(balance, unit))
-            .toFixed(Number(decimals))  // Use token's decimals
-            .replace(/\.?0+$/, ''); // Remove trailing zeros
+          console.log(`Formatted balance for ${token.symbol}: ${formattedBalance}`);
   
           return {
             symbol: token.symbol,
@@ -425,11 +450,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       });
   
       const tokenBalances = await Promise.all(tokenPromises);
-      
       const validBalances = balances.concat(
         tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
       );
   
+      console.log("All balances:", validBalances);
       return validBalances;
   
     } catch (error) {
@@ -621,6 +646,45 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const getPoolBalances = async () => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return null;
+    }
+
+    try {
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      // Get USDC balance from contract
+      const rawUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
+      
+      // Get ALT balance from contract
+      const rawAltBalance = await contract.methods.balanceOf(ALTVERSE_ADDRESS).call() as string;
+
+      // Format USDC balance (6 decimals)
+      const usdcBalance = web3.utils.fromWei(rawUsdcBalance, 'mwei');
+      
+      // Format ALT balance (18 decimals)
+      const altBalance = web3.utils.fromWei(rawAltBalance, 'ether');
+
+      return {
+        usdcBalance,        // Formatted with decimals
+        altBalance,         // Formatted with decimals
+        rawUsdcBalance,     // Raw value for calculations
+        rawAltBalance,      // Raw value for calculations
+      };
+
+    } catch (error: any) {
+      console.error("Error fetching pool balances:", error);
+      toast.error(`Failed to fetch pool balances: ${error.message}`);
+      return null;
+    }
+  };
+
 // Helper function for price impact calculation
 const calculatePriceImpact = (
   amountIn: string,
@@ -799,7 +863,211 @@ const calculateCrossChainAmount = async (
     return undefined;
   }
 };
-  
+
+const checkAndApproveToken = async (
+  tokenAddress: string,
+  spenderAddress: string,
+  amount: string
+): Promise<boolean> => {
+  if (!web3) return false;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const tokenContract = new web3.eth.Contract(
+      ERC20ABI as AbiItem[],
+      tokenAddress
+    );
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.methods
+      .allowance(accounts[0], spenderAddress)
+      .call() as string;
+
+    if (BigInt(currentAllowance) < BigInt(amount)) {
+      const approveToastId = `approve-${Date.now()}`;
+      toast.loading("Approving token spend...", {
+        id: approveToastId
+      });
+
+      try {
+        await tokenContract.methods
+          .approve(spenderAddress, amount)
+          .send({ from: accounts[0] });
+        
+        toast.dismiss(approveToastId);
+        toast.success("Token approved successfully");
+        return true;
+      } catch (error: any) {
+        toast.dismiss(approveToastId);
+        toast.error(`Token approval failed: ${error.message}`);
+        return false;
+      }
+    }
+
+    return true; // Already approved
+  } catch (error: any) {
+    console.error("Approval error:", error);
+    toast.error(`Approval check failed: ${error.message}`);
+    return false;
+  }
+};
+
+const swapUSDCForALT = async (usdcAmount: string): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `swap-usdc-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+      toast.error("USDC address not set in contract");
+      return false;
+    }
+
+    // Convert amount to smallest unit (6 decimals for USDC)
+    const usdcAmountWei = web3.utils.toWei(usdcAmount, 'mwei');
+
+    // Check and approve USDC if needed
+    const approved = await checkAndApproveToken(
+      designatedUSDC,
+      ALTVERSE_ADDRESS,
+      usdcAmountWei
+    );
+
+    if (!approved) {
+      return false;
+    }
+
+    // Perform the swap
+    toast.loading("Swapping USDC for ALT...", {
+      id: loadingToastId,
+    });
+
+    const tx = await contract.methods
+      .swapUSDCForALT(usdcAmountWei)
+      .send({ from: accounts[0] });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully swapped USDC for ALT!");
+      return true;
+    } else {
+      toast.error("Swap failed");
+      return false;
+    }
+
+  } catch (error: any) {
+    toast.dismiss(loadingToastId);
+    console.error("Error in USDC to ALT swap:", error);
+    toast.error(`Swap failed: ${error.message}`);
+    return false;
+  }
+};
+
+const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `swap-alt-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+      toast.error("USDC address not set in contract");
+      return false;
+    }
+
+    // Convert ALT amount to smallest unit (18 decimals)
+    const altAmountWei = web3.utils.toWei(altAmount, 'ether');
+
+    // Check and approve ALT if needed
+    const approved = await checkAndApproveToken(
+      ALTVERSE_ADDRESS,
+      ALTVERSE_ADDRESS,
+      altAmountWei
+    );
+
+    if (!approved) {
+      return false;
+    }
+
+    // Check ALT balance
+    const altBalance = await contract.methods.balanceOf(accounts[0]).call() as string;
+    if (BigInt(altBalance) < BigInt(altAmountWei)) {
+      toast.error("Insufficient ALT balance");
+      return false;
+    }
+
+    // Check USDC liquidity
+    const contractUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
+    const expectedUsdcAmount = BigInt(altAmountWei) / BigInt(1000000000000); // Convert from 18 to 6 decimals
+    
+    if (BigInt(contractUsdcBalance) < expectedUsdcAmount) {
+      toast.error("Insufficient USDC liquidity in contract");
+      return false;
+    }
+
+    // Perform the swap
+    toast.loading("Swapping ALT for USDC...", {
+      id: loadingToastId,
+    });
+
+    const tx = await contract.methods
+      .swapALTForUSDC(altAmountWei)
+      .send({ from: accounts[0] });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully swapped ALT for USDC!");
+      return true;
+    } else {
+      toast.error("Swap failed");
+      return false;
+    }
+
+  } catch (error: any) {
+    toast.dismiss(loadingToastId);
+    console.error("Error in ALT to USDC swap:", error);
+    toast.error(`Swap failed: ${error.message}`);
+    return false;
+  }
+};
   // Helper function to add liquidity to a pool (you'll need this first)
   const addInitialLiquidity = async (
     tokenAddress: string, 
@@ -894,6 +1162,9 @@ const calculateCrossChainAmount = async (
         requestTokenFromFaucet,
         initiateCrossChainSwap,
         calculateCrossChainAmount,
+        swapALTForUSDC,
+        swapUSDCForALT,
+        getPoolBalances,
         stringToBigInt,
         bigIntToString,
       }}
