@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import NumberTicker from "@/components/magicui/number-ticker";
@@ -9,11 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useStorage } from "../storage";
+import { toast } from "sonner";
 
 export default function USDC() {
+  const { web3, currentChain, getPoolBalances, swapALTForUSDC, swapUSDCForALT } = useStorage();
   const [altcoinFromToken, setAltcoinFromToken] = useState("ALT");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
+  const [altPool, setAltPool] = useState(0);
+  const [usdcPool, setUsdcPool] = useState(0);
+  const [isSwapping, setIsSwapping] = useState(false);
+
 
   const handleAmountChange = (e: any) => {
     const value = e.target.value;
@@ -37,6 +44,84 @@ export default function USDC() {
     }
   };
 
+  useEffect(() => {
+    let mounted = true;
+  
+    const fetchBalances = async () => {
+      try {
+        const balances = await getPoolBalances();
+        if (mounted && balances) {
+          setAltPool(Number(balances.altBalance));
+          setUsdcPool(Number(balances.usdcBalance));
+        }
+      } catch (error) {
+        console.error('Failed to fetch pool balances:', error);
+        // Handle error appropriately
+      }
+    };
+  
+    fetchBalances();
+  
+    return () => {
+      mounted = false;
+    };
+  }, [currentChain]); // Add currentChain to dependency array
+
+  useEffect(() => {
+    if (amount === "") {
+      setReceivedAmount("");
+      return;
+    }
+    // For now, 1:1 conversion (adjusted for decimals)
+    setReceivedAmount(amount);
+  }, [amount]);
+
+  useEffect(() => {
+    if (amount === "") {
+      setReceivedAmount("");
+      return;
+    }
+    // For now, 1:1 conversion (adjusted for decimals)
+    setReceivedAmount(amount);
+  }, [amount]);
+
+  const handleSwap = async () => {
+    if (!amount || Number(amount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    setIsSwapping(true);
+    try {
+      let success;
+      if (altcoinFromToken === "ALT") {
+        // Swapping ALT to USDC
+        success = await swapALTForUSDC(amount);
+      } else {
+        // Swapping USDC to ALT
+        success = await swapUSDCForALT(amount);
+      }
+
+      if (success) {
+        // Reset form
+        setAmount("");
+        setReceivedAmount("");
+        
+        // Refresh pool balances
+        const balances = await getPoolBalances();
+        if (balances) {
+          setAltPool(Number(balances.altBalance));
+          setUsdcPool(Number(balances.usdcBalance));
+        }
+      }
+    } catch (error: any) {
+      console.error("Swap error:", error);
+      toast.error(`Swap failed: ${error.message}`);
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
   const isGrayText = amount === "";
 
   return (
@@ -45,11 +130,11 @@ export default function USDC() {
         <div className="space-y-2 my-2">
           <h4 className="text-md font-bold ml-1">ALT Pool</h4>
           <p className="ml-1 text-md font-semibold font-mono tracking-tighter text-amber-500">
-            <NumberTicker value={1132259387.22} decimalPlaces={2} />
+            <NumberTicker value={altPool} decimalPlaces={2} />
           </p>
           <h4 className="text-md font-bold ml-1 pt-2">USDC Pool</h4>
           <p className="ml-[4px] text-md font-semibold font-mono tracking-tighter text-sky-500">
-            <NumberTicker value={7630.47} decimalPlaces={2} />
+            <NumberTicker value={usdcPool} decimalPlaces={2} />
           </p>
         </div>
         <div className="relative rounded-lg border-amber-500/50 mt-7">
@@ -161,10 +246,10 @@ export default function USDC() {
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={receivedAmount}
+                  value={amount}
                   placeholder="0.0"
                   className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    receivedAmount === ""
+                    amount === ""
                       ? "text-gray-500 placeholder:text-gray-500"
                       : "text-white"
                   }`}
@@ -199,6 +284,8 @@ export default function USDC() {
       </div>
       <div className="mt-auto space-y-4 mb-4">
         <Button
+          onClick={handleSwap}
+          disabled={!amount || isSwapping || Number(amount) <= 0}
           className="w-full bg-gradient-to-r from-amber-900 to-amber-800 
             hover:from-amber-800 hover:to-amber-700
             active:from-amber-950 active:to-amber-900
@@ -212,6 +299,7 @@ export default function USDC() {
             overflow-hidden
             group
             active:ring-amber-500/20
+            disabled:opacity-50 disabled:cursor-not-allowed
             before:absolute before:inset-0 before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
             before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
             before:blur-md"
@@ -220,12 +308,13 @@ export default function USDC() {
           <div className="relative w-full px-8">
             <div className="flex justify-center items-center">
               <span className="tracking-wide">
-                Swap {altcoinFromToken} to{" "}
-                {altcoinFromToken === "USDC" ? "ALT" : "USDC"}
+                {isSwapping ? "Swapping..." : `Swap ${altcoinFromToken} to ${altcoinFromToken === "USDC" ? "ALT" : "USDC"}`}
               </span>
-              <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
-                ⇆
-              </span>
+              {!isSwapping && (
+                <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
+                  ⇆
+                </span>
+              )}
             </div>
           </div>
         </Button>

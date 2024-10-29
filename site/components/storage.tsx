@@ -22,6 +22,14 @@ interface StorageContextProps {
   requestTokenFromFaucet: (tokenSymbol: string) => Promise<boolean>;
   initiateCrossChainSwap: (params: CrossChainSwapParams) => Promise<boolean>;
   calculateCrossChainAmount: (params: CrossChainAmountParams) => Promise<CrossChainAmountResult | undefined>;
+  swapALTForUSDC: (altAmount: string) => Promise<boolean>;
+  swapUSDCForALT: (usdcAmount: string) => Promise<boolean>;
+  getPoolBalances: () => Promise<{
+    usdcBalance: string;
+    altBalance: string;
+    rawUsdcBalance: string;
+    rawAltBalance: string;
+  } | null>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
 }
@@ -40,6 +48,9 @@ const StorageContext = createContext<StorageContextProps>({
   requestTokenFromFaucet: async () => true || false,
   initiateCrossChainSwap: async () => true || false,
   calculateCrossChainAmount: async () => undefined,
+  swapALTForUSDC: async () => true || false,
+  swapUSDCForALT: async () => true || false,
+  getPoolBalances: async () => null,
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
 });
@@ -621,6 +632,45 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const getPoolBalances = async () => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return null;
+    }
+
+    try {
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      // Get USDC balance from contract
+      const rawUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
+      
+      // Get ALT balance from contract
+      const rawAltBalance = await contract.methods.balanceOf(ALTVERSE_ADDRESS).call() as string;
+
+      // Format USDC balance (6 decimals)
+      const usdcBalance = web3.utils.fromWei(rawUsdcBalance, 'mwei');
+      
+      // Format ALT balance (18 decimals)
+      const altBalance = web3.utils.fromWei(rawAltBalance, 'ether');
+
+      return {
+        usdcBalance,        // Formatted with decimals
+        altBalance,         // Formatted with decimals
+        rawUsdcBalance,     // Raw value for calculations
+        rawAltBalance,      // Raw value for calculations
+      };
+
+    } catch (error: any) {
+      console.error("Error fetching pool balances:", error);
+      toast.error(`Failed to fetch pool balances: ${error.message}`);
+      return null;
+    }
+  };
+
 // Helper function for price impact calculation
 const calculatePriceImpact = (
   amountIn: string,
@@ -799,6 +849,168 @@ const calculateCrossChainAmount = async (
     return undefined;
   }
 };
+
+const swapUSDCForALT = async (usdcAmount: string): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `swap-usdc-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+      toast.error("USDC address not set in contract");
+      return false;
+    }
+
+    // Create USDC contract instance
+    const usdcContract = new web3.eth.Contract(
+      ERC20ABI as AbiItem[],
+      designatedUSDC
+    );
+
+    // Check USDC allowance with proper typing
+    const currentAllowance = await usdcContract.methods
+      .allowance(accounts[0], ALTVERSE_ADDRESS)
+      .call() as string;
+
+    // Convert usdcAmount to smallest unit (6 decimals for USDC)
+    const usdcAmountWei = web3.utils.toWei(usdcAmount, 'mwei');
+
+    // If allowance is insufficient, request approval
+    if (BigInt(currentAllowance) < BigInt(usdcAmountWei)) {
+      const approveToastId = `approve-${Date.now()}`;
+      toast.loading("Approving USDC spend...", {
+        id: approveToastId
+      });
+      
+      try {
+        await usdcContract.methods
+          .approve(ALTVERSE_ADDRESS, usdcAmountWei)
+          .send({ from: accounts[0] });
+        toast.dismiss(approveToastId);
+        toast.success("USDC approved successfully");
+      } catch (error: any) {
+        toast.dismiss(approveToastId);
+        toast.error(`USDC approval failed: ${error.message}`);
+        return false;
+      }
+    }
+
+    // Perform the swap
+    toast.loading("Swapping USDC for ALT...", {
+      id: loadingToastId,
+    });
+
+    const tx = await contract.methods
+      .swapUSDCForALT(usdcAmountWei)
+      .send({ from: accounts[0] });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully swapped USDC for ALT!");
+      return true;
+    } else {
+      toast.error("Swap failed");
+      return false;
+    }
+
+  } catch (error: any) {
+    toast.dismiss(loadingToastId);
+    console.error("Error in USDC to ALT swap:", error);
+    toast.error(`Swap failed: ${error.message}`);
+    return false;
+  }
+};
+
+const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `swap-alt-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    // Check if USDC is set in contract
+    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+      toast.error("USDC address not set in contract");
+      return false;
+    }
+
+    // Convert altAmount to smallest unit (18 decimals for ALT)
+    const altAmountWei = web3.utils.toWei(altAmount, 'ether');
+
+    // Check ALT balance with proper typing
+    const altBalance = await contract.methods.balanceOf(accounts[0]).call() as string;
+    if (BigInt(altBalance) < BigInt(altAmountWei)) {
+      toast.error("Insufficient ALT balance");
+      return false;
+    }
+
+    // Check if contract has enough USDC
+    const contractUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
+    const expectedUsdcAmount = BigInt(altAmountWei) / BigInt(1000000000000); // 10^12
+    
+    if (BigInt(contractUsdcBalance) < expectedUsdcAmount) {
+      toast.error("Insufficient USDC liquidity in contract");
+      return false;
+    }
+
+    // Perform the swap
+    toast.loading("Swapping ALT for USDC...", {
+      id: loadingToastId,
+    });
+
+    const tx = await contract.methods
+      .swapALTForUSDC(altAmountWei)
+      .send({ from: accounts[0] });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully swapped ALT for USDC!");
+      return true;
+    } else {
+      toast.error("Swap failed");
+      return false;
+    }
+
+  } catch (error: any) {
+    toast.dismiss(loadingToastId);
+    console.error("Error in ALT to USDC swap:", error);
+    toast.error(`Swap failed: ${error.message}`);
+    return false;
+  }
+};
   
   // Helper function to add liquidity to a pool (you'll need this first)
   const addInitialLiquidity = async (
@@ -894,6 +1106,9 @@ const calculateCrossChainAmount = async (
         requestTokenFromFaucet,
         initiateCrossChainSwap,
         calculateCrossChainAmount,
+        swapALTForUSDC,
+        swapUSDCForALT,
+        getPoolBalances,
         stringToBigInt,
         bigIntToString,
       }}
