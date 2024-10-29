@@ -11,6 +11,18 @@ import {
 import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import CeloLogo from "../ui/celo-logo";
+import AvaxLogo from "../ui/avax-logo";
+import LogoProps from "../ui/logo-props";
+
+type ChainId = "celo" | "fuji";
+
+interface Chain {
+  name: string;
+  id: ChainId;
+  chainId: number;
+  logo: React.FC<LogoProps>;
+}
 
 const tokens = [
   {
@@ -35,9 +47,19 @@ const tokens = [
   },
 ];
 
-const chains = [
-  { name: "Celo Testnet", id: "celo", chainId: 44787 },
-  { name: "Fuji Testnet", id: "fuji", chainId: 43113 },
+const chains: Chain[] = [
+  {
+    name: "Celo Testnet",
+    id: "celo",
+    chainId: 44787,
+    logo: CeloLogo,
+  },
+  {
+    name: "Fuji Testnet",
+    id: "fuji",
+    chainId: 43113,
+    logo: AvaxLogo,
+  },
 ];
 
 interface TokenBalance {
@@ -69,6 +91,27 @@ export default function Swap() {
   });
   const [currentCalculation, setCurrentCalculation] =
     useState<AbortController | null>(null);
+
+  const ChainSelectValue = React.forwardRef<HTMLDivElement, { value: ChainId }>(
+    (props, ref) => {
+      const chain = chains.find((c) => c.id === props.value);
+      const Logo = chain?.logo;
+
+      return (
+        <div className="flex items-center gap-2" ref={ref}>
+          {Logo && (
+            <Logo
+              fillColor="rgb(14 165 233)"
+              width={16}
+              height={16}
+              className="opacity-80"
+            />
+          )}
+          <span>{chain?.name}</span>
+        </div>
+      );
+    }
+  );
 
   const calculateReceivedAmount = useCallback(
     async (inputAmount: string, abortController: AbortController) => {
@@ -262,6 +305,11 @@ export default function Swap() {
       toast.error("Please select a destination chain");
       return;
     }
+    const targetChainId = chains.find((chain) => chain.id === targetChain)?.chainId;
+    if (targetChainId === currentChain) {
+      toast.error("We currently only support cross-chain swaps.");
+      return;
+    }
 
     try {
       // Get user's address
@@ -393,9 +441,73 @@ export default function Swap() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className="text-md font-mono font-semibold text-sky-500">
-                You Receive
+              <div className="flex justify-between items-center">
+                <span className="text-md font-mono font-semibold text-sky-500">
+                  You Receive
+                </span>
+                <Select value={targetChain} onValueChange={setTargetChain}>
+  <SelectTrigger
+    className="w-[160px] text-xs 
+      bg-gradient-to-r from-sky-500/10 to-sky-400/5
+      hover:from-sky-500/20 hover:to-sky-400/10
+      text-sky-500/90 
+      border-sky-500/20 
+      hover:border-sky-500/40
+      font-semibold 
+      data-[state=open]:border-sky-500/30 
+      focus:ring-0 
+      focus:ring-offset-0
+      shadow-sm
+      hover:shadow-sky-900/20
+      transition-all 
+      duration-200"
+  >
+    <SelectValue>
+      <ChainSelectValue value={targetChain as ChainId} />
+    </SelectValue>
+  </SelectTrigger>
+  <SelectContent
+    className="bg-neutral-900/95
+      border-sky-500/20 
+      shadow-lg 
+      shadow-sky-900/10"
+  >
+    {chains.map((chain) => {
+      const isSameChain = currentChain === chain.chainId;
+      const Logo = chain.logo;
+      return (
+        <SelectItem
+          key={chain.id}
+          value={chain.id}
+          className="font-semibold 
+            text-neutral-200
+            hover:bg-sky-500/10
+            data-[highlighted]:bg-sky-500/15 
+            data-[highlighted]:text-sky-400
+            transition-all
+            duration-150
+            ease-in-out"
+        >
+          <div className="flex items-center gap-2 w-full">
+            <Logo
+              fillColor="rgb(14 165 233)"
+              width={16}
+              height={16}
+              className="opacity-80 transition-opacity duration-150 data-[highlighted]:opacity-100"
+            />
+            <span>{chain.name}</span>
+            {isSameChain && (
+              <span className="text-xs text-sky-500/70 ml-auto">
+                (Current)
               </span>
+            )}
+          </div>
+        </SelectItem>
+      );
+    })}
+  </SelectContent>
+</Select>
+              </div>
               <div className="flex items-center space-x-2">
                 <Input
                   type="text"
@@ -415,7 +527,7 @@ export default function Swap() {
                   readOnly
                 />
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
-                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
                       <div className="flex items-center">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
@@ -451,33 +563,7 @@ export default function Swap() {
           </div>
         </div>
       </div>
-      <div className="mt-auto space-y-4 mb-10">
-        <Select value={targetChain} onValueChange={setTargetChain}>
-          <SelectTrigger className="w-full font-semibold data-[state=open]:border-amber-500 bg-neutral-800/70 border-amber-500/20 focus:ring-0 focus:ring-offset-0 text-white">
-            <SelectValue placeholder="Select chain" />
-          </SelectTrigger>
-          <SelectContent className="bg-black text-white border-amber-500/20">
-            {chains.map((chain) => {
-              const isSameChain = currentChain === chain.chainId;
-              return (
-                <SelectItem
-                  key={chain.id}
-                  value={chain.id}
-                  className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span>{chain.name}</span>
-                    {isSameChain && (
-                      <span className="text-xs text-amber-700 pl-1">
-                        (Current)
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+      <div className="mt-auto mb-10">
         <Button
           onClick={handleSwap}
           disabled={!amount || amount === "0" || isCalculating}
