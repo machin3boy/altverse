@@ -30,8 +30,14 @@ interface StorageContextProps {
     rawUsdcBalance: string;
     rawAltBalance: string;
   } | null>;
+  getPool: (tokenAddress: string) => Promise<Pool | null>;
+  getUserLiquidityPositions: () => Promise<LiquidityPosition[]>;
+  addLiquidity: (params: AddLiquidityParams) => Promise<boolean>;
+  removeLiquidity: (params: RemoveLiquidityParams) => Promise<boolean>;
+  calculateOptimalLiquidity: (params: CalculateOptimalLiquidityParams) => Promise<OptimalLiquidityResult>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
+  tokens: TokenConfig[];
 }
 
 const StorageContext = createContext<StorageContextProps>({
@@ -51,8 +57,14 @@ const StorageContext = createContext<StorageContextProps>({
   swapALTForUSDC: async () => true || false,
   swapUSDCForALT: async () => true || false,
   getPoolBalances: async () => null,
+  getPool: async () => null,
+  getUserLiquidityPositions: async () => [],
+  addLiquidity: async () => true || false,
+  removeLiquidity: async () => true || false,
+  calculateOptimalLiquidity: async () => ({ altAmount: "0", priceImpact: "0.00" }),
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
+  tokens: []
 });
 
 interface TokenBalance {
@@ -66,28 +78,66 @@ interface TokenConfig {
   address: string;
   symbol: string;
   abi: AbiItem[];
+  icon: string;
+}
+
+export interface LiquidityPosition {
+  token: string;
+  tokenSymbol: string;
+  tokenAmount: string;
+  altAmount: string;
+  sharePercentage: string;
+  shares: string;
+  rawShares: bigint;
+  formattedTokenAmount: string;
+  formattedAltAmount: string;
+}
+
+interface AddLiquidityParams {
+  tokenAddress: string;
+  tokenAmount: string;  // In wei
+  altAmount: string;    // In wei
+}
+
+interface RemoveLiquidityParams {
+  tokenAddress: string;
+  shares: string;       // Amount of LP shares to remove
+}
+
+interface CalculateOptimalLiquidityParams {
+  tokenAddress: string;
+  tokenAmount: string;  // In wei
+}
+
+interface OptimalLiquidityResult {
+  altAmount: string;    // Optimal ALT amount in wei
+  priceImpact: string; // Percentage as string with 2 decimal places
 }
 
 const tokens: TokenConfig[] = [
   {
     address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
     symbol: "ALT",
-    abi: coreContractABI as AbiItem[]
+    abi: coreContractABI as AbiItem[],
+    icon: "A"
   },
   {
     address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
     symbol: "wBTC",
-    abi: FaucetERC20ABI as AbiItem[]
+    abi: FaucetERC20ABI as AbiItem[],
+    icon: "₿"
   },
   {
     address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
     symbol: "wETH",
-    abi: FaucetERC20ABI as AbiItem[]
+    abi: FaucetERC20ABI as AbiItem[],
+    icon: "Ξ"
   },
   {
     address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
     symbol: "wLINK",
-    abi: FaucetERC20ABI as AbiItem[]
+    abi: FaucetERC20ABI as AbiItem[],
+    icon: "⬡"
   }
 ];
 
@@ -115,6 +165,13 @@ interface Pool {
   tokenReserve: bigint;
   altReserve: bigint;
   totalShares: bigint;
+}
+
+interface ContractPool {
+  token: string;         // IERC20 token address
+  tokenReserve: string;  // uint256
+  altReserve: string;    // uint256
+  totalShares: string;   // uint256
 }
 
 const CHAIN_ID_TO_WORMHOLE_CHAIN_ID: Record<number, number> = {
@@ -342,6 +399,305 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       return contract;
     }
   };
+
+  // Helper function to format token amounts with dynamic decimals
+const formatTokenAmount = async (web3: Web3, amount: bigint, tokenAddress: string): Promise<string> => {
+  try {
+    const tokenContract = new web3.eth.Contract(
+      ERC20ABI as AbiItem[],
+      tokenAddress
+    );
+    const decimals = await tokenContract.methods.decimals().call();
+    
+    if (amount === BigInt(0)) return "0";
+    
+    const divisor = BigInt(10 ** Number(decimals));
+    const integerPart = amount / divisor;
+    const fractionalPart = amount % divisor;
+    
+    if (fractionalPart === BigInt(0)) {
+      return integerPart.toString();
+    }
+    
+    let fractionalStr = fractionalPart.toString().padStart(Number(decimals), '0');
+    // Remove trailing zeros
+    while (fractionalStr.endsWith('0')) {
+      fractionalStr = fractionalStr.slice(0, -1);
+    }
+    
+    return `${integerPart}.${fractionalStr}`;
+  } catch (error) {
+    console.error("Error formatting token amount:", error);
+    return amount.toString();
+  }
+};
+
+const getPool = async (tokenAddress: string): Promise<Pool | null> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return null;
+  }
+
+  try {
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    // Explicitly type the pool return value
+    const pool = await contract.methods.pools(tokenAddress).call() as ContractPool;
+    
+    // Check if pool exists (token address is not zero)
+    if (pool.token === "0x0000000000000000000000000000000000000000") {
+      return null;
+    }
+
+    return {
+      token: pool.token,
+      tokenReserve: BigInt(pool.tokenReserve),
+      altReserve: BigInt(pool.altReserve),
+      totalShares: BigInt(pool.totalShares)
+    };
+  } catch (error) {
+    console.error("Error fetching pool:", error);
+    toast.error(`Failed to fetch pool: ${(error as Error).message}`);
+    return null;
+  }
+};
+
+const getUserLiquidityPositions = async (): Promise<LiquidityPosition[]> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return [];
+  }
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return [];
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const positions: LiquidityPosition[] = [];
+
+    // Check positions for all supported tokens except ALT
+    for (const token of tokens) {
+      if (token.symbol === "ALT") continue;
+
+      // Explicitly type the shares return value as string
+      const shares = await contract.methods
+        .userShares(token.address, accounts[0])
+        .call() as string;
+
+      if (BigInt(shares) > BigInt(0)) {
+        const pool = await getPool(token.address);
+        if (!pool) continue;
+
+        // Calculate token and ALT amounts based on share percentage
+        const shareRatio = (BigInt(shares) * BigInt(10000)) / pool.totalShares;
+        const tokenAmount = (pool.tokenReserve * BigInt(shares)) / pool.totalShares;
+        const altAmount = (pool.altReserve * BigInt(shares)) / pool.totalShares;
+
+        positions.push({
+          token: token.address,
+          tokenSymbol: token.symbol,
+          tokenAmount: tokenAmount.toString(),
+          altAmount: altAmount.toString(),
+          sharePercentage: ((Number(shareRatio) / 100)).toFixed(2),
+          shares: shares.toString(),
+          rawShares: BigInt(shares),
+          formattedTokenAmount: await formatTokenAmount(web3, tokenAmount, token.address),
+          formattedAltAmount: await formatTokenAmount(web3, altAmount, ALTVERSE_ADDRESS)
+        });
+      }
+    }
+
+    return positions;
+
+  } catch (error) {
+    console.error("Error fetching liquidity positions:", error);
+    toast.error(`Failed to fetch positions: ${(error as Error).message}`);
+    return [];
+  }
+};
+
+const addLiquidity = async (params: AddLiquidityParams): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `add-liquidity-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    
+    // Check token approvals
+    const tokenApproved = await checkAndApproveToken(
+      params.tokenAddress,
+      ALTVERSE_ADDRESS,
+      params.tokenAmount
+    );
+
+    if (!tokenApproved) return false;
+
+    // Check ALT approval
+    const altApproved = await checkAndApproveToken(
+      ALTVERSE_ADDRESS,
+      ALTVERSE_ADDRESS,
+      params.altAmount
+    );
+
+    if (!altApproved) return false;
+
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    toast.loading("Adding liquidity...", {
+      id: loadingToastId,
+      duration: 20000
+    });
+
+    const tx = await contract.methods
+      .addLiquidity(params.tokenAddress, params.tokenAmount, params.altAmount)
+      .send({
+        from: accounts[0],
+        gas: '300000'
+      });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully added liquidity!");
+      return true;
+    } else {
+      toast.error("Failed to add liquidity");
+      return false;
+    }
+
+  } catch (error) {
+    toast.dismiss(loadingToastId);
+    console.error("Error adding liquidity:", error);
+    toast.error(`Failed to add liquidity: ${(error as Error).message}`);
+    return false;
+  }
+};
+
+const removeLiquidity = async (params: RemoveLiquidityParams): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `remove-liquidity-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    // Verify user has sufficient shares
+    const userShares = await contract.methods
+      .userShares(params.tokenAddress, accounts[0])
+      .call() as string;
+
+    if (BigInt(userShares) < BigInt(params.shares)) {
+      toast.error("Insufficient liquidity shares");
+      return false;
+    }
+
+    toast.loading("Removing liquidity...", {
+      id: loadingToastId,
+      duration: 20000
+    });
+
+    const tx = await contract.methods
+      .removeLiquidity(params.tokenAddress, params.shares)
+      .send({
+        from: accounts[0],
+        gas: '300000'
+      });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully removed liquidity!");
+      return true;
+    } else {
+      toast.error("Failed to remove liquidity");
+      return false;
+    }
+
+  } catch (error) {
+    toast.dismiss(loadingToastId);
+    console.error("Error removing liquidity:", error);
+    toast.error(`Failed to remove liquidity: ${(error as Error).message}`);
+    return false;
+  }
+};
+
+const calculateOptimalLiquidity = async (
+  params: CalculateOptimalLiquidityParams
+): Promise<OptimalLiquidityResult> => {
+  if (!web3) {
+    throw new Error("Web3 not initialized");
+  }
+
+  try {
+    const pool = await getPool(params.tokenAddress);
+    
+    if (!pool || pool.tokenReserve === BigInt(0)) {
+      // For new pools or empty pools, maintain 1:1 ratio
+      return {
+        altAmount: params.tokenAmount,
+        priceImpact: "0.00"
+      };
+    }
+
+    // Calculate optimal ALT amount based on current pool ratio
+    const altAmount = (BigInt(params.tokenAmount) * pool.altReserve) / pool.tokenReserve;
+
+    // Calculate price impact
+    const oldPrice = pool.altReserve * BigInt(1e18) / pool.tokenReserve;
+    const newTokenReserve = pool.tokenReserve + BigInt(params.tokenAmount);
+    const newAltReserve = pool.altReserve + altAmount;
+    const newPrice = newAltReserve * BigInt(1e18) / newTokenReserve;
+
+    const priceImpact = ((newPrice - oldPrice) * BigInt(10000) / oldPrice);
+    
+    return {
+      altAmount: altAmount.toString(),
+      priceImpact: (Number(priceImpact) / 100).toFixed(2)
+    };
+
+  } catch (error) {
+    console.error("Error calculating optimal liquidity:", error);
+    throw error;
+  }
+};
 
   const formatTokenBalance = (balance: string, decimals: string): string => {
     const balanceNum = BigInt(balance);
@@ -1068,58 +1424,6 @@ const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
     return false;
   }
 };
-  // Helper function to add liquidity to a pool (you'll need this first)
-  const addInitialLiquidity = async (
-    tokenAddress: string, 
-    tokenAmount: string, 
-    altAmount: string
-  ): Promise<boolean> => {
-    if (!web3) {
-      toast.error("Web3 not initialized");
-      return false;
-    }
-  
-    try {
-      const accounts = await web3.eth.getAccounts();
-      if (!accounts[0]) {
-        toast.error("No account connected");
-        return false;
-      }
-  
-      const contract = new web3.eth.Contract(
-        coreContractABI as AbiItem[],
-        "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B"
-      );
-  
-      // First approve ALT token spending
-      const tokenContract = new web3.eth.Contract(
-        ERC20ABI as AbiItem[],
-        tokenAddress
-      );
-  
-      await tokenContract.methods
-        .approve("0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B", tokenAmount)
-        .send({ from: accounts[0] });
-  
-      // Add liquidity
-      const tx = await contract.methods
-        .addLiquidity(tokenAddress, tokenAmount, altAmount)
-        .send({ from: accounts[0] });
-  
-      if (tx.status) {
-        toast.success("Liquidity added successfully!");
-        return true;
-      } else {
-        toast.error("Failed to add liquidity");
-        return false;
-      }
-  
-    } catch (error) {
-      console.error("Error adding liquidity:", error);
-      toast.error(`Failed to add liquidity: ${(error as Error).message}`);
-      return false;
-    }
-  };
 
   const stringToBigInt = (str = "") => {
     if (str.length > 25) {
@@ -1165,8 +1469,14 @@ const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
         swapALTForUSDC,
         swapUSDCForALT,
         getPoolBalances,
+        getPool,
+        addLiquidity,
+        removeLiquidity,
+        getUserLiquidityPositions,
+        calculateOptimalLiquidity,
         stringToBigInt,
         bigIntToString,
+        tokens
       }}
     >
       {children}
