@@ -178,6 +178,23 @@ interface BackgroundProps {
 
 const Background: React.FC<BackgroundProps> = ({ showModal = false }) => {
   const [opacity, setOpacity] = useState(0);
+  const [isLargeViewport, setIsLargeViewport] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // 768px is the default Tailwind md breakpoint
+      setIsLargeViewport(window.innerWidth >= 768);
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Add event listener for resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -189,7 +206,7 @@ const Background: React.FC<BackgroundProps> = ({ showModal = false }) => {
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-black">
-      {showModal && (
+      {showModal && isLargeViewport && (
         <div className="absolute inset-0 animate-tunnel-fade">
           <Tunnel />
         </div>

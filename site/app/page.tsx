@@ -53,7 +53,7 @@ const Page: React.FC = () => {
 
     if (!isConnected) {
       toast.error(
-        "Failed to connect to web3. Ensure you connect from a Web3 connected browser/device."
+        "Failed to connect to Web3. Ensure you connect from a Web3 connected browser/device."
       );
       return false;
     }
