@@ -639,12 +639,22 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
 };
 
 const Pool: React.FC = () => {
-  const { web3, getUserLiquidityPositions } = useStorage();
+  const { web3, getUserLiquidityPositions, currentChain } = useStorage();
   const [positions, setPositions] = useState<LiquidityPosition[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true); 
   const [showGeneralModal, setShowGeneralModal] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
 
+  const getChainName = (chainId: number) => {
+    switch (chainId) {
+      case 43113:
+        return "Avalanche Fuji";
+      case 44787:
+        return "Celo Alfajores";
+      default:
+        return "Unknown Chain";
+    }
+  };
 
   const loadPositions = async (isInitial: boolean = false) => {
     if (!web3) return;
@@ -679,17 +689,20 @@ const Pool: React.FC = () => {
     }
   };
 
-  // Initial load
+  // Initial load - now includes currentChain dependency
   useEffect(() => {
-    loadPositions(true);  // Pass true for initial load
-  }, [web3]);
+    // Reset state when chain changes
+    setPositions([]);
+    setIsInitialLoading(true);
+    loadPositions(true);
+  }, [web3, currentChain]);
 
   // Polling effect
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
     if (isPolling) {
-      intervalId = setInterval(() => loadPositions(false), 2000);  // Pass false for polling updates
+      intervalId = setInterval(() => loadPositions(false), 2000);
     }
 
     return () => {
@@ -697,25 +710,33 @@ const Pool: React.FC = () => {
         clearInterval(intervalId);
       }
     };
-  }, [isPolling]);
+  }, [isPolling, currentChain]); // Added currentChain dependency
 
-  // Render the component
   return (
     <div className="flex flex-col min-h-full">
+      <div className="px-2 py-4">
+        <h4 className="text-lg font-bold text-amber-500">
+          Liquidity Pools on {getChainName(currentChain)}
+        </h4>
+        <p className="text-sm text-gray-400">
+          Manage your liquidity positions across pools
+        </p>
+      </div>
+      
       <ScrollArea className="h-[400px] rounded-md border border-amber-500/20 p-2 flex-grow mb-4">
-        {isInitialLoading ? (  // Only show loading on initial load
+        {isInitialLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-amber-500">Loading positions...</div>
           </div>
         ) : positions.length === 0 ? (
-          <>
-            <h4 className="mb-2 text-medium font-bold leading-none px-2 pt-2">
-              Your Positions
-            </h4>
-            <p className="text-sm text-muted-foreground font-bold px-2">
-              You have no active positions
+          <div className="flex flex-col items-center justify-center h-40">
+            <p className="text-sm text-muted-foreground font-bold">
+              No active positions on {getChainName(currentChain)}
             </p>
-          </>
+            <p className="text-xs text-gray-500 mt-2">
+              Add liquidity to get started with earning fees
+            </p>
+          </div>
         ) : (
           positions.map((position) => (
             <Card
@@ -773,10 +794,10 @@ const Pool: React.FC = () => {
         )}
       </ScrollArea>
 
-      <Dialog open={showGeneralModal} onOpenChange={setShowGeneralModal}>
+      <Dialog open={showGeneralModal} onOpenChange={handleModalClose}>
         <GeneralAddLiquidityModal
           open={showGeneralModal}
-          onOpenChange={setShowGeneralModal}
+          onOpenChange={handleModalClose}
           onSuccess={startPolling}
         />
       </Dialog>

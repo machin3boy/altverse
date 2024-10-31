@@ -14,13 +14,17 @@ interface Escrow {
 }
 
 export default function Escrows() {
-  const { fetchUserEscrows, claimTimedOutEscrow, web3 } = useStorage();
+  const { fetchUserEscrows, claimTimedOutEscrow, web3, currentChain } = useStorage();
   const [escrows, setEscrows] = useState<Escrow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPolling, setIsPolling] = useState(false);
 
-  const loadEscrows = async () => {
+  const loadEscrows = async (isInitialLoad: boolean = false) => {
     if (!web3) return;
+
+    if (isInitialLoad) {
+      setIsLoading(true);
+    }
 
     try {
       const userEscrows = await fetchUserEscrows();
@@ -34,25 +38,24 @@ export default function Escrows() {
     } catch (error) {
       console.error("Error loading escrows:", error);
       toast.error("Failed to load escrows");
+    } finally {
+      if (isInitialLoad) {
+        setIsLoading(false);
+      }
     }
   };
 
-  // Initial load
+  // Initial load and chain change effect
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      await loadEscrows();
-      setIsLoading(false);
-    };
-    load();
-  }, [web3]);
+    loadEscrows(true);
+  }, [web3, currentChain]); // Re-run when chain changes
 
   // Polling effect
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
     if (isPolling) {
-      intervalId = setInterval(loadEscrows, 2000);
+      intervalId = setInterval(() => loadEscrows(false), 2000);
       // Stop polling after 30 seconds
       setTimeout(() => setIsPolling(false), 30000);
     }
@@ -101,11 +104,24 @@ export default function Escrows() {
     return `${seconds}s`;
   };
 
+  const getChainName = (chainId: number) => {
+    switch (chainId) {
+      case 43113:
+        return "Avalanche Fuji";
+      case 44787:
+        return "Celo Alfajores";
+      default:
+        return "Unknown Chain";
+    }
+  };
+
   return (
     <div className="flex flex-col h-full max-h-[500px]">
       {/* Title section */}
       <div className="px-2 py-4">
-        <h4 className="text-lg font-bold text-amber-500">Active Escrows</h4>
+        <h4 className="text-lg font-bold text-amber-500">
+          Escrows on {getChainName(currentChain)}
+        </h4>
         <p className="text-sm text-gray-400">
           View and manage your cross-chain escrows
         </p>
@@ -122,7 +138,7 @@ export default function Escrows() {
             ) : escrows.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <p className="text-sm text-muted-foreground font-bold">
-                  You have no active escrows
+                  No active escrows on {getChainName(currentChain)}
                 </p>
                 <p className="text-xs text-gray-500 mt-2">
                   Escrows will appear here when you perform cross-chain swaps
@@ -134,8 +150,8 @@ export default function Escrows() {
                   <Card
                     key={index}
                     className={`border rounded-md transition-colors duration-200 
-                      ${escrow.active 
-                        ? "hover:border-amber-500" 
+                      ${escrow.active
+                        ? "hover:border-amber-500"
                         : "opacity-50 hover:border-gray-500"}`}
                   >
                     <CardContent className="p-3 font-mono font-bold">
@@ -177,11 +193,11 @@ export default function Escrows() {
                         disabled={Date.now() < escrow.timeout || !escrow.active}
                         onClick={() => handleClaimEscrow(escrow.id)}
                       >
-                        {!escrow.active 
-                          ? "Escrow Inactive"
-                          : Date.now() >= escrow.timeout 
-                            ? "Claim Escrow" 
-                            : "Awaiting Timeout"}
+                        {!escrow.active
+                           ? "Escrow Inactive"
+                          : Date.now() >= escrow.timeout
+                             ? "Claim Escrow"
+                             : "Awaiting Timeout"}
                       </Button>
                     </CardFooter>
                   </Card>
