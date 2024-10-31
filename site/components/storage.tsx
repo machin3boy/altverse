@@ -35,6 +35,11 @@ interface StorageContextProps {
   addLiquidity: (params: AddLiquidityParams) => Promise<boolean>;
   removeLiquidity: (params: RemoveLiquidityParams) => Promise<boolean>;
   calculateOptimalLiquidity: (params: CalculateOptimalLiquidityParams) => Promise<OptimalLiquidityResult>;
+  fetchUserEscrows: () => Promise<Escrow[]>;
+  claimTimedOutEscrow: (escrowId: string) => Promise<boolean>;
+  getUserEscrowCount: () => Promise<number>;
+  getUserEscrowIds: (count: number) => Promise<string[]>;
+  getEscrowDetails: (escrowId: string) => Promise<Escrow>;
   stringToBigInt: (str: string) => bigint;
   bigIntToString: (bigInt: bigint) => string;
   tokens: TokenConfig[];
@@ -62,6 +67,11 @@ const StorageContext = createContext<StorageContextProps>({
   addLiquidity: async () => true || false,
   removeLiquidity: async () => true || false,
   calculateOptimalLiquidity: async () => ({ altAmount: "0", priceImpact: "0.00" }),
+  fetchUserEscrows: async () => [],
+  claimTimedOutEscrow: async () => true || false,
+  getUserEscrowCount: async () => 0,
+  getUserEscrowIds: async () => [],
+  getEscrowDetails: async () => ({ id: "", user: "", altAmount: "0", timeout: 0, active: false }),
   stringToBigInt: () => BigInt(0),
   bigIntToString: () => "",
   tokens: []
@@ -79,6 +89,14 @@ interface TokenConfig {
   symbol: string;
   abi: AbiItem[];
   icon: string;
+}
+
+interface Escrow {
+  id: string;         // Add this field
+  user: string;
+  altAmount: string;
+  timeout: number;
+  active: boolean;
 }
 
 export interface LiquidityPosition {
@@ -1425,6 +1443,234 @@ const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
   }
 };
 
+const fetchUserEscrows = async (): Promise<Escrow[]> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return [];
+  }
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return [];
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    // Get user's escrow count
+    const escrowCount = await contract.methods.userEscrowCount(accounts[0]).call() as string;
+    
+    if (Number(escrowCount) === 0) {
+      return [];
+    }
+
+    // Fetch all escrow IDs for the user
+    const escrowIds: string[] = [];
+    for (let i = 0; i < Number(escrowCount); i++) {
+      try {
+        const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
+        console.log(`Fetched escrow ID ${i}:`, id);
+        if (id && id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+          escrowIds.push(id);
+        }
+      } catch (error) {
+        console.error(`Error fetching escrow ID at index ${i}:`, error);
+      }
+    }
+    
+    console.log('All escrow IDs:', escrowIds);
+
+    // Get details for each escrow with proper typing
+    const escrows = await Promise.all(
+      escrowIds.map(async (id: string) => {
+        try {
+          const escrow = await contract.methods.escrows(id).call() as Escrow;
+          console.log(`Escrow details for ID ${id}:`, escrow);
+          
+          const escrowDetails: Escrow = {
+            id: id,  // Store the original bytes32 hash
+            user: escrow.user,
+            altAmount: escrow.altAmount,
+            timeout: Number(escrow.timeout) * 1000,
+            active: escrow.active
+          };
+          return escrowDetails;
+        } catch (error) {
+          console.error(`Error fetching escrow details for ID ${id}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values and invalid addresses, then sort
+    return escrows
+      .filter((escrow): escrow is Escrow => 
+        escrow !== null && 
+        escrow.user.toLowerCase() !== '0x0000000000000000000000000000000000000000'.toLowerCase()
+      )
+      .sort((a, b) => {
+        if (a.active && !b.active) return -1;
+        if (!a.active && b.active) return 1;
+        return a.timeout - b.timeout;
+      });
+
+  } catch (error) {
+    console.error("Error fetching user escrows:", error);
+    toast.error(`Failed to fetch escrows: ${(error as Error).message}`);
+    return [];
+  }
+};
+
+const claimTimedOutEscrow = async (escrowId: string): Promise<boolean> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return false;
+  }
+
+  const loadingToastId = `claim-escrow-${Date.now()}`;
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) {
+      toast.error("No account connected");
+      return false;
+    }
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    toast.loading("Claiming escrow...", {
+      id: loadingToastId
+    });
+
+    // Ensure escrowId is properly formatted as bytes32
+    let formattedEscrowId = escrowId;
+    if (!escrowId.startsWith('0x')) {
+      formattedEscrowId = '0x' + escrowId;
+    }
+    // Pad the ID to 32 bytes if necessary
+    while (formattedEscrowId.length < 66) { // 0x + 64 hex characters
+      formattedEscrowId = formattedEscrowId + '0';
+    }
+
+    console.log('Claiming escrow with ID:', formattedEscrowId);
+
+    const tx = await contract.methods
+      .claimTimedOutEscrow(formattedEscrowId)
+      .send({
+        from: accounts[0],
+        gas: '300000'
+      });
+
+    toast.dismiss(loadingToastId);
+
+    if (tx.status) {
+      toast.success("Successfully claimed escrow!");
+      return true;
+    } else {
+      toast.error("Failed to claim escrow");
+      return false;
+    }
+
+  } catch (error) {
+    toast.dismiss(loadingToastId);
+    console.error("Error claiming escrow:", error);
+    toast.error(`Failed to claim escrow: ${(error as Error).message}`);
+    return false;
+  }
+};
+
+const getUserEscrowCount = async (): Promise<number> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return 0;
+  }
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) return 0;
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const count = await contract.methods.userEscrowCount(accounts[0]).call() as string;
+    return Number(count);
+
+  } catch (error) {
+    console.error("Error getting escrow count:", error);
+    return 0;
+  }
+};
+
+const getUserEscrowIds = async (count: number): Promise<string[]> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return [];
+  }
+
+  try {
+    const accounts = await web3.eth.getAccounts();
+    if (!accounts[0]) return [];
+
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const escrowIds = [];
+    for (let i = 0; i < count; i++) {
+      const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
+      escrowIds.push(id);
+    }
+
+    return escrowIds;
+
+  } catch (error) {
+    console.error("Error getting escrow IDs:", error);
+    return [];
+  }
+};
+
+const getEscrowDetails = async (escrowId: string): Promise<Escrow> => {
+  if (!web3) {
+    throw new Error("Web3 not initialized");
+  }
+
+  try {
+    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+    const contract = new web3.eth.Contract(
+      coreContractABI as AbiItem[],
+      ALTVERSE_ADDRESS
+    );
+
+    const escrow = await contract.methods.escrows(escrowId).call() as Escrow;
+    
+    return {
+      id: escrowId,
+      user: escrow.user,
+      altAmount: escrow.altAmount,
+      timeout: Number(escrow.timeout) * 1000, // Convert to milliseconds
+      active: escrow.active
+    };
+
+  } catch (error) {
+    console.error("Error getting escrow details:", error);
+    throw error;
+  }
+};
+
   const stringToBigInt = (str = "") => {
     if (str.length > 25) {
       throw new Error("String length must be 25 characters or less.");
@@ -1474,6 +1720,11 @@ const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
         removeLiquidity,
         getUserLiquidityPositions,
         calculateOptimalLiquidity,
+        fetchUserEscrows,
+        claimTimedOutEscrow,
+        getUserEscrowCount,
+        getUserEscrowIds,
+        getEscrowDetails,
         stringToBigInt,
         bigIntToString,
         tokens
