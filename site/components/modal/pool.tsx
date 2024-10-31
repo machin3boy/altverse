@@ -242,7 +242,7 @@ const GeneralAddLiquidityModal = ({
           )}
         </div>
           <Input
-            type="text"
+            type="number"
             value={altAmount}
             readOnly
             className="border border-amber-500/20 text-white bg-zinc-900"
@@ -452,7 +452,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
           )}
         </div>
             <Input
-              type="text"
+              type="number"
               value={tokenAmount}
               onChange={(e) => handleTokenAmountChange(e.target.value)}
               className="border border-amber-500/20 text-white"
@@ -470,7 +470,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
           )}
         </div>
             <Input
-              type="text"
+              type="number"
               value={altAmount}
               readOnly
               className="border border-amber-500/20 text-white bg-zinc-900"
