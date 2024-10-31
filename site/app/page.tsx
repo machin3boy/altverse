@@ -175,7 +175,7 @@ const Page: React.FC = () => {
     }
   }, [chainId]);
 
-  return (
+ return (
     <>
       <div className="relative min-h-screen bg-black text-white overflow-hidden flex items-center dark">
         <Background showModal={showModal} />
@@ -185,17 +185,11 @@ const Page: React.FC = () => {
       </div>
 
       {showModal && (
-        <div className="fixed top-4 right-4 z-[60] flex flex-col space-y-2">
+        <div className="fixed top-4 right-4 z-[60] hidden md:flex md:flex-col md:space-y-2">
           {/* Metamask Address Button */}
           <div className="inline-flex items-center bg-orange-900/50 hover:bg-orange-800/70 rounded-lg transition-all duration-200 h-10">
-            {" "}
-            {/* Added fixed height */}
             <div className="flex items-center space-x-3 px-4">
-              {" "}
-              {/* Standardized padding */}
               <div className="w-5 h-5 flex items-center justify-center">
-                {" "}
-                {/* Fixed size container for icon */}
                 <MetamaskLogo
                   className="text-sky-500 bg-transparent fill-transparent stroke-orange-500"
                   width={20}
@@ -214,18 +208,14 @@ const Page: React.FC = () => {
             <AlertDialogTrigger asChild>
               <div
                 className={`inline-flex items-center rounded-lg transition-all duration-200 h-10 cursor-pointer
-            ${
-              currentChain.id === "0xaef3"
-                ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
-                : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
-            }`}
+                ${
+                  currentChain.id === "0xaef3"
+                    ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
+                    : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
+                }`}
               >
                 <div className="flex items-center space-x-3 px-4">
-                  {" "}
-                  {/* Matched padding with above */}
                   <div className="w-5 h-5 flex items-center justify-center">
-                    {" "}
-                    {/* Fixed size container for icon */}
                     {currentChain.logo({
                       className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`,
                       width: 20,
@@ -246,21 +236,16 @@ const Page: React.FC = () => {
                   Do you want to swap chain to {otherChain?.name}?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="flex dark">
-                  The network will be added to your wallet if not already
-                  present.
+                  The network will be added to your wallet if not already present.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex justify-end mt-8">
                 <div className="flex justify-end items-center space-x-4">
-                  {" "}
-                  {/* Added items-center */}
                   <AlertDialogCancel className="w-20 text-white h-9">
-                    {" "}
-                    {/* Added explicit height */}
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
-                    className="w-20 h-9 bg-amber-800 hover:bg-amber-800/50 text-white" /* Removed margin, added height */
+                    className="w-20 h-9 bg-amber-800 hover:bg-amber-800/50 text-white"
                     onClick={async () => {
                       console.log("Switching chains...");
                       await switchChain();
