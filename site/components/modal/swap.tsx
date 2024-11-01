@@ -369,21 +369,21 @@ export default function Swap() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs bg-amber-500/10 hover:bg-amber-500/10 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
+                    className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/10 font-semibold disabled:bg-amber-500/10 disabled:text-amber-500 disabled:opacity-100 disabled:cursor-default flex items-center"
                     disabled={true}
                   >
-                    {isLoadingBalances ? "Loading..." : "Balance: " + tokenBalances.find(
+                    <span className="font-mono inline pt-0.5">Balance: {(Number(tokenBalances.find(
                       (b) =>
                         b.address.toLowerCase() ===
                         tokens
                           .find((t) => t.symbol === swapFromToken)
                           ?.address.toLowerCase()
-                    )?.balance || "0"}
+                    )?.balance || "0")).toFixed(3)}</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs bg-amber-500/10 hover:bg-amber-500/10 text-amber-500 hover:text-amber-400 border border-amber-500/10 hover:border-amber-500 font-semibold transition-colors duration-200"
+                    className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 hover:border-amber-500 font-semibold transition-colors duration-200"
                     onClick={handleMaxClick}
                     disabled={isLoadingBalances}
                   >
@@ -399,8 +399,8 @@ export default function Swap() {
                   onChange={handleAmountChange}
                   placeholder="0.0"
                   className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${isGrayText
-                      ? "text-gray-500 placeholder:text-gray-500"
-                      : "text-white"
+                    ? "text-gray-500 placeholder:text-gray-500"
+                    : "text-white"
                     }`}
                   style={{
                     WebkitAppearance: "none",
