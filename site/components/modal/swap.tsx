@@ -88,7 +88,7 @@ export default function Swap() {
   const [swapFromToken, setSwapFromToken] = useState("ALT");
   const [swapToToken, setSwapToToken] = useState("wBTC");
   const [amount, setAmount] = useState("");
-  const [receivedAmount, setReceivedAmount] = useState("");
+  const [lastReceivedAmount, setLastReceivedAmount] = useState("0");
   const [isCalculating, setIsCalculating] = useState(false);
   const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
@@ -123,12 +123,11 @@ export default function Swap() {
   const calculateReceivedAmount = useCallback(
     async (inputAmount: string, abortController: AbortController) => {
       if (!inputAmount || inputAmount === "0" || !targetChain) {
-        setReceivedAmount("");
+        setLastReceivedAmount("0");
         return;
       }
 
       setIsCalculating(true);
-      setReceivedAmount("Calculating...");
 
       try {
         if (web3) {
@@ -167,24 +166,24 @@ export default function Swap() {
           if (abortController.signal.aborted) {
             return;
           }
-
           if (result) {
             const formattedOutput = web3.utils.fromWei(
               result.estimatedOutput,
               "ether"
             );
             const roundedOutput = Number(formattedOutput).toFixed(6);
-            setReceivedAmount(roundedOutput.replace(/\.?0+$/, ""));
+            const finalOutput = roundedOutput.replace(/\.?0+$/, "");
+            setLastReceivedAmount(finalOutput);
           } else {
-            setReceivedAmount("");
+            setLastReceivedAmount("0");
           }
         } else {
-          setReceivedAmount("");
+          setLastReceivedAmount("0");
         }
       } catch (error) {
         if (!abortController.signal.aborted) {
           console.error("Error calculating received amount:", error);
-          setReceivedAmount("");
+          setLastReceivedAmount("0");
         }
       } finally {
         if (!abortController.signal.aborted) {
@@ -216,7 +215,6 @@ export default function Swap() {
       // Start the calculation
       calculateReceivedAmount(amount, newController);
     } else {
-      setReceivedAmount("");
       setIsCalculating(false);
     }
 
@@ -280,7 +278,6 @@ export default function Swap() {
 
     if (value === "") {
       setAmount("");
-      setReceivedAmount("");
       return;
     }
 
@@ -345,7 +342,7 @@ export default function Swap() {
       if (success) {
         // Reset form
         setAmount("");
-        setReceivedAmount("");
+        setLastReceivedAmount("0");
       }
     } catch (error) {
       console.error("Swap error:", error);
@@ -385,7 +382,7 @@ export default function Swap() {
                         tokens
                           .find((t) => t.symbol === swapFromToken)
                           ?.address.toLowerCase()
-                    )?.balance) || 0 )} decimalPlaces={3} />}
+                    )?.balance) || 0)} decimalPlaces={3} />}
                     </span>
                   </Button>
                   <Button
@@ -405,10 +402,8 @@ export default function Swap() {
                   type="number"
                   value={amount}
                   onChange={handleAmountChange}
-                  placeholder="0.0"
-                  className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${isGrayText
-                    ? "text-gray-500 placeholder:text-gray-500"
-                    : "text-white"
+                  placeholder="0"
+                  className={`text-2xl pl-2 text-left font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${amount === "" ? "text-gray-500 placeholder:text-gray-500" : "text-white"
                     }`}
                   style={{
                     WebkitAppearance: "none",
@@ -503,22 +498,16 @@ export default function Swap() {
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  value={isCalculating ? "Loading..." : receivedAmount}
-                  placeholder="0.0"
-                  className={`text-2xl font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${isCalculating
-                    ? "text-sky-500/50 animate-pulse"
-                    : receivedAmount === ""
-                      ? "text-gray-500 placeholder:text-gray-500"
-                      : "text-white"
-                    }`}
-                  style={{
-                    WebkitAppearance: "none",
-                    MozAppearance: "textfield",
-                  }}
-                  readOnly
-                />
+                <div className="w-full relative">
+                  {!Number(lastReceivedAmount) && (
+                    <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">0</span>
+                  )}
+                  <NumberTicker
+                    value={lastReceivedAmount && Number(lastReceivedAmount) ? Number(lastReceivedAmount) : 0}
+                    decimalPlaces={3}
+                    className={`text-2xl pl-2 pb-0 font-mono ${lastReceivedAmount === "0" ? "text-gray-500" : "text-white"}`}
+                  />
+                </div>
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
                   <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>

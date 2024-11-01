@@ -219,11 +219,11 @@ export default function USDC() {
         <div className="space-y-2 my-2">
           <h4 className="text-md font-bold ml-1">ALT Pool</h4>
           <p className="ml-1 text-md font-semibold font-mono tracking-tighter text-amber-500">
-            <NumberTicker value={altPool} decimalPlaces={2} />
+            <NumberTicker value={altPool} decimalPlaces={2} useCommas={true} />
           </p>
           <h4 className="text-md font-bold ml-1 pt-2">USDC Pool</h4>
           <p className="ml-[4px] text-md font-semibold font-mono tracking-tighter text-sky-500">
-            <NumberTicker value={usdcPool} decimalPlaces={2} />
+            <NumberTicker value={usdcPool} decimalPlaces={2} useCommas={true} />
           </p>
         </div>
         <div className="relative rounded-lg border-amber-500/50 mt-7">
