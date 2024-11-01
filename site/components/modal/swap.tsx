@@ -11,6 +11,7 @@ import {
 import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import NumberTicker from "@/components/magicui/number-ticker";
 import CeloLogo from "../ui/celo-logo";
 import AvaxLogo from "../ui/avax-logo";
 import LogoProps from "../ui/logo-props";
@@ -378,13 +379,14 @@ export default function Swap() {
                     className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/10 font-semibold disabled:bg-amber-500/10 disabled:text-amber-500 disabled:opacity-100 disabled:cursor-default flex items-center"
                     disabled={true}
                   >
-                    <span className="font-mono inline pt-[2.75px]">Balance: {(Number(tokenBalances.find(
+                    <span className="font-mono inline pt-[2.75px]">Balance: {<NumberTicker value={Number((tokenBalances.find(
                       (b) =>
                         b.address.toLowerCase() ===
                         tokens
                           .find((t) => t.symbol === swapFromToken)
                           ?.address.toLowerCase()
-                    )?.balance || "0")).toFixed(3)}</span>
+                    )?.balance) || 0 )} decimalPlaces={3} />}
+                    </span>
                   </Button>
                   <Button
                     variant="ghost"
