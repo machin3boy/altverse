@@ -15,7 +15,7 @@ import CeloLogo from "../ui/celo-logo";
 import AvaxLogo from "../ui/avax-logo";
 import LogoProps from "../ui/logo-props";
 
-type ChainId = "celo" | "fuji";
+type ChainId = "celo" | "fuji" | "optimism";
 
 interface Chain {
   name: string;
@@ -58,6 +58,12 @@ const chains: Chain[] = [
     name: "Fuji Testnet",
     id: "fuji",
     chainId: 43113,
+    logo: AvaxLogo,
+  },
+  {
+    name: "OP Sepolia Testnet",
+    id: "optimism",
+    chainId: 3242,
     logo: AvaxLogo,
   },
 ];
@@ -372,7 +378,7 @@ export default function Swap() {
                     className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/10 font-semibold disabled:bg-amber-500/10 disabled:text-amber-500 disabled:opacity-100 disabled:cursor-default flex items-center"
                     disabled={true}
                   >
-                    <span className="font-mono inline pt-0.5">Balance: {(Number(tokenBalances.find(
+                    <span className="font-mono inline pt-[2.75px]">Balance: {(Number(tokenBalances.find(
                       (b) =>
                         b.address.toLowerCase() ===
                         tokens
@@ -383,7 +389,7 @@ export default function Swap() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 hover:border-amber-500 font-semibold transition-colors duration-200"
+                    className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
                     onClick={handleMaxClick}
                     disabled={isLoadingBalances}
                   >
@@ -447,65 +453,50 @@ export default function Swap() {
                   You Receive
                 </span>
                 <Select value={targetChain} onValueChange={setTargetChain}>
-                  <SelectTrigger
-                    className="w-[160px] text-xs 
-                      bg-gradient-to-r from-sky-500/10 to-sky-400/5
-                      hover:from-sky-500/20 hover:to-sky-400/10
-                      text-sky-500/90 
-                      border-sky-500/20 
-                      hover:border-sky-500/40
-                      font-semibold 
-                      data-[state=open]:border-sky-500/30 
-                      focus:ring-0 
-                      focus:ring-offset-0
-                      shadow-sm
-                      hover:shadow-sky-900/20
-                      transition-all 
-                      duration-200"
-                  >
+                  <SelectTrigger className="w-fit border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
-                      <ChainSelectValue value={targetChain as ChainId} />
+                      {(() => {
+                        const chain = chains.find((c) => c.id === targetChain);
+                        const Logo = chain?.logo;
+                        return (
+                          <div className="flex items-center gap-2">
+                            {Logo && (
+                              <Logo
+                                fillColor="rgb(14 165 233)"
+                                width={16}
+                                height={16}
+                                className="opacity-80"
+                              />
+                            )}
+                            <span className="text-xs">{chain?.name}</span>
+                          </div>
+                        );
+                      })()}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent
-                    className="bg-neutral-900/95
-                      border-sky-500/20 
-                      shadow-lg 
-                      shadow-sky-900/10"
-                  >
-                    {chains.map((chain) => {
-                      const isSameChain = currentChain === chain.chainId;
-                      const Logo = chain.logo;
-                      return (
-                        <SelectItem
-                          key={chain.id}
-                          value={chain.id}
-                          className="font-semibold 
-                            text-neutral-200
-                            hover:bg-sky-500/10
-                            data-[highlighted]:bg-sky-500/15 
-                            data-[highlighted]:text-sky-400
-                            transition-all
-                            duration-150
-                            ease-in-out"
-                        >
-                          <div className="flex items-center gap-2 w-full">
-                            <Logo
-                              fillColor="rgb(14 165 233)"
-                              width={16}
-                              height={16}
-                              className="opacity-80 transition-opacity duration-150 data-[highlighted]:opacity-100"
-                            />
-                            <span>{chain.name}</span>
-                            {isSameChain && (
-                              <span className="text-xs text-sky-500/70 ml-auto">
-                                (Current)
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
+                  <SelectContent className="bg-black text-white border-sky-500/20">
+                    {chains
+                      .filter((chain) => chain.chainId !== currentChain)
+                      .map((chain) => {
+                        const Logo = chain.logo;
+                        return (
+                          <SelectItem
+                            key={chain.id}
+                            value={chain.id}
+                            className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Logo
+                                fillColor="rgb(14 165 233)"
+                                width={16}
+                                height={16}
+                                className="opacity-80"
+                              />
+                              <span className="text-xs">{chain.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
