@@ -717,126 +717,175 @@ const calculateOptimalLiquidity = async (
   }
 };
 
-  const formatTokenBalance = (balance: string, decimals: string): string => {
-    const balanceNum = BigInt(balance);
-    const divisor = BigInt(10 ** Number(decimals));
-    const wholePart = balanceNum / divisor;
-    const fracPart = balanceNum % divisor;
-    
-    let formatted = wholePart.toString();
-    if (fracPart > 0) {
-      // Add fractional part and pad with leading zeros if needed
-      const fracString = fracPart.toString().padStart(Number(decimals), '0');
-      formatted = `${formatted}.${fracString}`;
-    }
-    
-    // Remove trailing zeros after decimal
-    return formatted.replace(/\.?0+$/, '');
-  };
+const formatTokenBalance = (balance: string, decimals: string): string => {
+  const balanceNum = BigInt(balance);
+  const divisor = BigInt(10 ** Number(decimals));
+  const wholePart = balanceNum / divisor;
+  const fracPart = balanceNum % divisor;
+  
+  // If there's no fractional part, just return the whole number
+  if (fracPart === BigInt(0)) {
+    return wholePart.toString();
+  }
+  
+  // Handle fractional part
+  let fracString = fracPart.toString().padStart(Number(decimals), '0');
+  
+  // Remove trailing zeros only from fractional part
+  fracString = fracString.replace(/0+$/, '');
+  
+  // Combine whole and fractional parts only if there's a fractional part left
+  return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
+};
 
-  const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
-    if (!web3) {
-      toast.error("Web3 not initialized");
-      return;
-    }
+// Helper function to convert raw balance to human readable form
+const convertRawBalance = (rawBalance: bigint, decimals: number): string => {
+  const divisor = BigInt(10 ** decimals);
+  const wholePart = rawBalance / divisor;
+  const fracPart = rawBalance % divisor;
   
-    try {
-      // Get chain ID first to determine USDC address
-      const chainId = await web3.eth.getChainId();
-      
-      // Base tokens list
-      const baseTokens = [
-        { 
-          address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
-          symbol: "ALT"
-        },
-        { 
-          address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
-          symbol: "wBTC"
-        },
-        { 
-          address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
-          symbol: "wETH"
-        },
-        { 
-          address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
-          symbol: "wLINK"
-        }
-      ];
+  if (fracPart === BigInt(0)) {
+    return wholePart.toString();
+  }
   
-      // Add USDC based on chain
-      const usdcAddress = Number(chainId) === 43113 
-        ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
-        : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
+  let fracString = fracPart.toString().padStart(decimals, '0');
+  fracString = fracString.replace(/0+$/, '');
   
-      const tokens = [
-        ...baseTokens,
-        {
-          address: usdcAddress,
-          symbol: "USDC"
-        }
-      ];
+  return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
+};
+
+// Function to format raw balance with specified number of decimal places
+const formatBalanceWithDecimals = (rawBalance: bigint, decimals: number, displayDecimals: number): string => {
+  const fullBalance = convertRawBalance(rawBalance, decimals);
+  const [wholePart, fracPart = ''] = fullBalance.split('.');
   
-      // Get native token balance
-      const nativeBalance = await web3.eth.getBalance(address);
-      const nativeBigInt = BigInt(nativeBalance);
-      const formattedNativeBalance = formatTokenBalance(nativeBalance.toString(), '18');
+  if (displayDecimals === 0) {
+    return wholePart;
+  }
   
-      // Initialize balances array with native token
-      const balances: TokenBalance[] = [{
-        symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
-        balance: formattedNativeBalance,
-        rawBalance: nativeBigInt,
-        address: "0x0000000000000000000000000000000000000000"
-      }];
-  
-      // Fetch ERC20 token balances in parallel
-      const tokenPromises = tokens.map(async (token) => {
-        try {
-          console.log(`Fetching balance for ${token.symbol} at ${token.address}`);
-          
-          const contract = new web3.eth.Contract(
-            ERC20ABI as AbiItem[],
-            token.address
-          );
-          
-          const balance = await contract.methods.balanceOf(address).call() as string;
-          const decimals = await contract.methods.decimals().call() as string;
-  
-          console.log(`Raw balance for ${token.symbol}: ${balance}, decimals: ${decimals}`);
-  
-          const balanceBigInt = BigInt(balance);
-          const formattedBalance = formatTokenBalance(balance, decimals);
-  
-          console.log(`Formatted balance for ${token.symbol}: ${formattedBalance}`);
-  
-          return {
-            symbol: token.symbol,
-            balance: formattedBalance,
-            rawBalance: balanceBigInt,
-            address: token.address
-          };
-        } catch (error) {
-          console.error(`Error fetching balance for token ${token.symbol}:`, error);
-          toast.error(`Failed to fetch ${token.symbol} balance`);
-          return null;
-        }
-      });
-  
-      const tokenBalances = await Promise.all(tokenPromises);
-      const validBalances = balances.concat(
-        tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
-      );
-  
-      console.log("All balances:", validBalances);
-      return validBalances;
-  
-    } catch (error) {
-      console.error("Error fetching token balances:", error);
-      toast.error("Failed to fetch token balances");
-      return undefined;
-    }
-  };
+  const paddedFrac = fracPart.padEnd(displayDecimals, '0').slice(0, displayDecimals);
+  return `${wholePart}${paddedFrac.length > 0 ? '.' + paddedFrac : ''}`;
+};
+
+const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
+  if (!web3) {
+    toast.error("Web3 not initialized");
+    return;
+  }
+
+  try {
+    const chainId = await web3.eth.getChainId();
+    
+    const baseTokens = [
+      { 
+        address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+        symbol: "ALT"
+      },
+      { 
+        address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
+        symbol: "wBTC"
+      },
+      { 
+        address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
+        symbol: "wETH"
+      },
+      { 
+        address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
+        symbol: "wLINK"
+      }
+    ];
+
+    const usdcAddress = Number(chainId) === 43113 
+      ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
+      : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
+
+    const tokens = [
+      ...baseTokens,
+      {
+        address: usdcAddress,
+        symbol: "USDC"
+      }
+    ];
+
+    // Native token balance
+    const nativeBalance = await web3.eth.getBalance(address);
+    const nativeBigInt = BigInt(nativeBalance);
+    const formattedNativeBalance = formatTokenBalance(nativeBalance.toString(), '18');
+    
+    console.log('Native token formatting:', {
+      raw: nativeBalance,
+      bigInt: nativeBigInt.toString(),
+      formatted: formattedNativeBalance
+    });
+
+    const balances: TokenBalance[] = [{
+      symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
+      balance: formattedNativeBalance,
+      rawBalance: nativeBigInt,
+      address: "0x0000000000000000000000000000000000000000"
+    }];
+
+    const tokenPromises = tokens.map(async (token) => {
+      try {
+        const contract = new web3.eth.Contract(
+          ERC20ABI as AbiItem[],
+          token.address
+        );
+        
+        const balance = await contract.methods.balanceOf(address).call() as string;
+        const decimals = await contract.methods.decimals().call() as string;
+        const balanceBigInt = BigInt(balance);
+
+        console.log(`Detailed balance info for ${token.symbol}:`, {
+          rawBalance: balance,
+          decimals: decimals,
+          balanceBigInt: balanceBigInt.toString()
+        });
+
+        // Test different formatting approaches
+        const directWeiConversion = web3.utils.fromWei(balance, 'ether');
+        const manualFormatting = formatTokenBalance(balance, decimals);
+        const withDecimals = formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2);
+
+        console.log(`Formatting results for ${token.symbol}:`, {
+          directWeiConversion,
+          manualFormatting,
+          withDecimals
+        });
+
+        // Use the new formatBalanceWithDecimals function with 2 decimal places
+        return {
+          symbol: token.symbol,
+          balance: formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2),
+          rawBalance: balanceBigInt,
+          address: token.address
+        };
+      } catch (error) {
+        console.error(`Error fetching balance for token ${token.symbol}:`, error);
+        toast.error(`Failed to fetch ${token.symbol} balance`);
+        return null;
+      }
+    });
+
+    const tokenBalances = await Promise.all(tokenPromises);
+    const validBalances = balances.concat(
+      tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
+    );
+
+    console.log("Final processed balances:", validBalances.map(b => ({
+      symbol: b.symbol,
+      balance: b.balance,
+      rawBalance: b.rawBalance.toString()
+    })));
+
+    return validBalances;
+
+  } catch (error) {
+    console.error("Error fetching token balances:", error);
+    toast.error("Failed to fetch token balances");
+    return undefined;
+  }
+};
 
   const requestTokenFromFaucet = async (tokenSymbol: string): Promise<boolean> => {
     if (!web3) {
@@ -1027,6 +1076,9 @@ const calculateOptimalLiquidity = async (
     }
 
     try {
+
+      console.log("Fetching pool balances...");
+
       const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
       const contract = new web3.eth.Contract(
         coreContractABI as AbiItem[],

@@ -300,17 +300,24 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
     web3, 
     calculateOptimalLiquidity, 
     addLiquidity,
-    getUserLiquidityPositions,
     fetchTokenBalances,
-    tokens
+    tokens,
+    currentChain
   } = useStorage();
-  
   const [open, setOpen] = useState(false);
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [altAmount, setAltAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [tokenBalance, setTokenBalance] = useState<string>("");
   const [altBalance, setAltBalance] = useState<string>("");
+
+  useEffect(() => {
+    setTokenAmount("");
+    setAltAmount("");
+    setTokenBalance("");
+    setAltBalance("");
+    setOpen(false); // Close modal on chain change
+  }, [currentChain]);
 
 
   // Fetch token balance when modal opens
@@ -324,13 +331,11 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
 
         const balances = await fetchTokenBalances(accounts[0]);
         
-        // Get token balance
         const tokenBal = balances?.find(b => b.address.toLowerCase() === pool.token.toLowerCase());
         if (tokenBal) {
           setTokenBalance(tokenBal.balance);
         }
 
-        // Get ALT balance
         const altBal = balances?.find(b => b.symbol === "ALT");
         if (altBal) {
           setAltBalance(altBal.balance);
@@ -341,7 +346,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
     };
 
     getBalances();
-  }, [web3, open, pool.token, fetchTokenBalances]);
+  }, [web3, open, pool.token, currentChain, fetchTokenBalances]);
 
   const handleTokenAmountChange = (value: string) => {
     // Remove any non-numeric characters except decimal point
@@ -368,12 +373,10 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
 
       try {
         const tokenWei = web3.utils.toWei(tokenAmount, 'ether');
-        
         const result = await calculateOptimalLiquidity({
           tokenAddress: pool.token,
           tokenAmount: tokenWei
         });
-
         setAltAmount(web3.utils.fromWei(result.altAmount, 'ether'));
       } catch (error) {
         console.error("Error calculating ALT amount:", error);
@@ -382,7 +385,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
     };
 
     calculateAlt();
-  }, [web3, tokenAmount, pool.token, calculateOptimalLiquidity]);
+  }, [web3, tokenAmount, pool.token, currentChain, calculateOptimalLiquidity]);
 
   const handleAddLiquidity = async () => {
     if (!web3 || !tokenAmount || !altAmount) return;
@@ -416,6 +419,17 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
     }
   };
 
+  const getChainName = (chainId: number) => {
+    switch (chainId) {
+      case 43113:
+        return "Avalanche Fuji";
+      case 44787:
+        return "Celo Alfajores";
+      default:
+        return "Unknown Chain";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -428,9 +442,12 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
       </DialogTrigger>
       <DialogContent className="bg-zinc-950 border border-amber-500/20 sm:max-w-[400px]">
         <DialogHeader className="flex flex-row justify-between items-center">
-          <DialogTitle className="text-amber-500">
-            Increase Liquidity
-          </DialogTitle>
+          <div>
+            <DialogTitle className="text-amber-500">Increase Liquidity</DialogTitle>
+            <p className="text-sm text-gray-400 mt-1">
+              on {getChainName(currentChain)}
+            </p>
+          </div>
           <DialogClose className="w-6 h-6 text-white hover:text-amber-500 transition-colors">
             <X className="w-4 h-4" />
           </DialogClose>
@@ -498,7 +515,7 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
   const { 
     web3, 
     removeLiquidity,
-    getUserLiquidityPositions
+    currentChain
   } = useStorage();
   
   const [open, setOpen] = useState(false);
@@ -508,42 +525,47 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
   const [altAmount, setAltAmount] = useState<string>("0");
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!web3) return;
-
-    try {
-      // Calculate share amount based on percentage
-      const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
-      const sharesFormatted = web3.utils.fromWei(
-        BigInt(Math.floor(shareAmount)).toString(),
-        'ether'
-      );
-      setShares(sharesFormatted);
-
-      // Calculate token amounts to receive
-      const tokenAmountRaw = (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
-      const altAmountRaw = (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
-
-      // Format amounts with proper decimals
-      const formattedTokenAmount = web3.utils.fromWei(
-        BigInt(Math.floor(tokenAmountRaw)).toString(),
-        'ether'
-      );
-      const formattedAltAmount = web3.utils.fromWei(
-        BigInt(Math.floor(altAmountRaw)).toString(),
-        'ether'
-      );
-
-      setTokenAmount(formattedTokenAmount);
-      setAltAmount(formattedAltAmount);
-    } catch (error) {
-      console.error("Error calculating removal amounts:", error);
-      // Reset values on error
+    // Reset state when chain changes
+    useEffect(() => {
+      setPercentage([0]);
       setShares("0");
       setTokenAmount("0");
       setAltAmount("0");
-    }
-  }, [web3, percentage, pool]);
+      setOpen(false); // Close modal on chain change
+    }, [currentChain]);
+
+    useEffect(() => {
+      if (!web3) return;
+  
+      try {
+        const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
+        const sharesFormatted = web3.utils.fromWei(
+          BigInt(Math.floor(shareAmount)).toString(),
+          'ether'
+        );
+        setShares(sharesFormatted);
+  
+        const tokenAmountRaw = (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
+        const altAmountRaw = (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
+  
+        const formattedTokenAmount = web3.utils.fromWei(
+          BigInt(Math.floor(tokenAmountRaw)).toString(),
+          'ether'
+        );
+        const formattedAltAmount = web3.utils.fromWei(
+          BigInt(Math.floor(altAmountRaw)).toString(),
+          'ether'
+        );
+  
+        setTokenAmount(formattedTokenAmount);
+        setAltAmount(formattedAltAmount);
+      } catch (error) {
+        console.error("Error calculating removal amounts:", error);
+        setShares("0");
+        setTokenAmount("0");
+        setAltAmount("0");
+      }
+    }, [web3, percentage, pool, currentChain]);
 
   const handleRemoveLiquidity = async () => {
     if (!web3 || Number(shares) <= 0) return;
@@ -570,6 +592,17 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
     }
   };
 
+  const getChainName = (chainId: number) => {
+    switch (chainId) {
+      case 43113:
+        return "Avalanche Fuji";
+      case 44787:
+        return "Celo Alfajores";
+      default:
+        return "Unknown Chain";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -582,7 +615,12 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
       </DialogTrigger>
       <DialogContent className="bg-zinc-950 border border-amber-500/20 sm:max-w-[400px]">
         <DialogHeader className="flex flex-row justify-between items-center">
-          <DialogTitle className="text-amber-500">Remove Liquidity</DialogTitle>
+          <div>
+            <DialogTitle className="text-amber-500">Remove Liquidity</DialogTitle>
+            <p className="text-sm text-gray-400 mt-1">
+              on {getChainName(currentChain)}
+            </p>
+          </div>
           <DialogClose className="w-6 h-6 text-white hover:text-amber-500 transition-colors">
             <X className="w-4 h-4" />
           </DialogClose>
@@ -639,18 +677,27 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
 };
 
 const Pool: React.FC = () => {
-  const { web3, getUserLiquidityPositions } = useStorage();
+  const { web3, getUserLiquidityPositions, currentChain } = useStorage();
   const [positions, setPositions] = useState<LiquidityPosition[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true); 
   const [showGeneralModal, setShowGeneralModal] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
 
+  const getChainName = (chainId: number) => {
+    switch (chainId) {
+      case 43113:
+        return "Avalanche Fuji";
+      case 44787:
+        return "Celo Alfajores";
+      default:
+        return "Unknown Chain";
+    }
+  };
 
   const loadPositions = async (isInitial: boolean = false) => {
     if (!web3) return;
     
     try {
-      // Only show loading state on initial load
       if (isInitial) {
         setIsInitialLoading(true);
       }
@@ -669,27 +716,31 @@ const Pool: React.FC = () => {
 
   const startPolling = () => {
     setIsPolling(true);
+    // Load positions immediately when polling starts
+    loadPositions(false);
     setTimeout(() => setIsPolling(false), 30000);
   };
 
   const handleModalClose = (open: boolean) => {
     setShowGeneralModal(open);
     if (!open) {
-      startPolling();
+      startPolling(); // Start polling when modal closes
     }
   };
 
   // Initial load
   useEffect(() => {
-    loadPositions(true);  // Pass true for initial load
-  }, [web3]);
+    setPositions([]);
+    setIsInitialLoading(true);
+    loadPositions(true);
+  }, [web3, currentChain]);
 
   // Polling effect
   useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval>;
+    let intervalId: NodeJS.Timeout;
 
     if (isPolling) {
-      intervalId = setInterval(() => loadPositions(false), 2000);  // Pass false for polling updates
+      intervalId = setInterval(() => loadPositions(false), 2000);
     }
 
     return () => {
@@ -699,89 +750,107 @@ const Pool: React.FC = () => {
     };
   }, [isPolling]);
 
-  // Render the component
   return (
-    <div className="flex flex-col min-h-full">
-      <ScrollArea className="h-[400px] rounded-md border border-amber-500/20 p-2 flex-grow mb-4">
-        {isInitialLoading ? (  // Only show loading on initial load
-          <div className="flex items-center justify-center h-full">
-            <div className="text-amber-500">Loading positions...</div>
+    <div className="flex flex-col h-full relative">
+      {/* Header section - kept compact */}
+      <div className="px-2 py-2">
+        <h4 className="text-lg font-bold text-amber-500">
+          Liquidity Pools on {getChainName(currentChain)}
+        </h4>
+        <p className="text-sm text-gray-400">
+          Manage your liquidity positions across pools
+        </p>
+      </div>
+      
+      {/* Scrollable content area with reduced fixed height */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-[340px] rounded-md border border-amber-500/20"> {/* Reduced height */}
+          <div className="p-2">
+            {isInitialLoading ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="text-amber-500">Loading positions...</div>
+              </div>
+            ) : positions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40">
+                <p className="text-sm text-muted-foreground font-bold">
+                  No active positions on {getChainName(currentChain)}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Add liquidity to get started with earning fees
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {positions.map((position) => (
+                  <Card
+                    key={position.token}
+                    className="border rounded-md hover:border-amber-500 transition-colors duration-200 mb-2 last:mb-0"
+                  >
+                    <CardContent className="p-3 font-mono font-bold">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-sm">Pair:</span>
+                        <span className="text-sm">{position.tokenSymbol}/ALT</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-sm">Share:</span>
+                        <span className="text-sm">{position.sharePercentage}%</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-sm">{position.tokenSymbol}:</span>
+                        <span className="text-sm">
+                          {Number(position.formattedTokenAmount).toFixed(6)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">ALT:</span>
+                        <span className="text-sm">
+                          {Number(position.formattedAltAmount).toFixed(6)}
+                        </span>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-3 pt-0 flex gap-2">
+                      <IncreaseLiquidityModal 
+                        pool={{
+                          token: position.token,
+                          tokenSymbol: position.tokenSymbol,
+                          tokenReserve: position.tokenAmount,
+                          altReserve: position.altAmount,
+                          totalShares: position.shares,
+                          userShares: position.rawShares.toString()
+                        }} 
+                        onSuccess={startPolling}
+                      />
+                      <RemoveLiquidityModal 
+                        pool={{
+                          token: position.token,
+                          tokenSymbol: position.tokenSymbol,
+                          tokenReserve: position.tokenAmount,
+                          altReserve: position.altAmount,
+                          totalShares: position.shares,
+                          userShares: position.rawShares.toString()
+                        }}
+                        onSuccess={startPolling}
+                      />
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        ) : positions.length === 0 ? (
-          <>
-            <h4 className="mb-2 text-medium font-bold leading-none px-2 pt-2">
-              Your Positions
-            </h4>
-            <p className="text-sm text-muted-foreground font-bold px-2">
-              You have no active positions
-            </p>
-          </>
-        ) : (
-          positions.map((position) => (
-            <Card
-              key={position.token}
-              className="mb-2 border rounded-md hover:border-amber-500 transition-colors duration-200 last:mb-0"
-            >
-              <CardContent className="p-3 font-mono font-bold">
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm">Pair:</span>
-                  <span className="text-sm">{position.tokenSymbol}/ALT</span>
-                </div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm">Share:</span>
-                  <span className="text-sm">{position.sharePercentage}%</span>
-                </div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm">{position.tokenSymbol}:</span>
-                  <span className="text-sm">
-                    {Number(position.formattedTokenAmount).toFixed(6)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">ALT:</span>
-                  <span className="text-sm">
-                    {Number(position.formattedAltAmount).toFixed(6)}
-                  </span>
-                </div>
-              </CardContent>
-              <CardFooter className="p-3 pt-0 flex gap-2">
-                <IncreaseLiquidityModal 
-                  pool={{
-                    token: position.token,
-                    tokenSymbol: position.tokenSymbol,
-                    tokenReserve: position.tokenAmount,
-                    altReserve: position.altAmount,
-                    totalShares: position.shares,
-                    userShares: position.rawShares.toString()
-                  }} 
-                  onSuccess={startPolling}
-                />
-                <RemoveLiquidityModal 
-                  pool={{
-                    token: position.token,
-                    tokenSymbol: position.tokenSymbol,
-                    tokenReserve: position.tokenAmount,
-                    altReserve: position.altAmount,
-                    totalShares: position.shares,
-                    userShares: position.rawShares.toString()
-                  }}
-                  onSuccess={startPolling}
-                />
-              </CardFooter>
-            </Card>
-          ))
-        )}
-      </ScrollArea>
+        </ScrollArea>
+      </div>
 
-      <Dialog open={showGeneralModal} onOpenChange={setShowGeneralModal}>
+      {/* Modal */}
+      <Dialog open={showGeneralModal} onOpenChange={handleModalClose}>
         <GeneralAddLiquidityModal
           open={showGeneralModal}
-          onOpenChange={setShowGeneralModal}
+          onOpenChange={handleModalClose}
           onSuccess={startPolling}
         />
       </Dialog>
 
-      <div className="mt-auto mb-4">
+      {/* Button container with padding */}
+      <div className="p-2 bg-zinc-950"> {/* Removed absolute positioning, using normal flow */}
         <Button
           onClick={() => setShowGeneralModal(true)}
           className="w-full bg-gradient-to-r from-amber-900 to-amber-800
