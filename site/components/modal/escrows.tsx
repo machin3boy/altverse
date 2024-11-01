@@ -176,7 +176,7 @@ export default function Escrows() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Time Left:</span>
                         <span className={`text-sm ${
-                          Date.now() >= escrow.timeout ? "text-red-500" : "text-amber-500"
+                          Date.now() >= escrow.timeout ? "text-emerald-500" : "text-amber-500"
                         }`}>
                           {getTimeLeft(escrow.timeout)}
                         </span>
