@@ -47,14 +47,14 @@ interface StorageContextProps {
 
 const StorageContext = createContext<StorageContextProps>({
   storage: {},
-  setStorage: () => {},
+  setStorage: () => { },
   getStorage: () => undefined,
   web3: null,
   connectToWeb3: async () => true || false,
   switchChain: async () => true || false,
   currentChain: 44787,
-  setCurrentChain: () => {},
-  initializeCoreContract: async () => {},
+  setCurrentChain: () => { },
+  initializeCoreContract: async () => { },
   fetchTokenBalances: async () => [],
   requestTokenFromFaucet: async () => true || false,
   initiateCrossChainSwap: async () => true || false,
@@ -203,7 +203,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [storage, setStorage] = useState<{ [key: string]: string }>({});
   const [web3, setWeb3] = useState<Web3 | null>(null);
-  const [currentChain, setCurrentChain] = useState<number>(44787); 
+  const [currentChain, setCurrentChain] = useState<number>(44787);
 
   const setStorageValue = (key: string, value: string) => {
     setStorage((prevStorage) => ({ ...prevStorage, [key]: value }));
@@ -350,7 +350,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("Setting current chain to " + parseInt(targetChainId, 16));
         console.log("Storing current chain as " + targetChainId);
         setCurrentChain(parseInt(targetChainId, 16));
-        setStorage({"currentChain": targetChainId});
+        setStorage({ "currentChain": targetChainId });
         return true;
       } catch (error) {
         console.error("Failed to swap chain:", error);
@@ -370,7 +370,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log("Setting current chain to " + Number(chainId));
           console.log("Storing current chain as " + chainId.toString());
           setCurrentChain(Number(chainId));
-          setStorage({"currentChain": chainId.toString()});
+          setStorage({ "currentChain": chainId.toString() });
         } catch (error) {
           console.error("Error getting chain ID:", error);
         }
@@ -386,13 +386,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("Setting current chain to " + numericChainId);
         console.log("Storing current chain as " + numericChainId.toString());
         setCurrentChain(numericChainId);
-        setStorage({"currentChain": numericChainId.toString()});
+        setStorage({ "currentChain": numericChainId.toString() });
       });
     }
 
     return () => {
       if ((window as any).ethereum) {
-        (window as any).ethereum.removeListener('chainChanged', () => {});
+        (window as any).ethereum.removeListener('chainChanged', () => { });
       }
     };
   }, [web3]);
@@ -419,473 +419,473 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Helper function to format token amounts with dynamic decimals
-const formatTokenAmount = async (web3: Web3, amount: bigint, tokenAddress: string): Promise<string> => {
-  try {
-    const tokenContract = new web3.eth.Contract(
-      ERC20ABI as AbiItem[],
-      tokenAddress
-    );
-    const decimals = await tokenContract.methods.decimals().call();
-    
-    if (amount === BigInt(0)) return "0";
-    
-    const divisor = BigInt(10 ** Number(decimals));
-    const integerPart = amount / divisor;
-    const fractionalPart = amount % divisor;
-    
-    if (fractionalPart === BigInt(0)) {
-      return integerPart.toString();
+  const formatTokenAmount = async (web3: Web3, amount: bigint, tokenAddress: string): Promise<string> => {
+    try {
+      const tokenContract = new web3.eth.Contract(
+        ERC20ABI as AbiItem[],
+        tokenAddress
+      );
+      const decimals = await tokenContract.methods.decimals().call();
+
+      if (amount === BigInt(0)) return "0";
+
+      const divisor = BigInt(10 ** Number(decimals));
+      const integerPart = amount / divisor;
+      const fractionalPart = amount % divisor;
+
+      if (fractionalPart === BigInt(0)) {
+        return integerPart.toString();
+      }
+
+      let fractionalStr = fractionalPart.toString().padStart(Number(decimals), '0');
+      // Remove trailing zeros
+      while (fractionalStr.endsWith('0')) {
+        fractionalStr = fractionalStr.slice(0, -1);
+      }
+
+      return `${integerPart}.${fractionalStr}`;
+    } catch (error) {
+      console.error("Error formatting token amount:", error);
+      return amount.toString();
     }
-    
-    let fractionalStr = fractionalPart.toString().padStart(Number(decimals), '0');
-    // Remove trailing zeros
-    while (fractionalStr.endsWith('0')) {
-      fractionalStr = fractionalStr.slice(0, -1);
-    }
-    
-    return `${integerPart}.${fractionalStr}`;
-  } catch (error) {
-    console.error("Error formatting token amount:", error);
-    return amount.toString();
-  }
-};
+  };
 
-const getPool = async (tokenAddress: string): Promise<Pool | null> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return null;
-  }
-
-  try {
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    // Explicitly type the pool return value
-    const pool = await contract.methods.pools(tokenAddress).call() as ContractPool;
-    
-    // Check if pool exists (token address is not zero)
-    if (pool.token === "0x0000000000000000000000000000000000000000") {
+  const getPool = async (tokenAddress: string): Promise<Pool | null> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
       return null;
     }
 
-    return {
-      token: pool.token,
-      tokenReserve: BigInt(pool.tokenReserve),
-      altReserve: BigInt(pool.altReserve),
-      totalShares: BigInt(pool.totalShares)
-    };
-  } catch (error) {
-    console.error("Error fetching pool:", error);
-    toast.error(`Failed to fetch pool: ${(error as Error).message}`);
-    return null;
-  }
-};
+    try {
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
 
-const getUserLiquidityPositions = async (): Promise<LiquidityPosition[]> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return [];
-  }
+      // Explicitly type the pool return value
+      const pool = await contract.methods.pools(tokenAddress).call() as ContractPool;
 
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
+      // Check if pool exists (token address is not zero)
+      if (pool.token === "0x0000000000000000000000000000000000000000") {
+        return null;
+      }
+
+      return {
+        token: pool.token,
+        tokenReserve: BigInt(pool.tokenReserve),
+        altReserve: BigInt(pool.altReserve),
+        totalShares: BigInt(pool.totalShares)
+      };
+    } catch (error) {
+      console.error("Error fetching pool:", error);
+      toast.error(`Failed to fetch pool: ${(error as Error).message}`);
+      return null;
+    }
+  };
+
+  const getUserLiquidityPositions = async (): Promise<LiquidityPosition[]> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
       return [];
     }
 
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return [];
+      }
 
-    const positions: LiquidityPosition[] = [];
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
 
-    // Check positions for all supported tokens except ALT
-    for (const token of tokens) {
-      if (token.symbol === "ALT") continue;
+      const positions: LiquidityPosition[] = [];
 
-      // Explicitly type the shares return value as string
-      const shares = await contract.methods
-        .userShares(token.address, accounts[0])
+      // Check positions for all supported tokens except ALT
+      for (const token of tokens) {
+        if (token.symbol === "ALT") continue;
+
+        // Explicitly type the shares return value as string
+        const shares = await contract.methods
+          .userShares(token.address, accounts[0])
+          .call() as string;
+
+        if (BigInt(shares) > BigInt(0)) {
+          const pool = await getPool(token.address);
+          if (!pool) continue;
+
+          // Calculate token and ALT amounts based on share percentage
+          const shareRatio = (BigInt(shares) * BigInt(10000)) / pool.totalShares;
+          const tokenAmount = (pool.tokenReserve * BigInt(shares)) / pool.totalShares;
+          const altAmount = (pool.altReserve * BigInt(shares)) / pool.totalShares;
+
+          positions.push({
+            token: token.address,
+            tokenSymbol: token.symbol,
+            tokenAmount: tokenAmount.toString(),
+            altAmount: altAmount.toString(),
+            sharePercentage: ((Number(shareRatio) / 100)).toFixed(2),
+            shares: shares.toString(),
+            rawShares: BigInt(shares),
+            formattedTokenAmount: await formatTokenAmount(web3, tokenAmount, token.address),
+            formattedAltAmount: await formatTokenAmount(web3, altAmount, ALTVERSE_ADDRESS)
+          });
+        }
+      }
+
+      return positions;
+
+    } catch (error) {
+      console.error("Error fetching liquidity positions:", error);
+      toast.error(`Failed to fetch positions: ${(error as Error).message}`);
+      return [];
+    }
+  };
+
+  const addLiquidity = async (params: AddLiquidityParams): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return false;
+    }
+
+    const loadingToastId = `add-liquidity-${Date.now()}`;
+
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
+
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+
+      // Check token approvals
+      const tokenApproved = await checkAndApproveToken(
+        params.tokenAddress,
+        ALTVERSE_ADDRESS,
+        params.tokenAmount
+      );
+
+      if (!tokenApproved) return false;
+
+      // Check ALT approval
+      const altApproved = await checkAndApproveToken(
+        ALTVERSE_ADDRESS,
+        ALTVERSE_ADDRESS,
+        params.altAmount
+      );
+
+      if (!altApproved) return false;
+
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      toast.loading("Adding liquidity...", {
+        id: loadingToastId,
+        duration: 20000
+      });
+
+      const tx = await contract.methods
+        .addLiquidity(params.tokenAddress, params.tokenAmount, params.altAmount)
+        .send({
+          from: accounts[0],
+          gas: '300000'
+        });
+
+      toast.dismiss(loadingToastId);
+
+      if (tx.status) {
+        toast.success("Successfully added liquidity!");
+        return true;
+      } else {
+        toast.error("Failed to add liquidity");
+        return false;
+      }
+
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      console.error("Error adding liquidity:", error);
+      toast.error(`Failed to add liquidity: ${(error as Error).message}`);
+      return false;
+    }
+  };
+
+  const removeLiquidity = async (params: RemoveLiquidityParams): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return false;
+    }
+
+    const loadingToastId = `remove-liquidity-${Date.now()}`;
+
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
+
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      // Verify user has sufficient shares
+      const userShares = await contract.methods
+        .userShares(params.tokenAddress, accounts[0])
         .call() as string;
 
-      if (BigInt(shares) > BigInt(0)) {
-        const pool = await getPool(token.address);
-        if (!pool) continue;
-
-        // Calculate token and ALT amounts based on share percentage
-        const shareRatio = (BigInt(shares) * BigInt(10000)) / pool.totalShares;
-        const tokenAmount = (pool.tokenReserve * BigInt(shares)) / pool.totalShares;
-        const altAmount = (pool.altReserve * BigInt(shares)) / pool.totalShares;
-
-        positions.push({
-          token: token.address,
-          tokenSymbol: token.symbol,
-          tokenAmount: tokenAmount.toString(),
-          altAmount: altAmount.toString(),
-          sharePercentage: ((Number(shareRatio) / 100)).toFixed(2),
-          shares: shares.toString(),
-          rawShares: BigInt(shares),
-          formattedTokenAmount: await formatTokenAmount(web3, tokenAmount, token.address),
-          formattedAltAmount: await formatTokenAmount(web3, altAmount, ALTVERSE_ADDRESS)
-        });
+      if (BigInt(userShares) < BigInt(params.shares)) {
+        toast.error("Insufficient liquidity shares");
+        return false;
       }
-    }
 
-    return positions;
-
-  } catch (error) {
-    console.error("Error fetching liquidity positions:", error);
-    toast.error(`Failed to fetch positions: ${(error as Error).message}`);
-    return [];
-  }
-};
-
-const addLiquidity = async (params: AddLiquidityParams): Promise<boolean> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return false;
-  }
-
-  const loadingToastId = `add-liquidity-${Date.now()}`;
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return false;
-    }
-
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    
-    // Check token approvals
-    const tokenApproved = await checkAndApproveToken(
-      params.tokenAddress,
-      ALTVERSE_ADDRESS,
-      params.tokenAmount
-    );
-
-    if (!tokenApproved) return false;
-
-    // Check ALT approval
-    const altApproved = await checkAndApproveToken(
-      ALTVERSE_ADDRESS,
-      ALTVERSE_ADDRESS,
-      params.altAmount
-    );
-
-    if (!altApproved) return false;
-
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    toast.loading("Adding liquidity...", {
-      id: loadingToastId,
-      duration: 20000
-    });
-
-    const tx = await contract.methods
-      .addLiquidity(params.tokenAddress, params.tokenAmount, params.altAmount)
-      .send({
-        from: accounts[0],
-        gas: '300000'
+      toast.loading("Removing liquidity...", {
+        id: loadingToastId,
+        duration: 20000
       });
 
-    toast.dismiss(loadingToastId);
-
-    if (tx.status) {
-      toast.success("Successfully added liquidity!");
-      return true;
-    } else {
-      toast.error("Failed to add liquidity");
-      return false;
-    }
-
-  } catch (error) {
-    toast.dismiss(loadingToastId);
-    console.error("Error adding liquidity:", error);
-    toast.error(`Failed to add liquidity: ${(error as Error).message}`);
-    return false;
-  }
-};
-
-const removeLiquidity = async (params: RemoveLiquidityParams): Promise<boolean> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return false;
-  }
-
-  const loadingToastId = `remove-liquidity-${Date.now()}`;
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return false;
-    }
-
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    // Verify user has sufficient shares
-    const userShares = await contract.methods
-      .userShares(params.tokenAddress, accounts[0])
-      .call() as string;
-
-    if (BigInt(userShares) < BigInt(params.shares)) {
-      toast.error("Insufficient liquidity shares");
-      return false;
-    }
-
-    toast.loading("Removing liquidity...", {
-      id: loadingToastId,
-      duration: 20000
-    });
-
-    const tx = await contract.methods
-      .removeLiquidity(params.tokenAddress, params.shares)
-      .send({
-        from: accounts[0],
-        gas: '300000'
-      });
-
-    toast.dismiss(loadingToastId);
-
-    if (tx.status) {
-      toast.success("Successfully removed liquidity!");
-      return true;
-    } else {
-      toast.error("Failed to remove liquidity");
-      return false;
-    }
-
-  } catch (error) {
-    toast.dismiss(loadingToastId);
-    console.error("Error removing liquidity:", error);
-    toast.error(`Failed to remove liquidity: ${(error as Error).message}`);
-    return false;
-  }
-};
-
-const calculateOptimalLiquidity = async (
-  params: CalculateOptimalLiquidityParams
-): Promise<OptimalLiquidityResult> => {
-  if (!web3) {
-    throw new Error("Web3 not initialized");
-  }
-
-  try {
-    const pool = await getPool(params.tokenAddress);
-    
-    if (!pool || pool.tokenReserve === BigInt(0)) {
-      // For new pools or empty pools, maintain 1:1 ratio
-      return {
-        altAmount: params.tokenAmount,
-        priceImpact: "0.00"
-      };
-    }
-
-    // Calculate optimal ALT amount based on current pool ratio
-    const altAmount = (BigInt(params.tokenAmount) * pool.altReserve) / pool.tokenReserve;
-
-    // Calculate price impact
-    const oldPrice = pool.altReserve * BigInt(1e18) / pool.tokenReserve;
-    const newTokenReserve = pool.tokenReserve + BigInt(params.tokenAmount);
-    const newAltReserve = pool.altReserve + altAmount;
-    const newPrice = newAltReserve * BigInt(1e18) / newTokenReserve;
-
-    const priceImpact = ((newPrice - oldPrice) * BigInt(10000) / oldPrice);
-    
-    return {
-      altAmount: altAmount.toString(),
-      priceImpact: (Number(priceImpact) / 100).toFixed(2)
-    };
-
-  } catch (error) {
-    console.error("Error calculating optimal liquidity:", error);
-    throw error;
-  }
-};
-
-const formatTokenBalance = (balance: string, decimals: string): string => {
-  const balanceNum = BigInt(balance);
-  const divisor = BigInt(10 ** Number(decimals));
-  const wholePart = balanceNum / divisor;
-  const fracPart = balanceNum % divisor;
-  
-  // If there's no fractional part, just return the whole number
-  if (fracPart === BigInt(0)) {
-    return wholePart.toString();
-  }
-  
-  // Handle fractional part
-  let fracString = fracPart.toString().padStart(Number(decimals), '0');
-  
-  // Remove trailing zeros only from fractional part
-  fracString = fracString.replace(/0+$/, '');
-  
-  // Combine whole and fractional parts only if there's a fractional part left
-  return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
-};
-
-// Helper function to convert raw balance to human readable form
-const convertRawBalance = (rawBalance: bigint, decimals: number): string => {
-  const divisor = BigInt(10 ** decimals);
-  const wholePart = rawBalance / divisor;
-  const fracPart = rawBalance % divisor;
-  
-  if (fracPart === BigInt(0)) {
-    return wholePart.toString();
-  }
-  
-  let fracString = fracPart.toString().padStart(decimals, '0');
-  fracString = fracString.replace(/0+$/, '');
-  
-  return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
-};
-
-// Function to format raw balance with specified number of decimal places
-const formatBalanceWithDecimals = (rawBalance: bigint, decimals: number, displayDecimals: number): string => {
-  const fullBalance = convertRawBalance(rawBalance, decimals);
-  const [wholePart, fracPart = ''] = fullBalance.split('.');
-  
-  if (displayDecimals === 0) {
-    return wholePart;
-  }
-  
-  const paddedFrac = fracPart.padEnd(displayDecimals, '0').slice(0, displayDecimals);
-  return `${wholePart}${paddedFrac.length > 0 ? '.' + paddedFrac : ''}`;
-};
-
-const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return;
-  }
-
-  try {
-    const chainId = await web3.eth.getChainId();
-    
-    const baseTokens = [
-      { 
-        address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
-        symbol: "ALT"
-      },
-      { 
-        address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
-        symbol: "wBTC"
-      },
-      { 
-        address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
-        symbol: "wETH"
-      },
-      { 
-        address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
-        symbol: "wLINK"
-      }
-    ];
-
-    const usdcAddress = Number(chainId) === 43113 
-      ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
-      : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
-
-    const tokens = [
-      ...baseTokens,
-      {
-        address: usdcAddress,
-        symbol: "USDC"
-      }
-    ];
-
-    // Native token balance
-    const nativeBalance = await web3.eth.getBalance(address);
-    const nativeBigInt = BigInt(nativeBalance);
-    const formattedNativeBalance = formatTokenBalance(nativeBalance.toString(), '18');
-    
-    console.log('Native token formatting:', {
-      raw: nativeBalance,
-      bigInt: nativeBigInt.toString(),
-      formatted: formattedNativeBalance
-    });
-
-    const balances: TokenBalance[] = [{
-      symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
-      balance: formattedNativeBalance,
-      rawBalance: nativeBigInt,
-      address: "0x0000000000000000000000000000000000000000"
-    }];
-
-    const tokenPromises = tokens.map(async (token) => {
-      try {
-        const contract = new web3.eth.Contract(
-          ERC20ABI as AbiItem[],
-          token.address
-        );
-        
-        const balance = await contract.methods.balanceOf(address).call() as string;
-        const decimals = await contract.methods.decimals().call() as string;
-        const balanceBigInt = BigInt(balance);
-
-        console.log(`Detailed balance info for ${token.symbol}:`, {
-          rawBalance: balance,
-          decimals: decimals,
-          balanceBigInt: balanceBigInt.toString()
+      const tx = await contract.methods
+        .removeLiquidity(params.tokenAddress, params.shares)
+        .send({
+          from: accounts[0],
+          gas: '300000'
         });
 
-        // Test different formatting approaches
-        const directWeiConversion = web3.utils.fromWei(balance, 'ether');
-        const manualFormatting = formatTokenBalance(balance, decimals);
-        const withDecimals = formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2);
+      toast.dismiss(loadingToastId);
 
-        console.log(`Formatting results for ${token.symbol}:`, {
-          directWeiConversion,
-          manualFormatting,
-          withDecimals
-        });
+      if (tx.status) {
+        toast.success("Successfully removed liquidity!");
+        return true;
+      } else {
+        toast.error("Failed to remove liquidity");
+        return false;
+      }
 
-        // Use the new formatBalanceWithDecimals function with 2 decimal places
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      console.error("Error removing liquidity:", error);
+      toast.error(`Failed to remove liquidity: ${(error as Error).message}`);
+      return false;
+    }
+  };
+
+  const calculateOptimalLiquidity = async (
+    params: CalculateOptimalLiquidityParams
+  ): Promise<OptimalLiquidityResult> => {
+    if (!web3) {
+      throw new Error("Web3 not initialized");
+    }
+
+    try {
+      const pool = await getPool(params.tokenAddress);
+
+      if (!pool || pool.tokenReserve === BigInt(0)) {
+        // For new pools or empty pools, maintain 1:1 ratio
         return {
-          symbol: token.symbol,
-          balance: formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2),
-          rawBalance: balanceBigInt,
-          address: token.address
+          altAmount: params.tokenAmount,
+          priceImpact: "0.00"
         };
-      } catch (error) {
-        console.error(`Error fetching balance for token ${token.symbol}:`, error);
-        toast.error(`Failed to fetch ${token.symbol} balance`);
-        return null;
       }
-    });
 
-    const tokenBalances = await Promise.all(tokenPromises);
-    const validBalances = balances.concat(
-      tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
-    );
+      // Calculate optimal ALT amount based on current pool ratio
+      const altAmount = (BigInt(params.tokenAmount) * pool.altReserve) / pool.tokenReserve;
 
-    console.log("Final processed balances:", validBalances.map(b => ({
-      symbol: b.symbol,
-      balance: b.balance,
-      rawBalance: b.rawBalance.toString()
-    })));
+      // Calculate price impact
+      const oldPrice = pool.altReserve * BigInt(1e18) / pool.tokenReserve;
+      const newTokenReserve = pool.tokenReserve + BigInt(params.tokenAmount);
+      const newAltReserve = pool.altReserve + altAmount;
+      const newPrice = newAltReserve * BigInt(1e18) / newTokenReserve;
 
-    return validBalances;
+      const priceImpact = ((newPrice - oldPrice) * BigInt(10000) / oldPrice);
 
-  } catch (error) {
-    console.error("Error fetching token balances:", error);
-    toast.error("Failed to fetch token balances");
-    return undefined;
-  }
-};
+      return {
+        altAmount: altAmount.toString(),
+        priceImpact: (Number(priceImpact) / 100).toFixed(2)
+      };
+
+    } catch (error) {
+      console.error("Error calculating optimal liquidity:", error);
+      throw error;
+    }
+  };
+
+  const formatTokenBalance = (balance: string, decimals: string): string => {
+    const balanceNum = BigInt(balance);
+    const divisor = BigInt(10 ** Number(decimals));
+    const wholePart = balanceNum / divisor;
+    const fracPart = balanceNum % divisor;
+
+    // If there's no fractional part, just return the whole number
+    if (fracPart === BigInt(0)) {
+      return wholePart.toString();
+    }
+
+    // Handle fractional part
+    let fracString = fracPart.toString().padStart(Number(decimals), '0');
+
+    // Remove trailing zeros only from fractional part
+    fracString = fracString.replace(/0+$/, '');
+
+    // Combine whole and fractional parts only if there's a fractional part left
+    return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
+  };
+
+  // Helper function to convert raw balance to human readable form
+  const convertRawBalance = (rawBalance: bigint, decimals: number): string => {
+    const divisor = BigInt(10 ** decimals);
+    const wholePart = rawBalance / divisor;
+    const fracPart = rawBalance % divisor;
+
+    if (fracPart === BigInt(0)) {
+      return wholePart.toString();
+    }
+
+    let fracString = fracPart.toString().padStart(decimals, '0');
+    fracString = fracString.replace(/0+$/, '');
+
+    return fracString.length > 0 ? `${wholePart}.${fracString}` : wholePart.toString();
+  };
+
+  // Function to format raw balance with specified number of decimal places
+  const formatBalanceWithDecimals = (rawBalance: bigint, decimals: number, displayDecimals: number): string => {
+    const fullBalance = convertRawBalance(rawBalance, decimals);
+    const [wholePart, fracPart = ''] = fullBalance.split('.');
+
+    if (displayDecimals === 0) {
+      return wholePart;
+    }
+
+    const paddedFrac = fracPart.padEnd(displayDecimals, '0').slice(0, displayDecimals);
+    return `${wholePart}${paddedFrac.length > 0 ? '.' + paddedFrac : ''}`;
+  };
+
+  const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | undefined> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return;
+    }
+
+    try {
+      const chainId = await web3.eth.getChainId();
+
+      const baseTokens = [
+        {
+          address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+          symbol: "ALT"
+        },
+        {
+          address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
+          symbol: "wBTC"
+        },
+        {
+          address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
+          symbol: "wETH"
+        },
+        {
+          address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
+          symbol: "wLINK"
+        }
+      ];
+
+      const usdcAddress = Number(chainId) === 43113
+        ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
+        : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
+
+      const tokens = [
+        ...baseTokens,
+        {
+          address: usdcAddress,
+          symbol: "USDC"
+        }
+      ];
+
+      // Native token balance
+      const nativeBalance = await web3.eth.getBalance(address);
+      const nativeBigInt = BigInt(nativeBalance);
+      const formattedNativeBalance = formatTokenBalance(nativeBalance.toString(), '18');
+
+      console.log('Native token formatting:', {
+        raw: nativeBalance,
+        bigInt: nativeBigInt.toString(),
+        formatted: formattedNativeBalance
+      });
+
+      const balances: TokenBalance[] = [{
+        symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
+        balance: formattedNativeBalance,
+        rawBalance: nativeBigInt,
+        address: "0x0000000000000000000000000000000000000000"
+      }];
+
+      const tokenPromises = tokens.map(async (token) => {
+        try {
+          const contract = new web3.eth.Contract(
+            ERC20ABI as AbiItem[],
+            token.address
+          );
+
+          const balance = await contract.methods.balanceOf(address).call() as string;
+          const decimals = await contract.methods.decimals().call() as string;
+          const balanceBigInt = BigInt(balance);
+
+          console.log(`Detailed balance info for ${token.symbol}:`, {
+            rawBalance: balance,
+            decimals: decimals,
+            balanceBigInt: balanceBigInt.toString()
+          });
+
+          // Test different formatting approaches
+          const directWeiConversion = web3.utils.fromWei(balance, 'ether');
+          const manualFormatting = formatTokenBalance(balance, decimals);
+          const withDecimals = formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2);
+
+          console.log(`Formatting results for ${token.symbol}:`, {
+            directWeiConversion,
+            manualFormatting,
+            withDecimals
+          });
+
+          // Use the new formatBalanceWithDecimals function with 2 decimal places
+          return {
+            symbol: token.symbol,
+            balance: formatBalanceWithDecimals(balanceBigInt, Number(decimals), 2),
+            rawBalance: balanceBigInt,
+            address: token.address
+          };
+        } catch (error) {
+          console.error(`Error fetching balance for token ${token.symbol}:`, error);
+          toast.error(`Failed to fetch ${token.symbol} balance`);
+          return null;
+        }
+      });
+
+      const tokenBalances = await Promise.all(tokenPromises);
+      const validBalances = balances.concat(
+        tokenBalances.filter((balance): balance is TokenBalance => balance !== null)
+      );
+
+      console.log("Final processed balances:", validBalances.map(b => ({
+        symbol: b.symbol,
+        balance: b.balance,
+        rawBalance: b.rawBalance.toString()
+      })));
+
+      return validBalances;
+
+    } catch (error) {
+      console.error("Error fetching token balances:", error);
+      toast.error("Failed to fetch token balances");
+      return undefined;
+    }
+  };
 
   const requestTokenFromFaucet = async (tokenSymbol: string): Promise<boolean> => {
     if (!web3) {
@@ -894,7 +894,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
     }
 
     const loadingToastId = `faucet-${tokenSymbol}-${Date.now()}`;
-  
+
     try {
       // Get user's address
       const accounts = await web3.eth.getAccounts();
@@ -902,29 +902,29 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
         toast.error("No account connected");
         return false;
       }
-  
+
       // Find the token configuration
       const token = tokens.find(t => t.symbol === tokenSymbol);
       if (!token) {
         toast.error("Invalid token symbol");
         return false;
       }
-  
+
       // Create contract instance
       const contract = new web3.eth.Contract(token.abi, token.address);
-  
+
       // Call faucet function
       toast.loading(`Requesting ${tokenSymbol} from faucet...`, {
         id: loadingToastId,
         duration: 20000 // Max duration of 20 seconds
       });
-      
+
       const tx = await contract.methods.faucet().send({
         from: accounts[0],
       });
 
       toast.dismiss(loadingToastId);
-  
+
       if (tx.status) {
         toast.success(`Successfully received ${tokenSymbol} from faucet!`);
         return true;
@@ -932,7 +932,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
         toast.error(`Failed to receive ${tokenSymbol} from faucet`);
         return false;
       }
-  
+
     } catch (error) {
       toast.dismiss(loadingToastId);
       console.error(`Error requesting ${tokenSymbol} from faucet:`, error);
@@ -946,36 +946,36 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
       toast.error("Web3 not initialized");
       return false;
     }
-  
+
     const loadingToastId = `swap-${Date.now()}`;
-  
+
     try {
       const accounts = await web3.eth.getAccounts();
       if (!accounts[0]) {
         toast.error("No account connected");
         return false;
       }
-  
+
       const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
       const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-  
+
       // Check if current chain matches target chain
       const currentChainId = await web3.eth.getChainId();
       const isSameChain = Number(currentChainId) === params.targetChain;
-  
+
       // Create contract instances
       const sourceTokenContract = new web3.eth.Contract(
         ERC20ABI as AbiItem[],
         params.fromToken
       );
-  
+
       // Check existing allowance
       const currentAllowance = await sourceTokenContract.methods
         .allowance(accounts[0], ALTVERSE_ADDRESS)
         .call() as string;
-  
+
       console.log("Current allowance:", currentAllowance);
-  
+
       // If allowance is insufficient, request approval
       if (BigInt(currentAllowance) < BigInt(params.amountIn)) {
         console.log("Requesting approval for token spend...");
@@ -983,7 +983,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
           const approveTx = await sourceTokenContract.methods
             .approve(ALTVERSE_ADDRESS, MAX_UINT256)
             .send({ from: accounts[0] });
-  
+
           if (!approveTx.status) {
             toast.error("Approval failed");
             return false;
@@ -997,18 +997,18 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
       } else {
         console.log("Sufficient allowance exists");
       }
-  
+
       // Now proceed with the swap
       const contract = new web3.eth.Contract(
         coreContractABI as AbiItem[],
         ALTVERSE_ADDRESS
       );
-  
+
       toast.loading(`Initiating ${isSameChain ? "swap" : "cross-chain swap"}...`, {
         id: loadingToastId,
         duration: 20000
       });
-  
+
       let tx;
       if (isSameChain) {
         // For same-chain swaps, use regular swap function
@@ -1017,7 +1017,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
           toToken: params.toToken,
           amountIn: params.amountIn,
         });
-        
+
         // Call your regular swap function here
         tx = await contract.methods.swap(
           params.fromToken,
@@ -1030,7 +1030,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
       } else {
         // For cross-chain swaps, use wormhole
         const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
-        
+
         console.warn("Cross-chain swap initiated with params:", {
           fromToken: params.fromToken,
           toToken: params.toToken,
@@ -1038,7 +1038,7 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
           wormholeChainId,
           targetAddress: params.targetAddress
         });
-  
+
         tx = await contract.methods.initiateCrossChainSwap(
           params.fromToken,
           params.toToken,
@@ -1050,17 +1050,17 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
           gas: '500000',
         });
       }
-  
+
       toast.dismiss(loadingToastId);
-  
+
       if (tx.status) {
         toast.success(`${isSameChain ? "Swap" : "Cross-chain swap"} initiated successfully!`);
         return true;
       }
-      
+
       toast.error(`${isSameChain ? "Swap" : "Cross-chain swap"} failed`);
       return false;
-  
+
     } catch (error: any) {
       toast.dismiss(loadingToastId);
       console.error("Detailed error:", error);
@@ -1087,13 +1087,13 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
 
       // Get USDC balance from contract
       const rawUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
-      
+
       // Get ALT balance from contract
       const rawAltBalance = await contract.methods.balanceOf(ALTVERSE_ADDRESS).call() as string;
 
       // Format USDC balance (6 decimals)
       const usdcBalance = web3.utils.fromWei(rawUsdcBalance, 'mwei');
-      
+
       // Format ALT balance (18 decimals)
       const altBalance = web3.utils.fromWei(rawAltBalance, 'ether');
 
@@ -1111,617 +1111,630 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
     }
   };
 
-// Helper function for price impact calculation
-const calculatePriceImpact = (
-  amountIn: string,
-  reserveIn: string,
-  reserveOut: string,
-  amountOut: string
-): string => {
-  try {
-    // Get spot price before trade (reserveOut/reserveIn)
-    const spotPrice = (BigInt(reserveOut) * BigInt(1e18)) / BigInt(reserveIn);
-    
-    // Get execution price (amountOut/amountIn)
-    const executionPrice = (BigInt(amountOut) * BigInt(1e18)) / BigInt(amountIn);
-    
-    // Calculate price impact percentage: ((spotPrice - executionPrice) / spotPrice) * 100
-    const impact = ((spotPrice - executionPrice) * BigInt(10000)) / spotPrice;
-    
-    // Convert to percentage with 2 decimal places
-    return (Number(impact) / 100).toFixed(2);
-  } catch (error) {
-    console.error("Error calculating price impact:", error);
-    return "0.00";
-  }
-};
+  // Helper function for price impact calculation
+  const calculatePriceImpact = (
+    amountIn: string,
+    reserveIn: string,
+    reserveOut: string,
+    amountOut: string
+  ): string => {
+    try {
+      // Get spot price before trade (reserveOut/reserveIn)
+      const spotPrice = (BigInt(reserveOut) * BigInt(1e18)) / BigInt(reserveIn);
 
-const calculateCrossChainAmount = async (
-  params: CrossChainAmountParams
-): Promise<CrossChainAmountResult | undefined> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return undefined;
-  }
+      // Get execution price (amountOut/amountIn)
+      const executionPrice = (BigInt(amountOut) * BigInt(1e18)) / BigInt(amountIn);
 
-  try {
-    const ALT_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    
-    const sourceContract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALT_ADDRESS
-    );
+      // Calculate price impact percentage: ((spotPrice - executionPrice) / spotPrice) * 100
+      const impact = ((spotPrice - executionPrice) * BigInt(10000)) / spotPrice;
 
-    const targetRPC = params.targetChain === 43113 
-      ? "https://api.avax-test.network/ext/bc/C/rpc"
-      : "https://alfajores-forno.celo-testnet.org";
-    const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
-    
-    const targetContract = new targetWeb3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALT_ADDRESS
-    );
-
-    let finalAmount: string;
-    let priceImpact = "0.00";
-
-    // Case 1: ALT to ALT
-    if (params.fromToken === ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
-      finalAmount = params.amountIn;
-      // No price impact for ALT to ALT as it's a 1:1 transfer
-      priceImpact = "0.00";
+      // Convert to percentage with 2 decimal places
+      return (Number(impact) / 100).toFixed(2);
+    } catch (error) {
+      console.error("Error calculating price impact:", error);
+      return "0.00";
     }
-    // Case 2: ALT to Token
-    else if (params.fromToken === ALT_ADDRESS && params.toToken !== ALT_ADDRESS) {
-      const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
-      
-      if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
+  };
+
+  const calculateCrossChainAmount = async (
+    params: CrossChainAmountParams
+  ): Promise<CrossChainAmountResult | undefined> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return undefined;
+    }
+
+    // Early return for zero or effectively zero amounts
+    const amountStr = params.amountIn.toString();
+
+    // Check if the amount is zero or effectively zero (all decimal places are 0)
+    const isEffectivelyZero = /^0*\.?0*$/.test(amountStr) || amountStr === "";
+
+    if (isEffectivelyZero) {
+      return {
+        estimatedOutput: "0",
+        priceImpact: "0.00"
+      };
+    }
+
+    try {
+      const ALT_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+
+      const sourceContract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALT_ADDRESS
+      );
+
+      const targetRPC = params.targetChain === 43113
+        ? "https://api.avax-test.network/ext/bc/C/rpc"
+        : "https://alfajores-forno.celo-testnet.org";
+      const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
+
+      const targetContract = new targetWeb3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALT_ADDRESS
+      );
+
+      let finalAmount: string;
+      let priceImpact = "0.00";
+
+      // Case 1: ALT to ALT
+      if (params.fromToken === ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
+        finalAmount = params.amountIn;
+        // No price impact for ALT to ALT as it's a 1:1 transfer
+        priceImpact = "0.00";
+      }
+      // Case 2: ALT to Token
+      else if (params.fromToken === ALT_ADDRESS && params.toToken !== ALT_ADDRESS) {
+        const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
+
+        if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
           BigInt(targetPool.tokenReserve) === BigInt(0) ||
           BigInt(targetPool.altReserve) === BigInt(0)) {
-        toast.error("Target pool not initialized or has no liquidity");
-        return undefined;
+          toast.error("Target pool not initialized or has no liquidity");
+          return undefined;
+        }
+
+        // Calculate output amount
+        finalAmount = await targetContract.methods.getAmountOut(
+          params.amountIn,
+          targetPool.altReserve.toString(),
+          targetPool.tokenReserve.toString()
+        ).call() as string;
+
+        // Calculate price impact for ALT → Token swap
+        priceImpact = calculatePriceImpact(
+          params.amountIn,
+          targetPool.altReserve.toString(),
+          targetPool.tokenReserve.toString(),
+          finalAmount
+        );
       }
+      // Case 3: Token to ALT
+      else if (params.fromToken !== ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
+        const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
 
-      // Calculate output amount
-      finalAmount = await targetContract.methods.getAmountOut(
-        params.amountIn,
-        targetPool.altReserve.toString(),
-        targetPool.tokenReserve.toString()
-      ).call() as string;
-
-      // Calculate price impact for ALT → Token swap
-      priceImpact = calculatePriceImpact(
-        params.amountIn,
-        targetPool.altReserve.toString(),
-        targetPool.tokenReserve.toString(),
-        finalAmount
-      );
-    }
-    // Case 3: Token to ALT
-    else if (params.fromToken !== ALT_ADDRESS && params.toToken === ALT_ADDRESS) {
-      const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
-      
-      if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
+        if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
           BigInt(sourcePool.tokenReserve) === BigInt(0) ||
           BigInt(sourcePool.altReserve) === BigInt(0)) {
-        toast.error("Source pool not initialized or has no liquidity");
-        return undefined;
+          toast.error("Source pool not initialized or has no liquidity");
+          return undefined;
+        }
+
+        // Calculate output amount
+        finalAmount = await sourceContract.methods.getAmountOut(
+          params.amountIn,
+          sourcePool.tokenReserve.toString(),
+          sourcePool.altReserve.toString()
+        ).call() as string;
+
+        // Calculate price impact for Token → ALT swap
+        priceImpact = calculatePriceImpact(
+          params.amountIn,
+          sourcePool.tokenReserve.toString(),
+          sourcePool.altReserve.toString(),
+          finalAmount
+        );
       }
+      // Case 4: Token to Token
+      else {
+        const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
 
-      // Calculate output amount
-      finalAmount = await sourceContract.methods.getAmountOut(
-        params.amountIn,
-        sourcePool.tokenReserve.toString(),
-        sourcePool.altReserve.toString()
-      ).call() as string;
-
-      // Calculate price impact for Token → ALT swap
-      priceImpact = calculatePriceImpact(
-        params.amountIn,
-        sourcePool.tokenReserve.toString(),
-        sourcePool.altReserve.toString(),
-        finalAmount
-      );
-    }
-    // Case 4: Token to Token
-    else {
-      const sourcePool: Pool = await sourceContract.methods.pools(params.fromToken).call();
-      
-      if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
+        if (sourcePool.token === "0x0000000000000000000000000000000000000000" ||
           BigInt(sourcePool.tokenReserve) === BigInt(0) ||
           BigInt(sourcePool.altReserve) === BigInt(0)) {
-        toast.error("Source pool not initialized or has no liquidity");
-        return undefined;
-      }
+          toast.error("Source pool not initialized or has no liquidity");
+          return undefined;
+        }
 
-      // First swap: Token → ALT
-      const altAmount = await sourceContract.methods.getAmountOut(
-        params.amountIn,
-        sourcePool.tokenReserve.toString(),
-        sourcePool.altReserve.toString()
-      ).call() as string;
+        // First swap: Token → ALT
+        const altAmount = await sourceContract.methods.getAmountOut(
+          params.amountIn,
+          sourcePool.tokenReserve.toString(),
+          sourcePool.altReserve.toString()
+        ).call() as string;
 
-      const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
-      
-      if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
+        const targetPool: Pool = await targetContract.methods.pools(params.toToken).call();
+
+        if (targetPool.token === "0x0000000000000000000000000000000000000000" ||
           BigInt(targetPool.tokenReserve) === BigInt(0) ||
           BigInt(targetPool.altReserve) === BigInt(0)) {
-        toast.error("Target pool not initialized or has no liquidity");
-        return undefined;
+          toast.error("Target pool not initialized or has no liquidity");
+          return undefined;
+        }
+
+        // Second swap: ALT → Token
+        finalAmount = await targetContract.methods.getAmountOut(
+          altAmount,
+          targetPool.altReserve.toString(),
+          targetPool.tokenReserve.toString()
+        ).call() as string;
+
+        // Calculate combined price impact from both swaps
+        const sourceImpact = calculatePriceImpact(
+          params.amountIn,
+          sourcePool.tokenReserve.toString(),
+          sourcePool.altReserve.toString(),
+          altAmount
+        );
+
+        const targetImpact = calculatePriceImpact(
+          altAmount,
+          targetPool.altReserve.toString(),
+          targetPool.tokenReserve.toString(),
+          finalAmount
+        );
+
+        // Combine price impacts
+        priceImpact = (
+          Number(sourceImpact) + Number(targetImpact)
+        ).toFixed(2);
       }
 
-      // Second swap: ALT → Token
-      finalAmount = await targetContract.methods.getAmountOut(
-        altAmount,
-        targetPool.altReserve.toString(),
-        targetPool.tokenReserve.toString()
-      ).call() as string;
+      return {
+        estimatedOutput: finalAmount,
+        priceImpact,
+      };
 
-      // Calculate combined price impact from both swaps
-      const sourceImpact = calculatePriceImpact(
-        params.amountIn,
-        sourcePool.tokenReserve.toString(),
-        sourcePool.altReserve.toString(),
-        altAmount
-      );
-
-      const targetImpact = calculatePriceImpact(
-        altAmount,
-        targetPool.altReserve.toString(),
-        targetPool.tokenReserve.toString(),
-        finalAmount
-      );
-
-      // Combine price impacts
-      priceImpact = (
-        Number(sourceImpact) + Number(targetImpact)
-      ).toFixed(2);
+    } catch (error) {
+      console.error("Error calculating cross-chain amount:", error);
+      toast.error(`Failed to calculate cross-chain amount: ${(error as Error).message}`);
+      return undefined;
     }
+  };
 
-    return {
-      estimatedOutput: finalAmount,
-      priceImpact,
-    };
+  const checkAndApproveToken = async (
+    tokenAddress: string,
+    spenderAddress: string,
+    amount: string
+  ): Promise<boolean> => {
+    if (!web3) return false;
 
-  } catch (error) {
-    console.error("Error calculating cross-chain amount:", error);
-    toast.error(`Failed to calculate cross-chain amount: ${(error as Error).message}`);
-    return undefined;
-  }
-};
-
-const checkAndApproveToken = async (
-  tokenAddress: string,
-  spenderAddress: string,
-  amount: string
-): Promise<boolean> => {
-  if (!web3) return false;
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return false;
-    }
-
-    const tokenContract = new web3.eth.Contract(
-      ERC20ABI as AbiItem[],
-      tokenAddress
-    );
-
-    // Check current allowance
-    const currentAllowance = await tokenContract.methods
-      .allowance(accounts[0], spenderAddress)
-      .call() as string;
-
-    if (BigInt(currentAllowance) < BigInt(amount)) {
-      const approveToastId = `approve-${Date.now()}`;
-      toast.loading("Approving token spend...", {
-        id: approveToastId
-      });
-
-      try {
-        await tokenContract.methods
-          .approve(spenderAddress, amount)
-          .send({ from: accounts[0] });
-        
-        toast.dismiss(approveToastId);
-        toast.success("Token approved successfully");
-        return true;
-      } catch (error: any) {
-        toast.dismiss(approveToastId);
-        toast.error(`Token approval failed: ${error.message}`);
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
         return false;
       }
-    }
 
-    return true; // Already approved
-  } catch (error: any) {
-    console.error("Approval error:", error);
-    toast.error(`Approval check failed: ${error.message}`);
-    return false;
-  }
-};
+      const tokenContract = new web3.eth.Contract(
+        ERC20ABI as AbiItem[],
+        tokenAddress
+      );
 
-const swapUSDCForALT = async (usdcAmount: string): Promise<boolean> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return false;
-  }
+      // Check current allowance
+      const currentAllowance = await tokenContract.methods
+        .allowance(accounts[0], spenderAddress)
+        .call() as string;
 
-  const loadingToastId = `swap-usdc-${Date.now()}`;
+      if (BigInt(currentAllowance) < BigInt(amount)) {
+        const approveToastId = `approve-${Date.now()}`;
+        toast.loading("Approving token spend...", {
+          id: approveToastId
+        });
 
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return false;
-    }
-
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
-    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
-      toast.error("USDC address not set in contract");
-      return false;
-    }
-
-    // Convert amount to smallest unit (6 decimals for USDC)
-    const usdcAmountWei = web3.utils.toWei(usdcAmount, 'mwei');
-
-    // Check and approve USDC if needed
-    const approved = await checkAndApproveToken(
-      designatedUSDC,
-      ALTVERSE_ADDRESS,
-      usdcAmountWei
-    );
-
-    if (!approved) {
-      return false;
-    }
-
-    // Perform the swap
-    toast.loading("Swapping USDC for ALT...", {
-      id: loadingToastId,
-    });
-
-    const tx = await contract.methods
-      .swapUSDCForALT(usdcAmountWei)
-      .send({ from: accounts[0] });
-
-    toast.dismiss(loadingToastId);
-
-    if (tx.status) {
-      toast.success("Successfully swapped USDC for ALT!");
-      return true;
-    } else {
-      toast.error("Swap failed");
-      return false;
-    }
-
-  } catch (error: any) {
-    toast.dismiss(loadingToastId);
-    console.error("Error in USDC to ALT swap:", error);
-    toast.error(`Swap failed: ${error.message}`);
-    return false;
-  }
-};
-
-const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return false;
-  }
-
-  const loadingToastId = `swap-alt-${Date.now()}`;
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return false;
-    }
-
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
-    if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
-      toast.error("USDC address not set in contract");
-      return false;
-    }
-
-    // Convert ALT amount to smallest unit (18 decimals)
-    const altAmountWei = web3.utils.toWei(altAmount, 'ether');
-
-    // Check and approve ALT if needed
-    const approved = await checkAndApproveToken(
-      ALTVERSE_ADDRESS,
-      ALTVERSE_ADDRESS,
-      altAmountWei
-    );
-
-    if (!approved) {
-      return false;
-    }
-
-    // Check ALT balance
-    const altBalance = await contract.methods.balanceOf(accounts[0]).call() as string;
-    if (BigInt(altBalance) < BigInt(altAmountWei)) {
-      toast.error("Insufficient ALT balance");
-      return false;
-    }
-
-    // Check USDC liquidity
-    const contractUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
-    const expectedUsdcAmount = BigInt(altAmountWei) / BigInt(1000000000000); // Convert from 18 to 6 decimals
-    
-    if (BigInt(contractUsdcBalance) < expectedUsdcAmount) {
-      toast.error("Insufficient USDC liquidity in contract");
-      return false;
-    }
-
-    // Perform the swap
-    toast.loading("Swapping ALT for USDC...", {
-      id: loadingToastId,
-    });
-
-    const tx = await contract.methods
-      .swapALTForUSDC(altAmountWei)
-      .send({ from: accounts[0] });
-
-    toast.dismiss(loadingToastId);
-
-    if (tx.status) {
-      toast.success("Successfully swapped ALT for USDC!");
-      return true;
-    } else {
-      toast.error("Swap failed");
-      return false;
-    }
-
-  } catch (error: any) {
-    toast.dismiss(loadingToastId);
-    console.error("Error in ALT to USDC swap:", error);
-    toast.error(`Swap failed: ${error.message}`);
-    return false;
-  }
-};
-
-const fetchUserEscrows = async (): Promise<Escrow[]> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return [];
-  }
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
-      return [];
-    }
-
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
-
-    // Get user's escrow count
-    const escrowCount = await contract.methods.userEscrowCount(accounts[0]).call() as string;
-    
-    if (Number(escrowCount) === 0) {
-      return [];
-    }
-
-    // Fetch all escrow IDs for the user
-    const escrowIds: string[] = [];
-    for (let i = 0; i < Number(escrowCount); i++) {
-      try {
-        const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
-        console.log(`Fetched escrow ID ${i}:`, id);
-        if (id && id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-          escrowIds.push(id);
-        }
-      } catch (error) {
-        console.error(`Error fetching escrow ID at index ${i}:`, error);
-      }
-    }
-    
-    console.log('All escrow IDs:', escrowIds);
-
-    // Get details for each escrow with proper typing
-    const escrows = await Promise.all(
-      escrowIds.map(async (id: string) => {
         try {
-          const escrow = await contract.methods.escrows(id).call() as Escrow;
-          console.log(`Escrow details for ID ${id}:`, escrow);
-          
-          const escrowDetails: Escrow = {
-            id: id,  // Store the original bytes32 hash
-            user: escrow.user,
-            altAmount: escrow.altAmount,
-            timeout: Number(escrow.timeout) * 1000,
-            active: escrow.active
-          };
-          return escrowDetails;
-        } catch (error) {
-          console.error(`Error fetching escrow details for ID ${id}:`, error);
-          return null;
+          await tokenContract.methods
+            .approve(spenderAddress, amount)
+            .send({ from: accounts[0] });
+
+          toast.dismiss(approveToastId);
+          toast.success("Token approved successfully");
+          return true;
+        } catch (error: any) {
+          toast.dismiss(approveToastId);
+          toast.error(`Token approval failed: ${error.message}`);
+          return false;
         }
-      })
-    );
+      }
 
-    // Filter out null values and invalid addresses, then sort
-    return escrows
-      .filter((escrow): escrow is Escrow => 
-        escrow !== null && 
-        escrow.user.toLowerCase() !== '0x0000000000000000000000000000000000000000'.toLowerCase()
-      )
-      .sort((a, b) => {
-        if (a.active && !b.active) return -1;
-        if (!a.active && b.active) return 1;
-        return a.timeout - b.timeout;
-      });
+      return true; // Already approved
+    } catch (error: any) {
+      console.error("Approval error:", error);
+      toast.error(`Approval check failed: ${error.message}`);
+      return false;
+    }
+  };
 
-  } catch (error) {
-    console.error("Error fetching user escrows:", error);
-    toast.error(`Failed to fetch escrows: ${(error as Error).message}`);
-    return [];
-  }
-};
-
-const claimTimedOutEscrow = async (escrowId: string): Promise<boolean> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return false;
-  }
-
-  const loadingToastId = `claim-escrow-${Date.now()}`;
-
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) {
-      toast.error("No account connected");
+  const swapUSDCForALT = async (usdcAmount: string): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
       return false;
     }
 
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
+    const loadingToastId = `swap-usdc-${Date.now()}`;
 
-    toast.loading("Claiming escrow...", {
-      id: loadingToastId
-    });
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
 
-    // Ensure escrowId is properly formatted as bytes32
-    let formattedEscrowId = escrowId;
-    if (!escrowId.startsWith('0x')) {
-      formattedEscrowId = '0x' + escrowId;
-    }
-    // Pad the ID to 32 bytes if necessary
-    while (formattedEscrowId.length < 66) { // 0x + 64 hex characters
-      formattedEscrowId = formattedEscrowId + '0';
-    }
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
 
-    console.log('Claiming escrow with ID:', formattedEscrowId);
+      const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+      if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+        toast.error("USDC address not set in contract");
+        return false;
+      }
 
-    const tx = await contract.methods
-      .claimTimedOutEscrow(formattedEscrowId)
-      .send({
-        from: accounts[0],
-        gas: '300000'
+      // Convert amount to smallest unit (6 decimals for USDC)
+      const usdcAmountWei = web3.utils.toWei(usdcAmount, 'mwei');
+
+      // Check and approve USDC if needed
+      const approved = await checkAndApproveToken(
+        designatedUSDC,
+        ALTVERSE_ADDRESS,
+        usdcAmountWei
+      );
+
+      if (!approved) {
+        return false;
+      }
+
+      // Perform the swap
+      toast.loading("Swapping USDC for ALT...", {
+        id: loadingToastId,
       });
 
-    toast.dismiss(loadingToastId);
+      const tx = await contract.methods
+        .swapUSDCForALT(usdcAmountWei)
+        .send({ from: accounts[0] });
 
-    if (tx.status) {
-      toast.success("Successfully claimed escrow!");
-      return true;
-    } else {
-      toast.error("Failed to claim escrow");
+      toast.dismiss(loadingToastId);
+
+      if (tx.status) {
+        toast.success("Successfully swapped USDC for ALT!");
+        return true;
+      } else {
+        toast.error("Swap failed");
+        return false;
+      }
+
+    } catch (error: any) {
+      toast.dismiss(loadingToastId);
+      console.error("Error in USDC to ALT swap:", error);
+      toast.error(`Swap failed: ${error.message}`);
+      return false;
+    }
+  };
+
+  const swapALTForUSDC = async (altAmount: string): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
       return false;
     }
 
-  } catch (error) {
-    toast.dismiss(loadingToastId);
-    console.error("Error claiming escrow:", error);
-    toast.error(`Failed to claim escrow: ${(error as Error).message}`);
-    return false;
-  }
-};
+    const loadingToastId = `swap-alt-${Date.now()}`;
 
-const getUserEscrowCount = async (): Promise<number> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return 0;
-  }
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
 
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) return 0;
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
 
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
+      const designatedUSDC = await contract.methods.designatedUSDC().call() as string;
+      if (!designatedUSDC || designatedUSDC === "0x0000000000000000000000000000000000000000") {
+        toast.error("USDC address not set in contract");
+        return false;
+      }
 
-    const count = await contract.methods.userEscrowCount(accounts[0]).call() as string;
-    return Number(count);
+      // Convert ALT amount to smallest unit (18 decimals)
+      const altAmountWei = web3.utils.toWei(altAmount, 'ether');
 
-  } catch (error) {
-    console.error("Error getting escrow count:", error);
-    return 0;
-  }
-};
+      // Check and approve ALT if needed
+      const approved = await checkAndApproveToken(
+        ALTVERSE_ADDRESS,
+        ALTVERSE_ADDRESS,
+        altAmountWei
+      );
 
-const getUserEscrowIds = async (count: number): Promise<string[]> => {
-  if (!web3) {
-    toast.error("Web3 not initialized");
-    return [];
-  }
+      if (!approved) {
+        return false;
+      }
 
-  try {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts[0]) return [];
+      // Check ALT balance
+      const altBalance = await contract.methods.balanceOf(accounts[0]).call() as string;
+      if (BigInt(altBalance) < BigInt(altAmountWei)) {
+        toast.error("Insufficient ALT balance");
+        return false;
+      }
 
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
+      // Check USDC liquidity
+      const contractUsdcBalance = await contract.methods.getUSDCBalance().call() as string;
+      const expectedUsdcAmount = BigInt(altAmountWei) / BigInt(1000000000000); // Convert from 18 to 6 decimals
 
-    const escrowIds = [];
-    for (let i = 0; i < count; i++) {
-      const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
-      escrowIds.push(id);
+      if (BigInt(contractUsdcBalance) < expectedUsdcAmount) {
+        toast.error("Insufficient USDC liquidity in contract");
+        return false;
+      }
+
+      // Perform the swap
+      toast.loading("Swapping ALT for USDC...", {
+        id: loadingToastId,
+      });
+
+      const tx = await contract.methods
+        .swapALTForUSDC(altAmountWei)
+        .send({ from: accounts[0] });
+
+      toast.dismiss(loadingToastId);
+
+      if (tx.status) {
+        toast.success("Successfully swapped ALT for USDC!");
+        return true;
+      } else {
+        toast.error("Swap failed");
+        return false;
+      }
+
+    } catch (error: any) {
+      toast.dismiss(loadingToastId);
+      console.error("Error in ALT to USDC swap:", error);
+      toast.error(`Swap failed: ${error.message}`);
+      return false;
+    }
+  };
+
+  const fetchUserEscrows = async (): Promise<Escrow[]> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return [];
     }
 
-    return escrowIds;
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return [];
+      }
 
-  } catch (error) {
-    console.error("Error getting escrow IDs:", error);
-    return [];
-  }
-};
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
 
-const getEscrowDetails = async (escrowId: string): Promise<Escrow> => {
-  if (!web3) {
-    throw new Error("Web3 not initialized");
-  }
+      // Get user's escrow count
+      const escrowCount = await contract.methods.userEscrowCount(accounts[0]).call() as string;
 
-  try {
-    const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
-    const contract = new web3.eth.Contract(
-      coreContractABI as AbiItem[],
-      ALTVERSE_ADDRESS
-    );
+      if (Number(escrowCount) === 0) {
+        return [];
+      }
 
-    const escrow = await contract.methods.escrows(escrowId).call() as Escrow;
-    
-    return {
-      id: escrowId,
-      user: escrow.user,
-      altAmount: escrow.altAmount,
-      timeout: Number(escrow.timeout) * 1000, // Convert to milliseconds
-      active: escrow.active
-    };
+      // Fetch all escrow IDs for the user
+      const escrowIds: string[] = [];
+      for (let i = 0; i < Number(escrowCount); i++) {
+        try {
+          const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
+          console.log(`Fetched escrow ID ${i}:`, id);
+          if (id && id !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+            escrowIds.push(id);
+          }
+        } catch (error) {
+          console.error(`Error fetching escrow ID at index ${i}:`, error);
+        }
+      }
 
-  } catch (error) {
-    console.error("Error getting escrow details:", error);
-    throw error;
-  }
-};
+      console.log('All escrow IDs:', escrowIds);
+
+      // Get details for each escrow with proper typing
+      const escrows = await Promise.all(
+        escrowIds.map(async (id: string) => {
+          try {
+            const escrow = await contract.methods.escrows(id).call() as Escrow;
+            console.log(`Escrow details for ID ${id}:`, escrow);
+
+            const escrowDetails: Escrow = {
+              id: id,  // Store the original bytes32 hash
+              user: escrow.user,
+              altAmount: escrow.altAmount,
+              timeout: Number(escrow.timeout) * 1000,
+              active: escrow.active
+            };
+            return escrowDetails;
+          } catch (error) {
+            console.error(`Error fetching escrow details for ID ${id}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out null values and invalid addresses, then sort
+      return escrows
+        .filter((escrow): escrow is Escrow =>
+          escrow !== null &&
+          escrow.user.toLowerCase() !== '0x0000000000000000000000000000000000000000'.toLowerCase()
+        )
+        .sort((a, b) => {
+          if (a.active && !b.active) return -1;
+          if (!a.active && b.active) return 1;
+          return a.timeout - b.timeout;
+        });
+
+    } catch (error) {
+      console.error("Error fetching user escrows:", error);
+      toast.error(`Failed to fetch escrows: ${(error as Error).message}`);
+      return [];
+    }
+  };
+
+  const claimTimedOutEscrow = async (escrowId: string): Promise<boolean> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return false;
+    }
+
+    const loadingToastId = `claim-escrow-${Date.now()}`;
+
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) {
+        toast.error("No account connected");
+        return false;
+      }
+
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      toast.loading("Claiming escrow...", {
+        id: loadingToastId
+      });
+
+      // Ensure escrowId is properly formatted as bytes32
+      let formattedEscrowId = escrowId;
+      if (!escrowId.startsWith('0x')) {
+        formattedEscrowId = '0x' + escrowId;
+      }
+      // Pad the ID to 32 bytes if necessary
+      while (formattedEscrowId.length < 66) { // 0x + 64 hex characters
+        formattedEscrowId = formattedEscrowId + '0';
+      }
+
+      console.log('Claiming escrow with ID:', formattedEscrowId);
+
+      const tx = await contract.methods
+        .claimTimedOutEscrow(formattedEscrowId)
+        .send({
+          from: accounts[0],
+          gas: '300000'
+        });
+
+      toast.dismiss(loadingToastId);
+
+      if (tx.status) {
+        toast.success("Successfully claimed escrow!");
+        return true;
+      } else {
+        toast.error("Failed to claim escrow");
+        return false;
+      }
+
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      console.error("Error claiming escrow:", error);
+      toast.error(`Failed to claim escrow: ${(error as Error).message}`);
+      return false;
+    }
+  };
+
+  const getUserEscrowCount = async (): Promise<number> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return 0;
+    }
+
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) return 0;
+
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      const count = await contract.methods.userEscrowCount(accounts[0]).call() as string;
+      return Number(count);
+
+    } catch (error) {
+      console.error("Error getting escrow count:", error);
+      return 0;
+    }
+  };
+
+  const getUserEscrowIds = async (count: number): Promise<string[]> => {
+    if (!web3) {
+      toast.error("Web3 not initialized");
+      return [];
+    }
+
+    try {
+      const accounts = await web3.eth.getAccounts();
+      if (!accounts[0]) return [];
+
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      const escrowIds = [];
+      for (let i = 0; i < count; i++) {
+        const id = await contract.methods.userEscrows(accounts[0], i).call() as string;
+        escrowIds.push(id);
+      }
+
+      return escrowIds;
+
+    } catch (error) {
+      console.error("Error getting escrow IDs:", error);
+      return [];
+    }
+  };
+
+  const getEscrowDetails = async (escrowId: string): Promise<Escrow> => {
+    if (!web3) {
+      throw new Error("Web3 not initialized");
+    }
+
+    try {
+      const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
+      const contract = new web3.eth.Contract(
+        coreContractABI as AbiItem[],
+        ALTVERSE_ADDRESS
+      );
+
+      const escrow = await contract.methods.escrows(escrowId).call() as Escrow;
+
+      return {
+        id: escrowId,
+        user: escrow.user,
+        altAmount: escrow.altAmount,
+        timeout: Number(escrow.timeout) * 1000, // Convert to milliseconds
+        active: escrow.active
+      };
+
+    } catch (error) {
+      console.error("Error getting escrow details:", error);
+      throw error;
+    }
+  };
 
   const stringToBigInt = (str = "") => {
     if (str.length > 25) {

@@ -278,6 +278,7 @@ export default function Swap() {
 
     if (value === "") {
       setAmount("");
+      setLastReceivedAmount("0");
       return;
     }
 
@@ -382,7 +383,7 @@ export default function Swap() {
                         tokens
                           .find((t) => t.symbol === swapFromToken)
                           ?.address.toLowerCase()
-                    )?.balance) || 0)} decimalPlaces={3} />}
+                    )?.balance) || Number(0))} decimalPlaces={3} />}
                     </span>
                   </Button>
                   <Button
@@ -504,7 +505,16 @@ export default function Swap() {
                   )}
                   <NumberTicker
                     value={lastReceivedAmount && Number(lastReceivedAmount) ? Number(lastReceivedAmount) : 0}
-                    decimalPlaces={3}
+                    decimalPlaces={(() => {
+                      const num = Number(lastReceivedAmount);
+                      if (num === 0 || num >= 1) return 3;
+                      // Convert to string and find first non-zero digit after decimal
+                      const decimalStr = num.toFixed(6).split('.')[1];
+                      const firstNonZeroIndex = decimalStr.split('').findIndex(digit => digit !== '0');
+                      // Return index + 1 to show one more digit after first significant digit
+                      // Clamp between 3 and 6
+                      return Math.min(Math.max(firstNonZeroIndex + 2, 3), 6);
+                    })()}
                     className={`text-2xl pl-2 pb-0 font-mono ${lastReceivedAmount === "0" ? "text-gray-500" : "text-white"}`}
                   />
                 </div>
@@ -548,7 +558,10 @@ export default function Swap() {
       <div className="mt-auto mb-10">
         <Button
           onClick={handleSwap}
-          disabled={!amount || amount === "0" || isCalculating}
+          disabled={!amount ||
+            amount === "0" ||
+            isCalculating ||
+            Math.abs(Number(lastReceivedAmount)) < 1e-8}
           className="w-full bg-amber-500/10 
             hover:bg-amber-500/30 
             text-amber-500 
