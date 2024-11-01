@@ -1076,6 +1076,9 @@ const fetchTokenBalances = async (address: string): Promise<TokenBalance[] | und
     }
 
     try {
+
+      console.log("Fetching pool balances...");
+
       const ALTVERSE_ADDRESS = "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B";
       const contract = new web3.eth.Contract(
         coreContractABI as AbiItem[],
