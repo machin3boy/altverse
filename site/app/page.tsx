@@ -175,7 +175,7 @@ const Page: React.FC = () => {
     }
   }, [chainId]);
 
- return (
+  return (
     <>
       <div className="relative min-h-screen bg-black text-white overflow-hidden flex items-center dark">
         <Background showModal={showModal} />
@@ -208,11 +208,10 @@ const Page: React.FC = () => {
             <AlertDialogTrigger asChild>
               <div
                 className={`inline-flex items-center rounded-lg transition-all duration-200 h-10 cursor-pointer
-                ${
-                  currentChain.id === "0xaef3"
+                ${currentChain.id === "0xaef3"
                     ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
                     : "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
-                }`}
+                  }`}
               >
                 <div className="flex items-center space-x-3 px-4">
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -260,7 +259,7 @@ const Page: React.FC = () => {
         </div>
       )}
 
-      {showModal && <Modal isOpen={true} onClose={handleCloseModal} chain={currentChain}/>}
+      {showModal && <Modal isOpen={true} onClose={handleCloseModal} chain={currentChain} />}
     </>
   );
 };

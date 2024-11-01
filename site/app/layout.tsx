@@ -12,7 +12,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "AltVerse",
+  title: "Altverse",
   description: "Trustless, Instant Cross-Chain Swaps",
 };
 

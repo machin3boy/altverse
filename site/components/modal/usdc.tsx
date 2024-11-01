@@ -250,7 +250,7 @@ export default function USDC() {
                   onClick={handleMaxClick}
                   disabled={isLoadingBalances}
                 >
-                  {isLoadingBalances ? "Loading..." : "max"}
+                  {isLoadingBalances ? "Loading..." : "Max"}
                 </Button>
               </div>
 

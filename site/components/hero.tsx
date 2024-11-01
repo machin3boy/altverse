@@ -52,7 +52,7 @@ const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
       </div>
 
       <BlurIn
-        word="AltVerse: Trustless, Instant Cross-Chain Swaps"
+        word="Altverse: Trustless, Instant Cross-Chain Swaps"
         className="text-balance bg-gradient-to-br from-amber-50 from-30% to-amber-100/80 bg-clip-text pb-2 text-center font-normal leading-tight tracking-tighter text-transparent sm:text-3xl md:text-4xl lg:text-[2.65rem]"
         duration={2}
       />

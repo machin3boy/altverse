@@ -49,7 +49,7 @@ export default function Modal(
                 className="relative text-2xl font-semibold tracking-wider text-white
         drop-shadow-[0_0_15px_rgba(217,119,6,0.3)]"
               >
-                <span className="relative">AltVerse</span>
+                <span className="relative">Altverse</span>
               </DialogTitle>
               <button
                 onClick={() => handleClose(true)}
