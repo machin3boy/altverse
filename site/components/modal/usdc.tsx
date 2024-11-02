@@ -238,10 +238,16 @@ export default function USDC() {
                     disabled={true}
                   >
                     <span className="font-mono inline pt-[2.75px]">
-                      Balance: <NumberTicker
-                        value={Number(altcoinFromToken === "USDC" ? tokenBalances.usdc : tokenBalances.alt)}
-                        decimalPlaces={3}
-                      />
+                      Balance: {
+                        Number(altcoinFromToken === "USDC" ? tokenBalances.usdc : tokenBalances.alt) > 0 ? (
+                          <NumberTicker
+                            value={Number(altcoinFromToken === "USDC" ? tokenBalances.usdc : tokenBalances.alt)}
+                            decimalPlaces={3}
+                          />
+                        ) : (
+                          <span>0.000</span>
+                        )
+                      }
                     </span>
                   </Button>
                   <Button

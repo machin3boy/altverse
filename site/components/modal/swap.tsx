@@ -377,13 +377,25 @@ export default function Swap() {
                     className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/10 font-semibold disabled:bg-amber-500/10 disabled:text-amber-500 disabled:opacity-100 disabled:cursor-default flex items-center"
                     disabled={true}
                   >
-                    <span className="font-mono inline pt-[2.75px]">Balance: {<NumberTicker value={Number((tokenBalances.find(
-                      (b) =>
-                        b.address.toLowerCase() ===
-                        tokens
-                          .find((t) => t.symbol === swapFromToken)
-                          ?.address.toLowerCase()
-                    )?.balance) || Number(0))} decimalPlaces={3} />}
+                    <span className="font-mono inline pt-[2.75px]">
+                      Balance: {(() => {
+                        const currentToken = tokens.find((t) => t.symbol === swapFromToken);
+                        const balance = currentToken ? tokenBalances.find(
+                          (b) => b.address.toLowerCase() === currentToken.address.toLowerCase()
+                        ) : null;
+                        const numBalance = balance ? Number(balance.balance) : 0;
+
+                        return numBalance > 0 ? (
+                          <NumberTicker
+                            value={numBalance}
+                            decimalPlaces={3}
+                            useCommas={false}
+                            direction="up"
+                          />
+                        ) : (
+                          <span>0.000</span>
+                        );
+                      })()}
                     </span>
                   </Button>
                   <Button
