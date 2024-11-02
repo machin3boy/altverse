@@ -205,7 +205,7 @@ export default function USDC() {
   return (
     <div className="flex flex-col h-full min-h-[400px]">
       <div className="flex-1">
-        <div className="space-y-2 my-2">
+        <div>
           <h4 className="text-md font-bold ml-1">ALT Pool</h4>
           <p className="ml-1 text-md font-semibold font-mono tracking-tighter text-amber-500">
             <NumberTicker value={altPool} decimalPlaces={2} useCommas={true} />
@@ -369,7 +369,7 @@ export default function USDC() {
           </div>
         </div>
       </div>
-      <div className="mt-auto mb-10">
+      <div className="mt-auto mb-4">
         <Button
           onClick={handleSwap}
           disabled={!amount ||
