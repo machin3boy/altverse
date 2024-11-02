@@ -341,7 +341,7 @@ export default function Swap() {
   return (
     <div className="flex flex-col h-full min-h-[400px]">
       <div className="flex-1">
-        <div className="relative rounded-lg border-amber-500/50 mt-8">
+        <div className="relative rounded-lg border-amber-500/50 mt-10">
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
