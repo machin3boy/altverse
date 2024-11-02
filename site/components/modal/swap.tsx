@@ -420,7 +420,7 @@ export default function Swap() {
                       <SelectItem
                         key={token.symbol}
                         value={token.symbol}
-                        className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
+                        className="font-semibold data-[highlighted]:bg-amber-500/40 data-[highlighted]:text-white"
                       >
                         <div className="flex items-center">
                           <img
@@ -469,7 +469,7 @@ export default function Swap() {
                           <SelectItem
                             key={chain.id}
                             value={chain.id}
-                            className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white font-mono"
+                            className="font-semibold data-[highlighted]:bg-sky-500/40 data-[highlighted]:text-white font-mono"
                           >
                             <div className="flex items-center gap-2">
                               <img
@@ -524,7 +524,7 @@ export default function Swap() {
                       <SelectItem
                         key={token.symbol}
                         value={token.symbol}
-                        className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
+                        className="font-semibold data-[highlighted]:bg-sky-500/40 data-[highlighted]:text-white"
                       >
                         <div className="flex items-center">
                           <img

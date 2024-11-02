@@ -303,7 +303,7 @@ export default function USDC() {
                   <SelectContent className={`bg-black text-white border-${altcoinFromToken === "USDC" ? "sky" : "amber"}-500/20`}>
                     <SelectItem
                       value="USDC"
-                      className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
+                      className="font-semibold data-[highlighted]:bg-sky-500/40 data-[highlighted]:text-white"
                     >
                       <div className="flex items-center">
                         <img
@@ -316,7 +316,7 @@ export default function USDC() {
                     </SelectItem>
                     <SelectItem
                       value="ALT"
-                      className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
+                      className="font-semibold data-[highlighted]:bg-amber-500/40 data-[highlighted]:text-white"
                     >
                       <div className="flex items-center">
                         <img
