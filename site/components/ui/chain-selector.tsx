@@ -80,7 +80,7 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
                     width: 16,
                     height: 16,
                     className: "opacity-80",
-                    fillColor: "rgb(217 119 6)"
+                    fillColor: otherChains.find(chain => chain.id === selectedChain)?.logoFill || "rgb(217 119 6)"
                   })}
                   {otherChains.find(chain => chain.id === selectedChain)?.name}
                 </div>
@@ -98,7 +98,7 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
                       width: 16,
                       height: 16,
                       className: "opacity-80",
-                      fillColor: "rgb(217 119 6)"
+                      fillColor: chain.logoFill
                     })}
                     {chain.name}
                   </div>
