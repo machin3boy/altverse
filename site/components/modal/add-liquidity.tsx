@@ -165,7 +165,7 @@ const AddLiquidityModal = ({
 
   return (
     <DialogContent className="bg-zinc-950 border-2 border-amber-500/40 sm:max-w-[400px] rounded-lg pt-4">
-      <DialogHeader className="flex flex-row justify-between items-center mb-2">
+      <DialogHeader className="flex flex-row justify-between items-center mb-4">
         <DialogTitle className="text-white text-lg">
           {isExistingPool ? "Increase Liquidity" : "Add Liquidity"}
         </DialogTitle>
@@ -183,36 +183,46 @@ const AddLiquidityModal = ({
         </button>
       </DialogHeader>
       <div className="space-y-4 text-white">
-        <Select onValueChange={handleTokenSelect} value={selectedToken}>
-          <SelectTrigger className="w-full border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
-            <SelectValue>
-              {selectedToken ? (
-                <div className="flex items-center">
-                  <span className="font-mono w-12">
-                    {tokens.find(t => t.address === selectedToken)?.symbol.padEnd(4)}
-                  </span>
-                </div>
-              ) : (
-                "Select token"
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-black text-white border-amber-500/20">
-            {availableTokens.map((token) => (
-              <SelectItem
-                key={token.address}
-                value={token.address}
-                className="font-semibold data-[highlighted]:bg-amber-500/40 data-[highlighted]:text-white"
-              >
-                <div className="flex items-center">
-                  <span className="font-mono w-12">
-                    {token.symbol.padEnd(4)}
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Select onValueChange={handleTokenSelect} value={selectedToken}>
+            <SelectTrigger className="w-full border border-amber-500/20 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/5 h-9 px-3">
+              <SelectValue placeholder="Select Token">
+                {selectedToken && (
+                  <div className="flex items-center">
+                    <img
+                      src={tokens.find(t => t.address.toLowerCase() === selectedToken.toLowerCase())?.logoSrc}
+                      className="w-6 h-6 mr-2 -ml-[2.75px]"
+                      alt=""
+                    />
+                    <span className="font-mono">
+                      {tokens.find(t => t.address.toLowerCase() === selectedToken.toLowerCase())?.symbol}
+                    </span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-950 text-white border border-amber-500/20">
+              {availableTokens.map((token) => (
+                <SelectItem
+                  key={token.address}
+                  value={token.address}
+                  className="font-semibold data-[highlighted]:bg-amber-500/40 data-[highlighted]:text-white"
+                >
+                  <div className="flex items-center">
+                    <img
+                      src={token.logoSrc}
+                      className="w-6 h-6 mr-2"
+                      alt=""
+                    />
+                    <span className="font-mono">
+                      {token.symbol.padEnd(4)}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -236,7 +246,7 @@ const AddLiquidityModal = ({
           />
         </div>
 
-        <div className="space-y-2 pb-4">
+        <div className="space-y-2">
           <div className="flex justify-between items-center">
             <label className="text-sm text-white font-semibold ml-1">ALT Amount</label>
             {altBalance && (
