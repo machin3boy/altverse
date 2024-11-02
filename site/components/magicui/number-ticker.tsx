@@ -56,7 +56,7 @@ export default function NumberTicker({
   return (
     <span
       className={cn(
-        "inline-block tabular-nums tracking-wider",
+        "inline-block tabular-nums",
         className
       )}
       ref={ref}
