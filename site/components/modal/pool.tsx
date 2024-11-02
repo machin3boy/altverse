@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Droplets, X, Timer, Share2, Coins } from "lucide-react";
+import { Droplets, X, Timer, Share2, Coins, BriefcaseBusiness } from "lucide-react";
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { LiquidityPosition } from "../storage";
@@ -772,28 +772,18 @@ const Pool: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Enhanced Header Section */}
-      {/* <div className="px-4 pb-2 border-b border-amber-500/20">
-        <div className="flex items-start">
-          <div>
-            <h4 className="text-md font-bold bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">
-              Liquidity Pools
-            </h4>
-          </div>
-        </div>
-      </div> */}
-
       {/* Enhanced Positions List - Adjusted height */}
       <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-[350px] pt-5">
-          {" "}
+        <ScrollArea className="h-[370px]">
           {/* Reduced height to ensure button visibility */}
           {isInitialLoading ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="text-amber-500 animate-pulse font-semibold">
-                Loading positions...
+            <div className="flex items-center justify-center h-[420px]">
+              <div className="text-amber-500 animate-pulse flex items-center gap-2 font-semibold">
+                <BriefcaseBusiness className="w-5 h-5 animate-pulse" />
+                <span>Loading positions...</span>
               </div>
             </div>
+
           ) : positions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 bg-neutral-900/30 rounded-lg border border-amber-500/10 p-6">
               <Droplets className="w-12 h-12 text-amber-500/30 mb-4" />
@@ -825,7 +815,7 @@ const Pool: React.FC = () => {
                           {position.tokenSymbol}/ALT
                         </span>
                       </div>
-                      <div className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-medium">
+                      <div className="px-2 py-1 rounded bg-amber-500/10 text-amber-500 text-xs font-medium font-semibold">
                         {position.sharePercentage}% Share
                       </div>
                     </div>
@@ -833,13 +823,13 @@ const Pool: React.FC = () => {
                     {/* Position Details */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div className="space-y-1">
-                        <p className="text-xs text-gray-400">Token Amount</p>
+                        <p className="text-sm text-gray-400 font-semibold">Token Amount</p>
                         <p className="font-mono font-bold text-white">
                           {Number(position.formattedTokenAmount).toFixed(3)}
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-gray-400">ALT Amount</p>
+                        <p className="text-sm text-gray-400 font-semibold">Altcoin Amount</p>
                         <p className="font-mono font-bold text-white">
                           {Number(position.formattedAltAmount).toFixed(3)}
                         </p>
