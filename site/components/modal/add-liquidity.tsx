@@ -163,7 +163,7 @@ const AddLiquidityModal = ({
     (t) => t.symbol !== "ALT" && ["wBTC", "wETH", "wLINK"].includes(t.symbol)
   );
 
- return (
+  return (
     <DialogContent className="bg-zinc-950 border-2 border-amber-500/40 sm:max-w-[400px] rounded-lg pt-4">
       <DialogHeader className="flex flex-row justify-between items-center mb-2">
         <DialogTitle className="text-white text-lg">
@@ -182,7 +182,7 @@ const AddLiquidityModal = ({
           />
         </button>
       </DialogHeader>
-      <div className="space-y-6 text-white">
+      <div className="space-y-4 text-white">
         <Select onValueChange={handleTokenSelect} value={selectedToken}>
           <SelectTrigger className="w-full border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
             <SelectValue>
@@ -227,7 +227,7 @@ const AddLiquidityModal = ({
             type="text"
             value={tokenAmount}
             onChange={(e) => handleTokenAmountChange(e.target.value)}
-            className="border border-amber-500/20 text-white text-base font-mono font-semibold bg-zinc-900 h-9 px-3"
+            className="border border-amber-500/20 text-white text-base font-mono font-semibold bg-amber-500/5 h-9 px-3 focus:border-amber-500 focus:outline-none transition-colors duration-200"
             placeholder="0.0"
             style={{
               WebkitAppearance: "none",
@@ -236,16 +236,16 @@ const AddLiquidityModal = ({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 pb-4">
           <div className="flex justify-between items-center">
             <label className="text-sm text-white font-semibold ml-1">ALT Amount</label>
             {altBalance && (
-              <div className="text-sm text-white font-mono font-semibold -mb-1">
+              <div className="text-sm text-white font-mono font-semibold">
                 Balance: {Number(altBalance).toFixed(3)}
               </div>
             )}
           </div>
-          <div className="border border-amber-500/20 bg-zinc-900 rounded-md h-9 px-3 flex items-center">
+          <div className="border border-amber-500/20 bg-amber-500/5 rounded-md h-9 px-3 flex items-center">
             {altAmount === "" ? (
               <span className="font-mono font-semibold text-base text-amber-500">0.0</span>
             ) : (

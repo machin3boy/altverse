@@ -191,7 +191,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
             />
           </button>
         </DialogHeader>
-        <div className="space-y-6 text-white">
+        <div className="space-y-4 text-white">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="text-sm text-white font-semibold ml-1">{pool.tokenSymbol} Amount</label>
@@ -205,7 +205,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
               type="number"
               value={tokenAmount}
               onChange={(e) => handleTokenAmountChange(e.target.value)}
-              className="border border-amber-500/20 text-white text-base font-mono font-semibold bg-zinc-900 h-9 px-3"
+              className="border border-amber-500/20 text-white text-base font-mono font-semibold bg-amber-500/5 h-9 px-3 focus:border-amber-500 focus:outline-none transition-colors duration-200"
               placeholder="0.0"
               style={{
                 WebkitAppearance: "none",
@@ -213,16 +213,16 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
               }}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 pb-4">
             <div className="flex justify-between items-center">
               <label className="text-sm text-white font-semibold ml-1">ALT Amount</label>
               {altBalance && (
-                <div className="text-sm text-white font-mono font-semibold -mb-1">
+                <div className="text-sm text-white font-mono font-semibold">
                   Balance: {Number(altBalance).toFixed(3)}
                 </div>
               )}
             </div>
-            <div className="border border-amber-500/20 bg-zinc-900 rounded-md h-9 px-3 flex items-center">
+            <div className="border border-amber-500/20 bg-amber-500/5 rounded-md h-9 px-3 flex items-center">
               {altAmount === "" ? (
                 <span className="font-mono font-semibold text-base text-amber-500">0.0</span>
               ) : (

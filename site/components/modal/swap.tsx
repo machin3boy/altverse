@@ -403,7 +403,7 @@ export default function Swap() {
                   }}
                 />
                 <Select value={swapFromToken} onValueChange={setSwapFromToken}>
-                  <SelectTrigger className="w-[180px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
+                  <SelectTrigger className="w-[180px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4 transition-colors duration-200">
                     <SelectValue>
                       <div className="flex items-center">
                         <img
@@ -445,7 +445,7 @@ export default function Swap() {
                   You Receive
                 </span>
                 <Select value={targetChain} onValueChange={setTargetChain}>
-                  <SelectTrigger className="w-fit border-sky-500/10 font-semibold font-mono data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-fit border-sky-500/10 font-semibold font-mono data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4 transition-colors duration-200">
                     <SelectValue>
                       {(() => {
                         const chain = chains.find((c) => c.id === targetChain);
@@ -507,7 +507,7 @@ export default function Swap() {
                   />
                 </div>
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
-                  <SelectTrigger className="w-[180px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-[180px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4 transition-colors duration-200">
                     <SelectValue>
                       <div className="flex items-center">
                         <img
