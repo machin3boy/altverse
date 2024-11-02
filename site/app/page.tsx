@@ -62,7 +62,6 @@ const Page: React.FC = () => {
 
   const fetchAddress = async () => {
     if (!web3) {
-      toast.error("Failed to fetch user address.");
       return false;
     }
 
