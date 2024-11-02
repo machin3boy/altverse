@@ -282,16 +282,18 @@ export default function USDC() {
                   onValueChange={setAltcoinFromToken}
                 >
                   <SelectTrigger
-                    className={`w-[120px] font-semibold data-[state=open]:border-${altcoinFromToken === "USDC" ? "sky" : "amber"
+                    className={`w-[160px] font-semibold data-[state=open]:border-${altcoinFromToken === "USDC" ? "sky" : "amber"
                       }-500 focus:ring-0 focus:ring-offset-0 bg-${altcoinFromToken === "USDC" ? "sky" : "amber"
                       }-500/10 border-${altcoinFromToken === "USDC" ? "sky" : "amber"
                       }-500/10 py-4`}
                   >
                     <SelectValue>
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          {altcoinFromToken === "USDC" ? "$" : "A"}
-                        </span>
+                        <img
+                          src={altcoinFromToken === "USDC" ? "/images/tokens/branded/USDC.svg" : "/images/tokens/branded/ALT.svg"}
+                          alt={altcoinFromToken}
+                          className="w-6 h-6 mr-2"
+                        />
                         <span className="font-mono w-12">
                           {altcoinFromToken.padEnd(4)}
                         </span>
@@ -304,9 +306,11 @@ export default function USDC() {
                       className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
                     >
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          $
-                        </span>
+                        <img
+                          src="/images/tokens/branded/USDC.svg"
+                          alt="USDC"
+                          className="w-6 h-6 mr-2"
+                        />
                         <span className="font-mono w-12">USDC</span>
                       </div>
                     </SelectItem>
@@ -315,9 +319,11 @@ export default function USDC() {
                       className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
                     >
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          A
-                        </span>
+                        <img
+                          src="/images/tokens/branded/ALT.svg"
+                          alt="ALT"
+                          className="w-6 h-6 mr-2"
+                        />
                         <span className="font-mono w-12">ALT </span>
                       </div>
                     </SelectItem>
@@ -346,11 +352,13 @@ export default function USDC() {
                     className={`text-2xl pl-2 pb-0 font-mono ${receivedAmount === "0" ? "text-gray-500" : "text-white"}`}
                   />
                 </div>
-                <div className={`h-9 font-mono font-bold text-sm w-[120px] bg-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10 rounded-md flex items-center px-3 border border-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10`}>
+                <div className={`h-9 font-mono font-bold text-sm w-[100px] bg-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10 rounded-md flex items-center px-3 border border-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10`}>
                   <div className="flex items-center">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-3.5">
-                      {altcoinFromToken === "USDC" ? "A" : "$"}
-                    </span>
+                    <img
+                      src={altcoinFromToken === "USDC" ? "/images/tokens/branded/ALT.svg" : "/images/tokens/branded/USDC.svg"}
+                      alt={altcoinFromToken === "USDC" ? "ALT" : "USDC"}
+                      className="w-6 h-6 mr-2"
+                    />
                     <span className="font-mono w-16 pt-[2.25px]">
                       {(altcoinFromToken === "USDC" ? "ALT" : "USDC").padEnd(4)}
                     </span>
