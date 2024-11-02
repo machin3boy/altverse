@@ -13,15 +13,7 @@ import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { ArrowRightLeft, Droplets, HandCoins } from "lucide-react";
-
-type ChainId = "celo" | "fuji" | "optimism";
-
-interface Chain {
-  name: string;
-  id: ChainId;
-  chainId: number;
-  logoSrc: string;
-}
+import chains from "@/app/constants";
 
 const tokens = [
   {
@@ -43,27 +35,6 @@ const tokens = [
     symbol: "wLINK",
     logoSrc: "/images/tokens/branded/LINK.svg",
     address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
-  },
-];
-
-const chains: Chain[] = [
-  {
-    name: "Celo Testnet",
-    id: "celo",
-    chainId: 44787,
-    logoSrc: "/images/tokens/branded/CELO.svg",
-  },
-  {
-    name: "Fuji Testnet",
-    id: "fuji",
-    chainId: 43113,
-    logoSrc: "/images/tokens/branded/AVAX.svg",
-  },
-  {
-    name: "Sepolia Testnet",
-    id: "optimism",
-    chainId: 3242,
-    logoSrc: "/images/tokens/branded/OP.svg",
   },
 ];
 
@@ -92,8 +63,8 @@ export default function Swap() {
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
   const [targetChain, setTargetChain] = useState(() => {
-    const firstAvailableChain = chains.find(chain => chain.chainId !== currentChain);
-    return firstAvailableChain?.id as string || "fuji";
+    const firstAvailableChain = chains.find(chain => chain.decimalId !== currentChain);
+    return firstAvailableChain?.name_id as string || "fuji";
   });
 
   const [currentCalculation, setCurrentCalculation] =
@@ -115,8 +86,8 @@ export default function Swap() {
           }
 
           const targetChainId = chains.find(
-            (chain) => chain.id === targetChain
-          )?.chainId;
+            (chain) => chain.name_id === targetChain
+          )?.decimalId;
           if (!targetChainId) {
             throw new Error("Invalid target chain");
           }
@@ -289,7 +260,7 @@ export default function Swap() {
       toast.error("Please select a destination chain");
       return;
     }
-    const targetChainId = chains.find((chain) => chain.id === targetChain)?.chainId;
+    const targetChainId = chains.find((chain) => chain.name_id === targetChain)?.decimalId;
     if (targetChainId === currentChain) {
       toast.error("We currently only support cross-chain swaps.");
       return;
@@ -303,8 +274,8 @@ export default function Swap() {
         return;
       }
 
-      const targetChainId = chains.find((chain) => chain.id === targetChain)
-        ?.chainId as number;
+      const targetChainId = chains.find((chain) => chain.name_id === targetChain)
+        ?.decimalId as number;
 
       const swapParams = {
         fromToken:
@@ -448,7 +419,7 @@ export default function Swap() {
                   <SelectTrigger className="w-fit border-sky-500/10 font-semibold font-mono data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4 transition-colors duration-200">
                     <SelectValue>
                       {(() => {
-                        const chain = chains.find((c) => c.id === targetChain);
+                        const chain = chains.find((c) => c.name_id === targetChain);
                         return (
                           <div className="flex items-center gap-2">
                             <img
@@ -464,12 +435,12 @@ export default function Swap() {
                   </SelectTrigger>
                   <SelectContent className="bg-black text-white border-sky-500/20 font-semibold font-mono">
                     {chains
-                      .filter((chain) => chain.chainId !== currentChain)
+                      .filter((chain) => chain.decimalId !== currentChain)
                       .map((chain) => {
                         return (
                           <SelectItem
-                            key={chain.id}
-                            value={chain.id}
+                            key={chain.name_id}
+                            value={chain.name_id}
                             className="font-semibold data-[highlighted]:bg-sky-500/40 data-[highlighted]:text-white font-mono"
                           >
                             <div className="flex items-center gap-2">

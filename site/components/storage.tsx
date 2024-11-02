@@ -7,6 +7,7 @@ import { AbiItem } from "web3-utils";
 import ERC20ABI from "../public/ABIs/ERC20.json";
 import FaucetERC20ABI from "../public/ABIs/FaucetERC20.json";
 import { toast } from "sonner";
+import chains from "../app/constants";
 
 interface StorageContextProps {
   storage: { [key: string]: string };
@@ -14,7 +15,7 @@ interface StorageContextProps {
   getStorage: (key: string) => string | null | undefined;
   web3: Web3 | null;
   connectToWeb3: () => Promise<boolean>;
-  switchChain: () => Promise<boolean>;
+  switchChain: (targetChain: string) => Promise<boolean>;
   currentChain: number;
   setCurrentChain: (chainId: number) => void;
   initializeCoreContract: () => any | undefined | null;
@@ -197,10 +198,6 @@ interface ContractPool {
   totalShares: string;   // uint256
 }
 
-const CHAIN_ID_TO_WORMHOLE_CHAIN_ID: Record<number, number> = {
-  44787: 14,  // Celo Alfajores
-  43113: 6    // Avalanche Fuji
-};
 
 
 export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -234,12 +231,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         const chainId = await (window as any).ethereum.request({
           method: "eth_chainId",
         });
-        if (chainId !== "0xaef3" && chainId !== "0xa869") {
+        const foundChainId = chains.find((chain) => chain.id === chainId)?.id;
+        if (foundChainId) {
           try {
             // Attempt to switch to the desired network
             await (window as any).ethereum.request({
               method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0xaef3" }],
+              params: [{ chainId: foundChainId }],
             });
           } catch (switchError) {
             // If the network doesn't exist, add it
@@ -282,23 +280,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const switchChain = async () => {
+  const switchChain = async (targetChainId: string) => {
     if ((window as any).ethereum) {
       try {
         // Get the current chain ID
         const currentChainId = await (window as any).ethereum.request({
           method: "eth_chainId",
         });
-
-        let targetChainId;
-        if (currentChainId === "0xaef3") {
-          targetChainId = "0xa869"; // Swap to Avalanche Fuji
-        } else if (currentChainId === "0xa869") {
-          targetChainId = "0xaef3"; // Swap to Arbitrum Sepolia
-        } else {
-          console.error("Current chain is not supported for swapping");
-          return false;
-        }
 
         try {
           // Attempt to switch to the target network
@@ -310,32 +298,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           // If the target network doesn't exist, add it
           if ((switchError as any).code === 4902) {
             try {
-              let chainParams;
-              if (targetChainId === "0xaef3") {
-                chainParams = {
-                  chainId: "0xaef3",
-                  chainName: "Celo Alfajores Testnet",
-                  rpcUrls: ["https://alfajores-forno.celo-testnet.org"],
-                  nativeCurrency: {
-                    name: "CELO",
-                    symbol: "CELO",
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: ["https://alfajores.celoscan.io"],
-                };
-              } else if (targetChainId === "0xa869") {
-                chainParams = {
-                  chainId: "0xa869",
-                  chainName: "Avalanche Fuji",
-                  rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
-                  nativeCurrency: {
-                    name: "AVAX",
-                    symbol: "AVAX",
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: ["https://testnet.snowtrace.io/"],
-                };
-              }
+              const foundChain = chains.find((chain) => chain.id === targetChainId);
+              const chainParams = {
+                    chainId: foundChain?.id,
+                    chainName: foundChain?.full_name,
+                    rpcUrls: [foundChain?.rpc],
+                    nativeCurrency: {
+                      name: foundChain?.symbol,
+                      symbol: foundChain?.symbol,
+                      decimals: 18,
+                    },
+                    blockExplorerUrls: [foundChain?.blockExplorer],
+                  };
               await (window as any).ethereum.request({
                 method: "wallet_addEthereumChain",
                 params: [chainParams],
@@ -800,9 +774,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       ];
 
-      const usdcAddress = Number(chainId) === 43113
-        ? "0x5425890298aed601595a70ab815c96711a31bc65"  // Fuji
-        : "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B"; // Celo
+      const usdcAddress = chains.find(c => c.decimalId === Number(chainId))?.usdcAddress || "0x0";
 
       const tokens = [
         ...baseTokens,
@@ -824,7 +796,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       const balances: TokenBalance[] = [{
-        symbol: Number(chainId) === 43113 ? "AVAX" : "CELO",
+        symbol: chains.find(c => c.decimalId === Number(chainId))?.symbol || "CELO",
         balance: formattedNativeBalance,
         rawBalance: nativeBigInt,
         address: "0x0000000000000000000000000000000000000000"
@@ -1034,7 +1006,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         });
       } else {
         // For cross-chain swaps, use wormhole
-        const wormholeChainId = CHAIN_ID_TO_WORMHOLE_CHAIN_ID[params.targetChain];
+        const wormholeChainId = chains.find(c => c.decimalId === params.targetChain)?.wormholeId;
 
         console.warn("Cross-chain swap initiated with params:", {
           fromToken: params.fromToken,
@@ -1170,9 +1142,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         ALT_ADDRESS
       );
 
-      const targetRPC = params.targetChain === 43113
-        ? "https://api.avax-test.network/ext/bc/C/rpc"
-        : "https://alfajores-forno.celo-testnet.org";
+      const targetRPC = chains.find(c => c.decimalId === params.targetChain)?.rpc || "unknown";
       const targetWeb3 = new Web3(new Web3.providers.HttpProvider(targetRPC));
 
       const targetContract = new targetWeb3.eth.Contract(

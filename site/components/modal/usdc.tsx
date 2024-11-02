@@ -14,6 +14,7 @@ import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { AbiItem } from "web3-utils";
 import { ArrowRightLeft, HandCoins } from "lucide-react";
+import chains from "@/app/constants";
 
 export default function USDC() {
   const { web3, currentChain, getPoolBalances, swapALTForUSDC, swapUSDCForALT, fetchTokenBalances } = useStorage();
@@ -81,15 +82,7 @@ export default function USDC() {
   };
 
   const getUSDCAddress = useCallback((chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "0x5425890298aed601595a70ab815c96711a31bc65";
-      case 44787:
-        return "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B";
-      default:
-        console.error("Unknown chain ID for USDC address");
-        return null;
-    }
+    return chains.find(chain => chain.decimalId === chainId)?.usdcAddress;
   }, []);
 
   useEffect(() => {

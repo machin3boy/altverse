@@ -9,6 +9,7 @@ import { Droplets, BriefcaseBusiness } from "lucide-react";
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { LiquidityPosition } from "../storage";
+import chains from "@/app/constants";
 import RemoveLiquidityModal from "@/components/modal/remove-liquidity"
 import IncreaseLiquidityModal from "@/components/modal/increase-liquidity"
 import AddLiquidityModal from "@/components/modal/add-liquidity"
@@ -30,14 +31,7 @@ const Pool: React.FC = () => {
   const [isPolling, setIsPolling] = useState(false);
 
   const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
+    return chains.find((c) => c.decimalId === chainId)?.name || "Unknown Chain";
   };
 
   const loadPositions = async (isInitial: boolean = false) => {
