@@ -17,12 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Droplets, X, Timer, Share2, Coins, BriefcaseBusiness } from "lucide-react";
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { LiquidityPosition } from "../storage";
+import RemoveLiquidityModal from "@/components/modal/remove-liquidity"
 
 interface Token {
   address: string;
@@ -43,10 +43,6 @@ interface IncreaseLiquidityModalProps {
   onSuccess?: () => void;
 }
 
-interface RemoveLiquidityModalProps {
-  pool: Pool;
-  onSuccess?: () => void;
-}
 
 interface GeneralAddLiquidityModalProps {
   open: boolean;
@@ -520,175 +516,6 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
             className="w-full h-8 text-sm bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Processing..." : "Increase Liquidity"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
-  pool,
-  onSuccess,
-}) => {
-  const { web3, removeLiquidity, currentChain } = useStorage();
-
-  const [open, setOpen] = useState(false);
-  const [percentage, setPercentage] = useState<number[]>([0]);
-  const [shares, setShares] = useState<string>("0");
-  const [tokenAmount, setTokenAmount] = useState<string>("0");
-  const [altAmount, setAltAmount] = useState<string>("0");
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Reset state when chain changes
-  useEffect(() => {
-    setPercentage([0]);
-    setShares("0");
-    setTokenAmount("0");
-    setAltAmount("0");
-    setOpen(false); // Close modal on chain change
-  }, [currentChain]);
-
-  useEffect(() => {
-    if (!web3) return;
-
-    try {
-      const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
-      const sharesFormatted = web3.utils.fromWei(
-        BigInt(Math.floor(shareAmount)).toString(),
-        "ether"
-      );
-      setShares(sharesFormatted);
-
-      const tokenAmountRaw =
-        (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
-      const altAmountRaw =
-        (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
-
-      const formattedTokenAmount = web3.utils.fromWei(
-        BigInt(Math.floor(tokenAmountRaw)).toString(),
-        "ether"
-      );
-      const formattedAltAmount = web3.utils.fromWei(
-        BigInt(Math.floor(altAmountRaw)).toString(),
-        "ether"
-      );
-
-      setTokenAmount(formattedTokenAmount);
-      setAltAmount(formattedAltAmount);
-    } catch (error) {
-      console.error("Error calculating removal amounts:", error);
-      setShares("0");
-      setTokenAmount("0");
-      setAltAmount("0");
-    }
-  }, [web3, percentage, pool, currentChain]);
-
-  const handleRemoveLiquidity = async () => {
-    debugger;
-    if (!web3 || Number(shares) <= 0) return;
-
-    setIsLoading(true);
-    try {
-      const sharesToRemove = web3.utils.toWei(shares, "ether");
-
-      const success = await removeLiquidity({
-        tokenAddress: pool.token,
-        shares: sharesToRemove,
-      });
-
-      if (success) {
-        // Refresh user's positions
-        onSuccess?.(); // Trigger polling
-        setOpen(false);
-      }
-    } catch (error) {
-      console.error("Error removing liquidity:", error);
-      toast.error("Failed to remove liquidity");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="secondary"
-          className="w-full h-8 text-sm bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 font-semibold hover:text-sky-400 border border-sky-500/10"
-        >
-          Remove Liquidity
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-zinc-950 border border-amber-500/20 sm:max-w-[400px]">
-        <DialogHeader className="flex flex-row justify-between items-center">
-          <div>
-            <DialogTitle className="text-amber-500">
-              Remove Liquidity
-            </DialogTitle>
-            <p className="text-sm text-gray-400 mt-1">
-              on {getChainName(currentChain)}
-            </p>
-          </div>
-          <DialogClose className="w-6 h-6 text-white hover:text-amber-500 transition-colors">
-            <X className="w-4 h-4" />
-          </DialogClose>
-        </DialogHeader>
-        <div className="space-y-6 text-white">
-          <div className="space-y-2">
-            <label className="text-sm text-amber-500">
-              Percentage to Remove
-            </label>
-            <div className="pt-4">
-              <Slider
-                value={percentage}
-                onValueChange={setPercentage}
-                min={0}
-                max={100}
-                step={0.1}
-                className="[&_[role=slider]]:border-amber-500 [&_[role=slider]]:bg-white"
-                disabled={isLoading}
-              />
-            </div>
-            <div className="text-right text-sm text-amber-500">
-              {percentage[0].toFixed(1)}%
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-amber-500">Shares to Remove:</span>
-              <span>{Number(shares).toFixed(3)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-amber-500">
-                {pool.tokenSymbol} to Receive:
-              </span>
-              <span>{Number(tokenAmount).toFixed(3)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-amber-500">ALT to Receive:</span>
-              <span>{Number(altAmount).toFixed(3)}</span>
-            </div>
-          </div>
-
-          <Button
-            onClick={handleRemoveLiquidity}
-            disabled={isLoading || percentage[0] <= 0}
-            className="w-full bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 font-semibold border border-sky-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Removing Liquidity..." : "Remove Liquidity"}
           </Button>
         </div>
       </DialogContent>
