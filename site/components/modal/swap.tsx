@@ -94,8 +94,10 @@ export default function Swap() {
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
   const [targetChain, setTargetChain] = useState(() => {
-    return "fuji";
+    const firstAvailableChain = chains.find(chain => chain.chainId !== currentChain);
+    return firstAvailableChain?.id as string || "fuji";
   });
+
   const [currentCalculation, setCurrentCalculation] =
     useState<AbortController | null>(null);
 
@@ -401,7 +403,7 @@ export default function Swap() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold"
+                    className="text-xs bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold font-mono"
                     onClick={handleMaxClick}
                     disabled={isLoadingBalances}
                   >
@@ -463,7 +465,7 @@ export default function Swap() {
                   You Receive
                 </span>
                 <Select value={targetChain} onValueChange={setTargetChain}>
-                  <SelectTrigger className="w-fit border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-fit border-sky-500/10 font-semibold font-mono data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
                       {(() => {
                         const chain = chains.find((c) => c.id === targetChain);
@@ -478,13 +480,13 @@ export default function Swap() {
                                 className="opacity-80"
                               />
                             )}
-                            <span className="text-xs">{chain?.name}</span>
+                            {chain?.name}
                           </div>
                         );
                       })()}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-black text-white border-sky-500/20">
+                  <SelectContent className="bg-black text-white border-sky-500/20 font-semibold font-mono">
                     {chains
                       .filter((chain) => chain.chainId !== currentChain)
                       .map((chain) => {
@@ -493,7 +495,7 @@ export default function Swap() {
                           <SelectItem
                             key={chain.id}
                             value={chain.id}
-                            className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
+                            className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white font-mono"
                           >
                             <div className="flex items-center gap-2">
                               <Logo
@@ -502,7 +504,7 @@ export default function Swap() {
                                 height={16}
                                 className="opacity-80"
                               />
-                              <span className="text-xs">{chain.name}</span>
+                              {chain.name}
                             </div>
                           </SelectItem>
                         );
