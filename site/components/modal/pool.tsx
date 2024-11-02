@@ -19,12 +19,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Droplets, X } from "lucide-react";
+import { Droplets, X, Timer, Share2, Coins } from "lucide-react";
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { LiquidityPosition } from "../storage";
-import coreContractABI from "../../public/ABIs/Altverse.json";
-import { AbiItem } from "web3-utils";
 
 interface Token {
   address: string;
@@ -53,22 +51,22 @@ interface RemoveLiquidityModalProps {
 interface GeneralAddLiquidityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;  // Add this
+  onSuccess?: () => void; // Add this
 }
 
 const GeneralAddLiquidityModal = ({
   open,
   onOpenChange,
-  onSuccess
+  onSuccess,
 }: GeneralAddLiquidityModalProps) => {
-  const { 
-    web3, 
-    tokens, 
-    calculateOptimalLiquidity, 
+  const {
+    web3,
+    tokens,
+    calculateOptimalLiquidity,
     addLiquidity,
-    fetchTokenBalances 
+    fetchTokenBalances,
   } = useStorage();
-  
+
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [altAmount, setAltAmount] = useState<string>("");
@@ -81,21 +79,23 @@ const GeneralAddLiquidityModal = ({
   useEffect(() => {
     const getBalances = async () => {
       if (!web3 || !selectedToken) return;
-      
+
       try {
         const accounts = await web3.eth.getAccounts();
         if (!accounts[0]) return;
 
         const balances = await fetchTokenBalances(accounts[0]);
-        
+
         // Get selected token balance
-        const tokenBal = balances?.find(b => b.address.toLowerCase() === selectedToken.toLowerCase());
+        const tokenBal = balances?.find(
+          (b) => b.address.toLowerCase() === selectedToken.toLowerCase()
+        );
         if (tokenBal) {
           setTokenBalance(tokenBal.balance);
         }
 
         // Get ALT balance
-        const altBal = balances?.find(b => b.symbol === "ALT");
+        const altBal = balances?.find((b) => b.symbol === "ALT");
         if (altBal) {
           setAltBalance(altBal.balance);
         }
@@ -107,19 +107,18 @@ const GeneralAddLiquidityModal = ({
     getBalances();
   }, [web3, selectedToken, fetchTokenBalances]);
 
-
   const handleTokenAmountChange = (value: string) => {
     // Remove any non-numeric characters except decimal point
-    const sanitizedValue = value.replace(/[^0-9.]/g, '');
-    
+    const sanitizedValue = value.replace(/[^0-9.]/g, "");
+
     // Prevent multiple decimal points
-    const decimalPoints = sanitizedValue.split('.').length - 1;
+    const decimalPoints = sanitizedValue.split(".").length - 1;
     if (decimalPoints > 1) return;
-    
+
     // Limit decimal places to 18 (maximum for ERC20 tokens)
-    const parts = sanitizedValue.split('.');
+    const parts = sanitizedValue.split(".");
     if (parts[1] && parts[1].length > 18) return;
-    
+
     setTokenAmount(sanitizedValue);
   };
 
@@ -131,14 +130,14 @@ const GeneralAddLiquidityModal = ({
       }
 
       try {
-        const tokenWei = web3.utils.toWei(tokenAmount, 'ether');
-        
+        const tokenWei = web3.utils.toWei(tokenAmount, "ether");
+
         const result = await calculateOptimalLiquidity({
           tokenAddress: selectedToken,
-          tokenAmount: tokenWei
+          tokenAmount: tokenWei,
         });
 
-        setAltAmount(web3.utils.fromWei(result.altAmount, 'ether'));
+        setAltAmount(web3.utils.fromWei(result.altAmount, "ether"));
       } catch (error) {
         console.error("Error calculating ALT amount:", error);
         setAltAmount("");
@@ -159,17 +158,17 @@ const GeneralAddLiquidityModal = ({
 
     setIsLoading(true);
     try {
-      const tokenWei = web3.utils.toWei(tokenAmount, 'ether');
-      const altWei = web3.utils.toWei(altAmount, 'ether');
+      const tokenWei = web3.utils.toWei(tokenAmount, "ether");
+      const altWei = web3.utils.toWei(altAmount, "ether");
 
       const success = await addLiquidity({
         tokenAddress: selectedToken,
         tokenAmount: tokenWei,
-        altAmount: altWei
+        altAmount: altWei,
       });
 
       if (success) {
-        onSuccess?.();  // Trigger polling
+        onSuccess?.(); // Trigger polling
         onOpenChange(false);
       }
     } catch (error) {
@@ -180,9 +179,8 @@ const GeneralAddLiquidityModal = ({
   };
 
   // Filter available tokens - only show supported tokens excluding ALT
-  const availableTokens = tokens.filter(t => 
-    t.symbol !== "ALT" && 
-    ["wBTC", "wETH", "wLINK"].includes(t.symbol)
+  const availableTokens = tokens.filter(
+    (t) => t.symbol !== "ALT" && ["wBTC", "wETH", "wLINK"].includes(t.symbol)
   );
 
   return (
@@ -209,20 +207,25 @@ const GeneralAddLiquidityModal = ({
           </SelectContent>
         </Select>
         <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm text-amber-500">Token Amount</label>
-          {selectedToken && tokenBalance && (
-            <button 
-              onClick={() => setTokenAmount(tokenBalance)}
-              className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1"
-            >
-              <span>
-                {tokens.find(t => t.address.toLowerCase() === selectedToken.toLowerCase())?.icon}
-              </span>
-              Balance: {Number(tokenBalance).toFixed(4)}
-            </button>
-          )}
-        </div>
+          <div className="flex justify-between items-center">
+            <label className="text-sm text-amber-500">Token Amount</label>
+            {selectedToken && tokenBalance && (
+              <button
+                onClick={() => setTokenAmount(tokenBalance)}
+                className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1"
+              >
+                <span>
+                  {
+                    tokens.find(
+                      (t) =>
+                        t.address.toLowerCase() === selectedToken.toLowerCase()
+                    )?.icon
+                  }
+                </span>
+                Balance: {Number(tokenBalance).toFixed(4)}
+              </button>
+            )}
+          </div>
           <Input
             type="text"
             value={tokenAmount}
@@ -232,15 +235,15 @@ const GeneralAddLiquidityModal = ({
           />
         </div>
         <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm text-amber-500">ALT Amount</label>
-          {altBalance && (
-            <div className="text-xs text-amber-500 flex items-center gap-1">
-              <span>A</span>
-              Balance: {Number(altBalance).toFixed(4)}
-            </div>
-          )}
-        </div>
+          <div className="flex justify-between items-center">
+            <label className="text-sm text-amber-500">ALT Amount</label>
+            {altBalance && (
+              <div className="text-xs text-amber-500 flex items-center gap-1">
+                <span>A</span>
+                Balance: {Number(altBalance).toFixed(4)}
+              </div>
+            )}
+          </div>
           <Input
             type="number"
             value={altAmount}
@@ -251,7 +254,13 @@ const GeneralAddLiquidityModal = ({
         </div>
         <Button
           onClick={handleAddLiquidity}
-          disabled={isLoading || !selectedToken || !tokenAmount || !altAmount || Number(tokenAmount) <= 0}
+          disabled={
+            isLoading ||
+            !selectedToken ||
+            !tokenAmount ||
+            !altAmount ||
+            Number(tokenAmount) <= 0
+          }
           className="w-full bg-gradient-to-r from-amber-900 to-amber-800
             hover:from-amber-800 hover:to-amber-700
             active:from-amber-950 active:to-amber-900
@@ -271,12 +280,11 @@ const GeneralAddLiquidityModal = ({
           <div className="relative w-full px-8">
             <div className="flex justify-center items-center">
               <span className="tracking-wide">
-                {isLoading 
-                  ? "Adding Liquidity..." 
-                  : isExistingPool 
-                    ? "Increase Liquidity" 
-                    : "Add Liquidity"
-                }
+                {isLoading
+                  ? "Adding Liquidity..."
+                  : isExistingPool
+                  ? "Increase Liquidity"
+                  : "Add Liquidity"}
               </span>
               {!isLoading && (
                 <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
@@ -291,18 +299,17 @@ const GeneralAddLiquidityModal = ({
   );
 };
 
-
 const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
   pool,
-  onSuccess
+  onSuccess,
 }) => {
-  const { 
-    web3, 
-    calculateOptimalLiquidity, 
+  const {
+    web3,
+    calculateOptimalLiquidity,
     addLiquidity,
     fetchTokenBalances,
     tokens,
-    currentChain
+    currentChain,
   } = useStorage();
   const [open, setOpen] = useState(false);
   const [tokenAmount, setTokenAmount] = useState<string>("");
@@ -319,24 +326,25 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
     setOpen(false); // Close modal on chain change
   }, [currentChain]);
 
-
   // Fetch token balance when modal opens
   useEffect(() => {
     const getBalances = async () => {
       if (!web3 || !open) return;
-      
+
       try {
         const accounts = await web3.eth.getAccounts();
         if (!accounts[0]) return;
 
         const balances = await fetchTokenBalances(accounts[0]);
-        
-        const tokenBal = balances?.find(b => b.address.toLowerCase() === pool.token.toLowerCase());
+
+        const tokenBal = balances?.find(
+          (b) => b.address.toLowerCase() === pool.token.toLowerCase()
+        );
         if (tokenBal) {
           setTokenBalance(tokenBal.balance);
         }
 
-        const altBal = balances?.find(b => b.symbol === "ALT");
+        const altBal = balances?.find((b) => b.symbol === "ALT");
         if (altBal) {
           setAltBalance(altBal.balance);
         }
@@ -350,19 +358,18 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
 
   const handleTokenAmountChange = (value: string) => {
     // Remove any non-numeric characters except decimal point
-    const sanitizedValue = value.replace(/[^0-9.]/g, '');
-    
+    const sanitizedValue = value.replace(/[^0-9.]/g, "");
+
     // Prevent multiple decimal points
-    const decimalPoints = sanitizedValue.split('.').length - 1;
+    const decimalPoints = sanitizedValue.split(".").length - 1;
     if (decimalPoints > 1) return;
-    
+
     // Limit decimal places to 18 (maximum for ERC20 tokens)
-    const parts = sanitizedValue.split('.');
+    const parts = sanitizedValue.split(".");
     if (parts[1] && parts[1].length > 18) return;
-    
+
     setTokenAmount(sanitizedValue);
   };
-  
 
   useEffect(() => {
     const calculateAlt = async () => {
@@ -372,12 +379,12 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
       }
 
       try {
-        const tokenWei = web3.utils.toWei(tokenAmount, 'ether');
+        const tokenWei = web3.utils.toWei(tokenAmount, "ether");
         const result = await calculateOptimalLiquidity({
           tokenAddress: pool.token,
-          tokenAmount: tokenWei
+          tokenAmount: tokenWei,
         });
-        setAltAmount(web3.utils.fromWei(result.altAmount, 'ether'));
+        setAltAmount(web3.utils.fromWei(result.altAmount, "ether"));
       } catch (error) {
         console.error("Error calculating ALT amount:", error);
         setAltAmount("");
@@ -392,18 +399,18 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
 
     setIsLoading(true);
     try {
-      const tokenWei = web3.utils.toWei(tokenAmount, 'ether');
-      const altWei = web3.utils.toWei(altAmount, 'ether');
+      const tokenWei = web3.utils.toWei(tokenAmount, "ether");
+      const altWei = web3.utils.toWei(altAmount, "ether");
 
       const success = await addLiquidity({
         tokenAddress: pool.token,
         tokenAmount: tokenWei,
-        altAmount: altWei
+        altAmount: altWei,
       });
 
       if (success) {
         // Refresh user's positions
-        onSuccess?.();  // Trigger polling
+        onSuccess?.(); // Trigger polling
         setOpen(false);
       }
     } catch (error) {
@@ -443,7 +450,9 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
       <DialogContent className="bg-zinc-950 border border-amber-500/20 sm:max-w-[400px]">
         <DialogHeader className="flex flex-row justify-between items-center">
           <div>
-            <DialogTitle className="text-amber-500">Increase Liquidity</DialogTitle>
+            <DialogTitle className="text-amber-500">
+              Increase Liquidity
+            </DialogTitle>
             <p className="text-sm text-gray-400 mt-1">
               on {getChainName(currentChain)}
             </p>
@@ -454,20 +463,25 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
         </DialogHeader>
         <div className="space-y-4 text-white">
           <div className="space-y-2">
-          <div className="flex justify-between items-center">
-          <label className="text-sm text-amber-500">Token Amount</label>
-          {tokenBalance && (
-            <button 
-              onClick={handleSetMax}
-              className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1"
-            >
-              <span>
-                {tokens.find(t => t.address.toLowerCase() === pool.token.toLowerCase())?.icon}
-              </span>
-              Balance: {Number(tokenBalance).toFixed(4)}
-            </button>
-          )}
-        </div>
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-amber-500">Token Amount</label>
+              {tokenBalance && (
+                <button
+                  onClick={handleSetMax}
+                  className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1"
+                >
+                  <span>
+                    {
+                      tokens.find(
+                        (t) =>
+                          t.address.toLowerCase() === pool.token.toLowerCase()
+                      )?.icon
+                    }
+                  </span>
+                  Balance: {Number(tokenBalance).toFixed(4)}
+                </button>
+              )}
+            </div>
             <Input
               type="number"
               value={tokenAmount}
@@ -477,15 +491,15 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
             />
           </div>
           <div className="space-y-2">
-          <div className="flex justify-between items-center">
-          <label className="text-sm text-amber-500">ALT Amount</label>
-          {altBalance && (
-            <div className="text-xs text-amber-500 flex items-center gap-1">
-              <span>A</span>
-              Balance: {Number(altBalance).toFixed(4)}
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-amber-500">ALT Amount</label>
+              {altBalance && (
+                <div className="text-xs text-amber-500 flex items-center gap-1">
+                  <span>A</span>
+                  Balance: {Number(altBalance).toFixed(4)}
+                </div>
+              )}
             </div>
-          )}
-        </div>
             <Input
               type="number"
               value={altAmount}
@@ -496,7 +510,12 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
           </div>
           <Button
             onClick={handleAddLiquidity}
-            disabled={isLoading || !tokenAmount || !altAmount || Number(tokenAmount) <= 0}
+            disabled={
+              isLoading ||
+              !tokenAmount ||
+              !altAmount ||
+              Number(tokenAmount) <= 0
+            }
             variant="secondary"
             className="w-full h-8 text-sm bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -510,14 +529,10 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
 
 const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
   pool,
-  onSuccess
+  onSuccess,
 }) => {
-  const { 
-    web3, 
-    removeLiquidity,
-    currentChain
-  } = useStorage();
-  
+  const { web3, removeLiquidity, currentChain } = useStorage();
+
   const [open, setOpen] = useState(false);
   const [percentage, setPercentage] = useState<number[]>([0]);
   const [shares, setShares] = useState<string>("0");
@@ -525,63 +540,66 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
   const [altAmount, setAltAmount] = useState<string>("0");
   const [isLoading, setIsLoading] = useState(false);
 
-    // Reset state when chain changes
-    useEffect(() => {
-      setPercentage([0]);
+  // Reset state when chain changes
+  useEffect(() => {
+    setPercentage([0]);
+    setShares("0");
+    setTokenAmount("0");
+    setAltAmount("0");
+    setOpen(false); // Close modal on chain change
+  }, [currentChain]);
+
+  useEffect(() => {
+    if (!web3) return;
+
+    try {
+      const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
+      const sharesFormatted = web3.utils.fromWei(
+        BigInt(Math.floor(shareAmount)).toString(),
+        "ether"
+      );
+      setShares(sharesFormatted);
+
+      const tokenAmountRaw =
+        (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
+      const altAmountRaw =
+        (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
+
+      const formattedTokenAmount = web3.utils.fromWei(
+        BigInt(Math.floor(tokenAmountRaw)).toString(),
+        "ether"
+      );
+      const formattedAltAmount = web3.utils.fromWei(
+        BigInt(Math.floor(altAmountRaw)).toString(),
+        "ether"
+      );
+
+      setTokenAmount(formattedTokenAmount);
+      setAltAmount(formattedAltAmount);
+    } catch (error) {
+      console.error("Error calculating removal amounts:", error);
       setShares("0");
       setTokenAmount("0");
       setAltAmount("0");
-      setOpen(false); // Close modal on chain change
-    }, [currentChain]);
-
-    useEffect(() => {
-      if (!web3) return;
-  
-      try {
-        const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
-        const sharesFormatted = web3.utils.fromWei(
-          BigInt(Math.floor(shareAmount)).toString(),
-          'ether'
-        );
-        setShares(sharesFormatted);
-  
-        const tokenAmountRaw = (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
-        const altAmountRaw = (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
-  
-        const formattedTokenAmount = web3.utils.fromWei(
-          BigInt(Math.floor(tokenAmountRaw)).toString(),
-          'ether'
-        );
-        const formattedAltAmount = web3.utils.fromWei(
-          BigInt(Math.floor(altAmountRaw)).toString(),
-          'ether'
-        );
-  
-        setTokenAmount(formattedTokenAmount);
-        setAltAmount(formattedAltAmount);
-      } catch (error) {
-        console.error("Error calculating removal amounts:", error);
-        setShares("0");
-        setTokenAmount("0");
-        setAltAmount("0");
-      }
-    }, [web3, percentage, pool, currentChain]);
+    }
+  }, [web3, percentage, pool, currentChain]);
 
   const handleRemoveLiquidity = async () => {
+    debugger;
     if (!web3 || Number(shares) <= 0) return;
 
     setIsLoading(true);
     try {
-      const sharesToRemove = web3.utils.toWei(shares, 'ether');
-      
+      const sharesToRemove = web3.utils.toWei(shares, "ether");
+
       const success = await removeLiquidity({
         tokenAddress: pool.token,
-        shares: sharesToRemove
+        shares: sharesToRemove,
       });
 
       if (success) {
         // Refresh user's positions
-        onSuccess?.();  // Trigger polling
+        onSuccess?.(); // Trigger polling
         setOpen(false);
       }
     } catch (error) {
@@ -616,7 +634,9 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
       <DialogContent className="bg-zinc-950 border border-amber-500/20 sm:max-w-[400px]">
         <DialogHeader className="flex flex-row justify-between items-center">
           <div>
-            <DialogTitle className="text-amber-500">Remove Liquidity</DialogTitle>
+            <DialogTitle className="text-amber-500">
+              Remove Liquidity
+            </DialogTitle>
             <p className="text-sm text-gray-400 mt-1">
               on {getChainName(currentChain)}
             </p>
@@ -677,9 +697,9 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
 };
 
 const Pool: React.FC = () => {
-  const { web3, getUserLiquidityPositions, currentChain } = useStorage();
+  const { web3, getUserLiquidityPositions, currentChain, tokens } = useStorage();
   const [positions, setPositions] = useState<LiquidityPosition[]>([]);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); 
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showGeneralModal, setShowGeneralModal] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
 
@@ -696,12 +716,12 @@ const Pool: React.FC = () => {
 
   const loadPositions = async (isInitial: boolean = false) => {
     if (!web3) return;
-    
+
     try {
       if (isInitial) {
         setIsInitialLoading(true);
       }
-      
+
       const userPositions = await getUserLiquidityPositions();
       setPositions(userPositions);
     } catch (error) {
@@ -752,94 +772,143 @@ const Pool: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Header section - kept compact */}
-      <div className="px-2 py-2">
-        <h4 className="text-lg font-bold text-amber-500">
-          Liquidity Pools on {getChainName(currentChain)}
-        </h4>
-        <p className="text-sm text-gray-400">
-          Manage your liquidity positions across pools
-        </p>
-      </div>
-      
-      {/* Scrollable content area with reduced fixed height */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-[340px] rounded-md border border-amber-500/20"> {/* Reduced height */}
-          <div className="p-2">
-            {isInitialLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="text-amber-500">Loading positions...</div>
-              </div>
-            ) : positions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40">
-                <p className="text-sm text-muted-foreground font-bold">
-                  No active positions on {getChainName(currentChain)}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Add liquidity to get started with earning fees
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {positions.map((position) => (
-                  <Card
-                    key={position.token}
-                    className="border rounded-md hover:border-amber-500 transition-colors duration-200 mb-2 last:mb-0"
-                  >
-                    <CardContent className="p-3 font-mono font-bold">
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">Pair:</span>
-                        <span className="text-sm">{position.tokenSymbol}/ALT</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">Share:</span>
-                        <span className="text-sm">{position.sharePercentage}%</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">{position.tokenSymbol}:</span>
-                        <span className="text-sm">
-                          {Number(position.formattedTokenAmount).toFixed(6)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">ALT:</span>
-                        <span className="text-sm">
-                          {Number(position.formattedAltAmount).toFixed(6)}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-3 pt-0 flex gap-2">
-                      <IncreaseLiquidityModal 
-                        pool={{
-                          token: position.token,
-                          tokenSymbol: position.tokenSymbol,
-                          tokenReserve: position.tokenAmount,
-                          altReserve: position.altAmount,
-                          totalShares: position.shares,
-                          userShares: position.rawShares.toString()
-                        }} 
-                        onSuccess={startPolling}
-                      />
-                      <RemoveLiquidityModal 
-                        pool={{
-                          token: position.token,
-                          tokenSymbol: position.tokenSymbol,
-                          tokenReserve: position.tokenAmount,
-                          altReserve: position.altAmount,
-                          totalShares: position.shares,
-                          userShares: position.rawShares.toString()
-                        }}
-                        onSuccess={startPolling}
-                      />
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
+      {/* Enhanced Header Section */}
+      <div className="px-4 py-4 border-b border-amber-500/20">
+        <div className="flex items-start">
+          <div>
+            <h4 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">
+              Liquidity Pools
+            </h4>
+            <p className="text-sm text-gray-400 mt-1">
+              on {getChainName(currentChain)}
+            </p>
           </div>
+        </div>
+      </div>
+
+      {/* Enhanced Positions List - Adjusted height */}
+      <div className="flex-1 overflow-hidden px-4 pt-4">
+        <ScrollArea className="h-[280px]">
+          {" "}
+          {/* Reduced height to ensure button visibility */}
+          {isInitialLoading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="text-amber-500 animate-pulse">
+                Loading positions...
+              </div>
+            </div>
+          ) : positions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 bg-neutral-900/30 rounded-lg border border-amber-500/10 p-6">
+              <Droplets className="w-12 h-12 text-amber-500/30 mb-4" />
+              <p className="text-sm font-medium text-amber-500/80">
+                No active positions
+              </p>
+              <p className="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                Add liquidity to start earning fees from trades
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {positions.map((position) => (
+                <Card
+                  key={position.token}
+                  className="bg-neutral-900/50 border-amber-500/10 hover:border-amber-500/30 transition-all duration-200
+                    shadow-lg hover:shadow-amber-900/20 group"
+                >
+                  <CardContent className="p-4">
+                    {/* Position Header */}
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                          <span className="text-amber-500 font-bold">
+                            {tokens.find(t => t.address === position.token)?.icon}
+                          </span>
+                        </div>
+                        <span className="font-bold text-lg text-white">
+                          {position.tokenSymbol}/ALT
+                        </span>
+                      </div>
+                      <div className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-medium">
+                        {position.sharePercentage}% Share
+                      </div>
+                    </div>
+
+                    {/* Position Details */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-400">Token Amount</p>
+                        <p className="font-mono font-bold text-white">
+                          {Number(position.formattedTokenAmount).toFixed(6)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-400">ALT Amount</p>
+                        <p className="font-mono font-bold text-white">
+                          {Number(position.formattedAltAmount).toFixed(6)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+  <IncreaseLiquidityModal
+    pool={{
+      token: position.token,
+      tokenSymbol: position.tokenSymbol,
+      tokenReserve: position.tokenAmount,
+      altReserve: position.altAmount,
+      totalShares: position.shares,
+      userShares: position.rawShares.toString()
+    }}
+    onSuccess={startPolling}
+  />
+  <RemoveLiquidityModal
+    pool={{
+      token: position.token,
+      tokenSymbol: position.tokenSymbol,
+      tokenReserve: position.tokenAmount,
+      altReserve: position.altAmount,
+      totalShares: position.shares,
+      userShares: position.rawShares.toString()
+    }}
+    onSuccess={startPolling}
+  />
+</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </div>
 
+      {/* Enhanced Add Liquidity Button - Now always visible */}
+      <div className="p-4 mt-auto bg-gradient-to-t from-black to-transparent">
+        <Button
+          onClick={() => setShowGeneralModal(true)}
+          className="w-full bg-amber-500/10 
+            hover:bg-amber-500/30 
+            text-amber-500 
+            hover:text-amber-400 
+            border 
+            border-amber-500/10 
+            font-semibold 
+            py-2.5
+            relative
+            overflow-hidden
+            group
+            disabled:opacity-50 
+            disabled:cursor-not-allowed
+            disabled:hover:bg-amber-500/10 
+            disabled:hover:text-amber-500"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <div className="relative flex items-center justify-center gap-2">
+            <Droplets className="w-5 h-5" />
+            <span className="text-md">Add Liquidity</span>
+          </div>
+        </Button>
+      </div>
       {/* Modal */}
       <Dialog open={showGeneralModal} onOpenChange={handleModalClose}>
         <GeneralAddLiquidityModal
@@ -848,40 +917,6 @@ const Pool: React.FC = () => {
           onSuccess={startPolling}
         />
       </Dialog>
-
-      {/* Button container with padding */}
-      <div className="p-2 bg-zinc-950"> {/* Removed absolute positioning, using normal flow */}
-        <Button
-          onClick={() => setShowGeneralModal(true)}
-          className="w-full bg-gradient-to-r from-amber-900 to-amber-800
-              hover:from-amber-800 hover:to-amber-700
-              active:from-amber-950 active:to-amber-900
-              border-amber-500/20 hover:border-amber-500/40
-              text-white hover:text-amber-100
-              shadow-lg hover:shadow-amber-900/20
-              transition-all duration-200
-              font-semibold
-              py-2.5
-              relative
-              overflow-hidden
-              group
-              active:ring-amber-500/20
-              before:absolute before:inset-0
-              before:bg-gradient-to-r before:from-amber-500/0 before:via-amber-500/30 before:to-amber-500/0 
-              before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000
-              before:blur-md"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-          <div className="relative w-full px-8">
-            <div className="flex justify-center items-center">
-              <span className="tracking-wide">Add Liquidity</span>
-              <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
-                <Droplets className="w-4 h-4" />
-              </span>
-            </div>
-          </div>
-        </Button>
-      </div>
     </div>
   );
 };
