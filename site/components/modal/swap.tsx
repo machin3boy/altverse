@@ -12,6 +12,7 @@ import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import NumberTicker from "@/components/magicui/number-ticker";
+import { ArrowRightLeft, Droplets, HandCoins } from "lucide-react";
 
 type ChainId = "celo" | "fuji" | "optimism";
 
@@ -568,8 +569,9 @@ export default function Swap() {
             disabled:hover:bg-amber-500/10 
             disabled:hover:text-amber-500"
         >
-          <div className="flex justify-center items-center">
-            <span className="tracking-wide">
+          <div className="relative flex items-center justify-center gap-2">
+            <HandCoins className="w-5 h-5" />
+            <span className="text-md">
               {isCalculating ? "Loading..." : "Swap"}
             </span>
           </div>

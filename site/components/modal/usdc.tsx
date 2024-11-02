@@ -13,6 +13,7 @@ import {
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { AbiItem } from "web3-utils";
+import { ArrowRightLeft, HandCoins } from "lucide-react";
 
 export default function USDC() {
   const { web3, currentChain, getPoolBalances, swapALTForUSDC, swapUSDCForALT, fetchTokenBalances } = useStorage();
@@ -382,8 +383,9 @@ export default function USDC() {
             : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
             } font-semibold py-2.5 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500/10 disabled:hover:text-amber-500`}
         >
-          <div className="flex justify-center items-center">
-            <span className="tracking-wide">
+          <div className="relative flex items-center justify-center gap-2">
+            <HandCoins className="w-5 h-5" />
+            <span className="text-md">
               {isSwapping ? "Swapping..." : (isCalculating ? "Loading..." : "Swap")}
             </span>
           </div>

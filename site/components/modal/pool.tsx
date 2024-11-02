@@ -283,8 +283,8 @@ const GeneralAddLiquidityModal = ({
                 {isLoading
                   ? "Adding Liquidity..."
                   : isExistingPool
-                  ? "Increase Liquidity"
-                  : "Add Liquidity"}
+                    ? "Increase Liquidity"
+                    : "Add Liquidity"}
               </span>
               {!isLoading && (
                 <span className="absolute right-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200">
@@ -784,13 +784,13 @@ const Pool: React.FC = () => {
       </div> */}
 
       {/* Enhanced Positions List - Adjusted height */}
-      <div className="flex-1 overflow-hidden px-4 pt-4">
-        <ScrollArea className="h-[350px]">
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-[350px] pt-5">
           {" "}
           {/* Reduced height to ensure button visibility */}
           {isInitialLoading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="text-amber-500 animate-pulse">
+              <div className="text-amber-500 animate-pulse font-semibold">
                 Loading positions...
               </div>
             </div>
@@ -848,29 +848,29 @@ const Pool: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-  <IncreaseLiquidityModal
-    pool={{
-      token: position.token,
-      tokenSymbol: position.tokenSymbol,
-      tokenReserve: position.tokenAmount,
-      altReserve: position.altAmount,
-      totalShares: position.shares,
-      userShares: position.rawShares.toString()
-    }}
-    onSuccess={startPolling}
-  />
-  <RemoveLiquidityModal
-    pool={{
-      token: position.token,
-      tokenSymbol: position.tokenSymbol,
-      tokenReserve: position.tokenAmount,
-      altReserve: position.altAmount,
-      totalShares: position.shares,
-      userShares: position.rawShares.toString()
-    }}
-    onSuccess={startPolling}
-  />
-</div>
+                      <IncreaseLiquidityModal
+                        pool={{
+                          token: position.token,
+                          tokenSymbol: position.tokenSymbol,
+                          tokenReserve: position.tokenAmount,
+                          altReserve: position.altAmount,
+                          totalShares: position.shares,
+                          userShares: position.rawShares.toString()
+                        }}
+                        onSuccess={startPolling}
+                      />
+                      <RemoveLiquidityModal
+                        pool={{
+                          token: position.token,
+                          tokenSymbol: position.tokenSymbol,
+                          tokenReserve: position.tokenAmount,
+                          altReserve: position.altAmount,
+                          totalShares: position.shares,
+                          userShares: position.rawShares.toString()
+                        }}
+                        onSuccess={startPolling}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -880,7 +880,7 @@ const Pool: React.FC = () => {
       </div>
 
       {/* Enhanced Add Liquidity Button - Now always visible */}
-      <div className="p-4 mt-auto bg-gradient-to-t from-black to-transparent">
+      <div className="pb-4 mt-auto bg-gradient-to-t from-black to-transparent">
         <Button
           onClick={() => setShowGeneralModal(true)}
           className="w-full bg-amber-500/10 
@@ -899,7 +899,6 @@ const Pool: React.FC = () => {
             disabled:hover:bg-amber-500/10 
             disabled:hover:text-amber-500"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           <div className="relative flex items-center justify-center gap-2">
             <Droplets className="w-5 h-5" />
             <span className="text-md">Add Liquidity</span>
