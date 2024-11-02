@@ -106,17 +106,6 @@ export default function Escrows() {
     return `${seconds}s`;
   };
 
-  const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
-  };
-
   useEffect(() => {
     if (!web3 || !escrows.length) {
       setTotalEscrowedAmount("0");

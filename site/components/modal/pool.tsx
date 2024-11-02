@@ -23,6 +23,7 @@ import { Droplets, X, Timer, Share2, Coins, BriefcaseBusiness } from "lucide-rea
 import { useStorage } from "../storage";
 import { toast } from "sonner";
 import { LiquidityPosition } from "../storage";
+import chains from "@/app/constants";
 
 interface Token {
   address: string;
@@ -427,14 +428,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
   };
 
   const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
+    return chains.find((c) => c.decimalId === chainId)?.name || "Unknown Chain";
   };
 
   return (
@@ -611,14 +605,7 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
   };
 
   const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
+    return chains.find((c) => c.decimalId === chainId)?.name || "Unknown Chain";
   };
 
   return (
@@ -704,14 +691,7 @@ const Pool: React.FC = () => {
   const [isPolling, setIsPolling] = useState(false);
 
   const getChainName = (chainId: number) => {
-    switch (chainId) {
-      case 43113:
-        return "Avalanche Fuji";
-      case 44787:
-        return "Celo Alfajores";
-      default:
-        return "Unknown Chain";
-    }
+    return chains.find((c) => c.decimalId === chainId)?.name || "Unknown Chain";
   };
 
   const loadPositions = async (isInitial: boolean = false) => {

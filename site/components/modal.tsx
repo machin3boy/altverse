@@ -11,7 +11,7 @@ import { X } from "lucide-react";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import Chains, { Chain } from "../app/constants";
+import chains, { Chain } from "../app/constants";
 
 interface ModalProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ export default function Modal(
   { isOpen, onClose, chain }: ModalProps = {
     isOpen: true,
     onClose: () => { },
-    chain: Chains[0],
+    chain: chains[0],
   }
 ) {
   const [activeTab, setActiveTab] = useState("swap");
