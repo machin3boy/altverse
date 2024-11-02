@@ -491,7 +491,7 @@ export default function Swap() {
                     <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">0</span>
                   )}
                   <NumberTicker
-                    value={lastReceivedAmount && Number(lastReceivedAmount) ? Number(lastReceivedAmount) : 0}
+                    value={!amount ? 0 : (lastReceivedAmount && Number(lastReceivedAmount) ? Number(lastReceivedAmount) : 0)}
                     decimalPlaces={(() => {
                       const num = Number(lastReceivedAmount);
                       if (num === 0 || num >= 1) return 3;
@@ -502,7 +502,7 @@ export default function Swap() {
                       // Clamp between 3 and 6
                       return Math.min(Math.max(firstNonZeroIndex + 2, 3), 6);
                     })()}
-                    className={`text-2xl pl-2 pb-0 font-mono ${lastReceivedAmount === "0" ? "text-gray-500" : "text-white"}`}
+                    className={`text-2xl pl-2 pb-0 font-mono ${!amount || lastReceivedAmount === "0" ? "text-gray-500" : "text-white"}`}
                   />
                 </div>
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
