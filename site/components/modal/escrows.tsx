@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useStorage } from "../storage";
 import { toast } from "sonner";
+import { Clock, WalletCards, Lock, Unlock, Shield, CheckCircle, XCircle } from "lucide-react";
 
 interface Escrow {
-  id: string;         // This should be the bytes32 hash
+  id: string;        
   user: string;
   altAmount: string;
   timeout: number;
@@ -18,6 +19,7 @@ export default function Escrows() {
   const [escrows, setEscrows] = useState<Escrow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPolling, setIsPolling] = useState(false);
+  const [totalEscrowedAmount, setTotalEscrowedAmount] = useState("0");
 
   const loadEscrows = async (isInitialLoad: boolean = false) => {
     if (!web3) return;
@@ -115,98 +117,178 @@ export default function Escrows() {
     }
   };
 
-  return (
-    <div className="flex flex-col h-full max-h-[500px]">
-      {/* Title section */}
-      <div className="px-2 py-4">
-        <h4 className="text-lg font-bold text-amber-500">
-          Escrows on {getChainName(currentChain)}
-        </h4>
-        <p className="text-sm text-gray-400">
-          View and manage your cross-chain escrows
-        </p>
-      </div>
+  useEffect(() => {
+    if (!web3 || !escrows.length) {
+      setTotalEscrowedAmount("0");
+      return;
+    }
 
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0"> {/* This ensures proper scrolling */}
-        <ScrollArea className="h-full rounded-md border border-amber-500/20">
-          <div className="p-2">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <span className="text-amber-500">Loading escrows...</span>
+    const total = escrows.reduce((sum, escrow) => {
+      if (escrow.active) {
+        return sum + Number(web3.utils.fromWei(escrow.altAmount, "ether"));
+      }
+      return sum;
+    }, 0);
+
+    setTotalEscrowedAmount(total.toFixed(6));
+  }, [escrows, web3]);
+
+  return (
+    <div className="flex flex-col h-full relative">
+      {/* Enhanced Header Section */}
+      <div className="px-4 py-4 border border-amber-500/20 bg-neutral-950 rounded-md">
+  <div className="flex justify-between items-start mb-2">
+    <div>
+      <h4 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">
+        Escrow Dashboard
+      </h4>
+      <p className="text-sm text-gray-400 mt-1">
+        on {getChainName(currentChain)}
+      </p>
+    </div>
+    <div className="flex flex-col items-end">
+      <span className="text-sm text-gray-400">Total Escrowed</span>
+      <span className="text-lg font-mono font-bold text-amber-500">
+        {totalEscrowedAmount} ALT
+      </span>
+    </div>
+  </div>
+</div>
+
+{/* Stats Bar */}
+<div className="grid grid-cols-2 gap-2 px-4 py-3 bg-neutral-950 border border-amber-500/20 rounded-md mt-3">
+  <div className="flex items-center gap-2">
+    <Shield className="w-4 h-4 text-amber-500/70" />
+    <div className="flex flex-col">
+      <span className="text-xs text-gray-400">Secure Escrows</span>
+      <span className="text-sm font-mono font-bold text-white">
+        {escrows.filter(e => e.active).length} Active
+      </span>
+    </div>
+  </div>
+  <div className="flex items-center gap-2">
+    <Clock className="w-4 h-4 text-amber-500/70" />
+    <div className="flex flex-col">
+      <span className="text-xs text-gray-400">Timed Out</span>
+      <span className="text-sm font-mono font-bold text-white">
+        {escrows.filter(e => Date.now() >= e.timeout).length} Timed out
+      </span>
+    </div>
+  </div>
+</div>
+
+      {/* Enhanced Scrollable Content */}
+      <div className="flex-1 overflow-hidden px-4 pt-4">
+      <div className="flex-1 overflow-hidden px-4 pt-4">
+        <ScrollArea className="h-[280px]">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="text-amber-500 animate-pulse flex items-center gap-2">
+                <Lock className="w-5 h-5 animate-pulse" />
+                <span>Loading escrows...</span>
               </div>
-            ) : escrows.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40">
-                <p className="text-sm text-muted-foreground font-bold">
-                  No active escrows on {getChainName(currentChain)}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Escrows will appear here when you perform cross-chain swaps
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {escrows.map((escrow, index) => (
-                  <Card
-                    key={index}
-                    className={`border rounded-md transition-colors duration-200 
-                      ${escrow.active
-                        ? "hover:border-amber-500"
-                        : "opacity-50 hover:border-gray-500"}`}
-                  >
-                    <CardContent className="p-3 font-mono font-bold">
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">Amount:</span>
-                        <span className="text-sm">
+            </div>
+          ) : escrows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 bg-amber-950/20 rounded-lg border border-amber-500/10 p-6">
+              <WalletCards className="w-12 h-12 text-amber-500/30 mb-4" />
+              <p className="text-sm font-medium text-amber-500/80">
+                No active escrows
+              </p>
+              <p className="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                Escrows will appear here when you perform cross-chain swaps
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {escrows.map((escrow, index) => (
+                <Card
+                  key={index}
+                  className={`bg-amber-950/10 transition-all duration-200 shadow-lg 
+                    ${escrow.active 
+                      ? "border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-950/20" 
+                      : "border-amber-500/10 hover:border-amber-500/30 hover:bg-amber-950/20"}`}
+                >
+                  <CardContent className="p-4">
+                    {/* Escrow Header */}
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center
+                          ${escrow.active 
+                            ? "bg-amber-500/10" 
+                            : "bg-amber-500/5"}`}
+                        >
+                          {escrow.active 
+                            ? <Lock className="w-4 h-4 text-amber-500" />
+                            : <Unlock className="w-4 h-4 text-amber-500/50" />}
+                        </div>
+                        <span className="font-bold text-lg text-white">
                           {formatAltAmount(escrow.altAmount)} ALT
                         </span>
                       </div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">Status:</span>
-                        <span className={`text-sm ${escrow.active ? "text-green-500" : "text-red-500"}`}>
-                          {escrow.active ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm">Address:</span>
-                        <span className="text-sm">
-                          {formatAddress(escrow.user)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Time Left:</span>
-                        <span className={`text-sm ${
-                          Date.now() >= escrow.timeout ? "text-emerald-500" : "text-amber-500"
-                        }`}>
-                          {getTimeLeft(escrow.timeout)}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-3 pt-0">
-                      <Button
-                        variant="secondary"
-                        className={`w-full h-8 text-sm font-semibold
-                          ${Date.now() >= escrow.timeout && escrow.active
-                            ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
-                            : "bg-neutral-800 text-neutral-400 cursor-not-allowed"}
-                        `}
-                        disabled={Date.now() < escrow.timeout || !escrow.active}
-                        onClick={() => handleClaimEscrow(escrow.id)}
+                      <div className={`px-2 py-0.5 rounded text-xs font-medium
+                        ${escrow.active 
+                          ? "bg-emerald-500/10 text-emerald-500" 
+                          : "bg-sky-500/10 text-sky-500"}`}
                       >
-                        {!escrow.active
-                           ? "Escrow Inactive"
-                          : Date.now() >= escrow.timeout
-                             ? "Claim Escrow"
-                             : "Awaiting Timeout"}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+                        {escrow.active ? "Active" : "Inactive"}
+                      </div>
+                    </div>
+
+                    {/* Escrow Details */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-400">Address</p>
+                        <p className="font-mono font-bold text-amber-100">
+                          {formatAddress(escrow.user)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-400">Time Left</p>
+                        <p className={`font-mono font-bold
+                          ${Date.now() >= escrow.timeout ? "text-emerald-500" : "text-amber-500"}`}
+                        >
+                          {getTimeLeft(escrow.timeout)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Claim Button */}
+                    <Button
+                      className={`w-full relative overflow-hidden group
+                        ${Date.now() >= escrow.timeout && escrow.active
+                          ? "bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 border border-sky-500/20 hover:border-sky-500/30"
+                          : "bg-amber-950/50 text-amber-500/50 border border-amber-500/10 cursor-not-allowed"}`}
+                      disabled={Date.now() < escrow.timeout || !escrow.active}
+                      onClick={() => handleClaimEscrow(escrow.id)}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      <div className="relative flex items-center justify-center gap-2">
+                        {!escrow.active ? (
+                          <>
+                            <XCircle className="w-4 h-4" />
+                            <span>Escrow Inactive</span>
+                          </>
+                        ) : Date.now() >= escrow.timeout ? (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Claim Escrow</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-4 h-4" />
+                            <span>Awaiting Timeout</span>
+                          </>
+                        )}
+                      </div>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </div>
+    </div>
     </div>
   );
 }
