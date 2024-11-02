@@ -190,7 +190,7 @@ const Pool: React.FC = () => {
       </div>
 
       {/* Enhanced Add Liquidity Button - Now always visible */}
-      <div className="pb-4 mt-auto bg-gradient-to-t from-black to-transparent">
+      <div className="pb-4 mt-auto">
         <Button
           onClick={() => setShowAddModal(true)}
           className="w-full bg-amber-500/10 
