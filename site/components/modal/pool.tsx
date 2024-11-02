@@ -821,7 +821,7 @@ const Pool: React.FC = () => {
                     </div>
 
                     {/* Position Details */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4 mb-4 ml-0.5">
                       <div className="space-y-1">
                         <p className="text-sm text-gray-400 font-semibold">Token Amount</p>
                         <p className="font-mono font-bold text-white">
