@@ -669,17 +669,17 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-amber-500">Shares to Remove:</span>
-              <span>{Number(shares).toFixed(6)}</span>
+              <span>{Number(shares).toFixed(3)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-amber-500">
                 {pool.tokenSymbol} to Receive:
               </span>
-              <span>{Number(tokenAmount).toFixed(6)}</span>
+              <span>{Number(tokenAmount).toFixed(3)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-amber-500">ALT to Receive:</span>
-              <span>{Number(altAmount).toFixed(6)}</span>
+              <span>{Number(altAmount).toFixed(3)}</span>
             </div>
           </div>
 
@@ -773,22 +773,19 @@ const Pool: React.FC = () => {
   return (
     <div className="flex flex-col h-full relative">
       {/* Enhanced Header Section */}
-      <div className="px-4 py-4 border-b border-amber-500/20">
+      {/* <div className="px-4 pb-2 border-b border-amber-500/20">
         <div className="flex items-start">
           <div>
-            <h4 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">
+            <h4 className="text-md font-bold bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">
               Liquidity Pools
             </h4>
-            <p className="text-sm text-gray-400 mt-1">
-              on {getChainName(currentChain)}
-            </p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Enhanced Positions List - Adjusted height */}
       <div className="flex-1 overflow-hidden px-4 pt-4">
-        <ScrollArea className="h-[280px]">
+        <ScrollArea className="h-[350px]">
           {" "}
           {/* Reduced height to ensure button visibility */}
           {isInitialLoading ? (
@@ -838,13 +835,13 @@ const Pool: React.FC = () => {
                       <div className="space-y-1">
                         <p className="text-xs text-gray-400">Token Amount</p>
                         <p className="font-mono font-bold text-white">
-                          {Number(position.formattedTokenAmount).toFixed(6)}
+                          {Number(position.formattedTokenAmount).toFixed(3)}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs text-gray-400">ALT Amount</p>
                         <p className="font-mono font-bold text-white">
-                          {Number(position.formattedAltAmount).toFixed(6)}
+                          {Number(position.formattedAltAmount).toFixed(3)}
                         </p>
                       </div>
                     </div>
