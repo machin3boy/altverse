@@ -78,7 +78,7 @@ const cryptos = [
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl mt-8">
+    <div className="grid grid-cols-2 gap-4 p-4 bg-neutral-950 rounded-xl mt-5">
       {cryptos.map((crypto, index) => (
         <CryptoButton
           key={index}
