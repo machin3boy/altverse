@@ -279,7 +279,7 @@ export default function USDC() {
                     className={`w-[160px] font-semibold data-[state=open]:border-${altcoinFromToken === "USDC" ? "sky" : "amber"
                       }-500 focus:ring-0 focus:ring-offset-0 bg-${altcoinFromToken === "USDC" ? "sky" : "amber"
                       }-500/10 border-${altcoinFromToken === "USDC" ? "sky" : "amber"
-                      }-500/10 py-4`}
+                      }-500/10 py-4 transition-colors duration-200`}
                   >
                     <SelectValue>
                       <div className="flex items-center">

@@ -90,6 +90,7 @@ interface TokenConfig {
   symbol: string;
   abi: AbiItem[];
   icon: string;
+  logoSrc: string;
 }
 
 interface Escrow {
@@ -138,25 +139,29 @@ const tokens: TokenConfig[] = [
     address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
     symbol: "ALT",
     abi: coreContractABI as AbiItem[],
-    icon: "A"
+    icon: "A",
+    logoSrc: "/images/tokens/branded/ALT.svg",
   },
   {
     address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
     symbol: "wBTC",
     abi: FaucetERC20ABI as AbiItem[],
-    icon: "₿"
+    icon: "₿",
+    logoSrc: "/images/tokens/branded/BTC.svg",
   },
   {
     address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
     symbol: "wETH",
     abi: FaucetERC20ABI as AbiItem[],
-    icon: "Ξ"
+    icon: "Ξ",
+    logoSrc: "/images/tokens/branded/ETH.svg",
   },
   {
     address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
     symbol: "wLINK",
     abi: FaucetERC20ABI as AbiItem[],
-    icon: "⬡"
+    icon: "⬡",
+    logoSrc: "/images/tokens/branded/LINK.svg",
   }
 ];
 
