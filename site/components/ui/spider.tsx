@@ -67,7 +67,7 @@ export default function Spider({ className }: { className?: string }) {
             ref={rightBidirectionalRef}
             className="shadow-[0_0_20px_-5px_rgba(14,165,233,0.8)]"
           >
-            <img src="/images/zero-sky-500.svg" />
+            <img src="/images/tokens/branded/ALT2.svg" />
           </Circle>
         </div>
         <div className="flex flex-col justify-between">

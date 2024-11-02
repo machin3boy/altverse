@@ -12,9 +12,6 @@ import { useStorage } from "../storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import NumberTicker from "@/components/magicui/number-ticker";
-import CeloLogo from "../ui/celo-logo";
-import AvaxLogo from "../ui/avax-logo";
-import LogoProps from "../ui/logo-props";
 
 type ChainId = "celo" | "fuji" | "optimism";
 
@@ -22,28 +19,28 @@ interface Chain {
   name: string;
   id: ChainId;
   chainId: number;
-  logo: React.FC<LogoProps>;
+  logoSrc: string;
 }
 
 const tokens = [
   {
     symbol: "ALT",
-    icon: "A",
+    logoSrc: "/images/tokens/branded/ALT.svg",
     address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
   },
   {
     symbol: "wBTC",
-    icon: "₿",
+    logoSrc: "/images/tokens/branded/BTC.svg",
     address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
   },
   {
     symbol: "wETH",
-    icon: "Ξ",
+    logoSrc: "/images/tokens/branded/ETH.svg",
     address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
   },
   {
     symbol: "wLINK",
-    icon: "⬡",
+    logoSrc: "/images/tokens/branded/LINK.svg",
     address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
   },
 ];
@@ -53,19 +50,19 @@ const chains: Chain[] = [
     name: "Celo Testnet",
     id: "celo",
     chainId: 44787,
-    logo: CeloLogo,
+    logoSrc: "/images/tokens/branded/CELO.svg",
   },
   {
     name: "Fuji Testnet",
     id: "fuji",
     chainId: 43113,
-    logo: AvaxLogo,
+    logoSrc: "/images/tokens/branded/AVAX.svg",
   },
   {
-    name: "OP Sepolia Testnet",
+    name: "Sepolia Testnet",
     id: "optimism",
     chainId: 3242,
-    logo: AvaxLogo,
+    logoSrc: "/images/tokens/branded/OP.svg",
   },
 ];
 
@@ -100,27 +97,6 @@ export default function Swap() {
 
   const [currentCalculation, setCurrentCalculation] =
     useState<AbortController | null>(null);
-
-  const ChainSelectValue = React.forwardRef<HTMLDivElement, { value: ChainId }>(
-    (props, ref) => {
-      const chain = chains.find((c) => c.id === props.value);
-      const Logo = chain?.logo;
-
-      return (
-        <div className="flex items-center gap-2" ref={ref}>
-          {Logo && (
-            <Logo
-              fillColor="rgb(14 165 233)"
-              width={16}
-              height={16}
-              className="opacity-80"
-            />
-          )}
-          <span>{chain?.name}</span>
-        </div>
-      );
-    }
-  );
 
   const calculateReceivedAmount = useCallback(
     async (inputAmount: string, abortController: AbortController) => {
@@ -426,12 +402,13 @@ export default function Swap() {
                   }}
                 />
                 <Select value={swapFromToken} onValueChange={setSwapFromToken}>
-                  <SelectTrigger className="w-[120px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
+                  <SelectTrigger className="w-[180px] border-amber-500/10 font-semibold data-[state=open]:border-amber-500 focus:ring-0 focus:ring-offset-0 bg-amber-500/10 py-4">
                     <SelectValue>
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          {tokens.find((t) => t.symbol === swapFromToken)?.icon}
-                        </span>
+                        <img
+                          src={tokens.find(t => t.symbol === swapFromToken)?.logoSrc}
+                          className="w-6 h-6 mr-2"
+                        />
                         <span className="font-mono w-12">
                           {swapFromToken.padEnd(4)}
                         </span>
@@ -446,9 +423,11 @@ export default function Swap() {
                         className="font-semibold data-[highlighted]:bg-amber-500/80 data-[highlighted]:text-white"
                       >
                         <div className="flex items-center">
-                          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                            {token.icon}
-                          </span>
+                          <img
+                            src={token.logoSrc}
+                            alt={token.symbol}
+                            className="w-6 h-6 mr-2"
+                          />
                           <span className="font-mono w-12">
                             {token.symbol.padEnd(4)}
                           </span>
@@ -469,17 +448,13 @@ export default function Swap() {
                     <SelectValue>
                       {(() => {
                         const chain = chains.find((c) => c.id === targetChain);
-                        const Logo = chain?.logo;
                         return (
                           <div className="flex items-center gap-2">
-                            {Logo && (
-                              <Logo
-                                fillColor="rgb(14 165 233)"
-                                width={16}
-                                height={16}
-                                className="opacity-80"
-                              />
-                            )}
+                            <img
+                              src={chain?.logoSrc}
+                              alt={chain?.name}
+                              className="w-5 h-5"
+                            />
                             {chain?.name}
                           </div>
                         );
@@ -490,7 +465,6 @@ export default function Swap() {
                     {chains
                       .filter((chain) => chain.chainId !== currentChain)
                       .map((chain) => {
-                        const Logo = chain.logo;
                         return (
                           <SelectItem
                             key={chain.id}
@@ -498,11 +472,10 @@ export default function Swap() {
                             className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white font-mono"
                           >
                             <div className="flex items-center gap-2">
-                              <Logo
-                                fillColor="rgb(14 165 233)"
-                                width={16}
-                                height={16}
-                                className="opacity-80"
+                              <img
+                                src={chain?.logoSrc}
+                                alt={chain?.name}
+                                className="w-5 h-5 opacity-80"
                               />
                               {chain.name}
                             </div>
@@ -533,12 +506,13 @@ export default function Swap() {
                   />
                 </div>
                 <Select value={swapToToken} onValueChange={setSwapToToken}>
-                  <SelectTrigger className="w-[120px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
+                  <SelectTrigger className="w-[180px] border-sky-500/10 font-semibold data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4">
                     <SelectValue>
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                          {tokens.find((t) => t.symbol === swapToToken)?.icon}
-                        </span>
+                        <img
+                          src={tokens.find(t => t.symbol === swapToToken)?.logoSrc}
+                          className="w-6 h-6 mr-2"
+                        />
                         <span className="font-mono w-12">
                           {swapToToken.padEnd(4)}
                         </span>
@@ -553,9 +527,11 @@ export default function Swap() {
                         className="font-semibold data-[highlighted]:bg-sky-500/80 data-[highlighted]:text-white"
                       >
                         <div className="flex items-center">
-                          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center mr-2">
-                            {token.icon}
-                          </span>
+                          <img
+                            src={token.logoSrc}
+                            alt={token.symbol}
+                            className="w-6 h-6 mr-2"
+                          />
                           <span className="font-mono w-12">
                             {token.symbol.padEnd(4)}
                           </span>
