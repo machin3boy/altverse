@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
+import { Droplets } from "lucide-react";
 import { useStorage } from "../storage";
 
 interface Pool {
@@ -167,7 +168,12 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
             disabled={isLoading || percentage[0] <= 0}
             className="w-full bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 font-semibold border border-sky-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Removing Liquidity..." : "Remove Liquidity"}
+            {isLoading ? "Removing Liquidity..." :
+              <div className="relative flex items-center justify-center gap-2">
+                <Droplets className="w-5 h-5" />
+                <span className="text-md">Remove Liquidity</span>
+              </div>
+            }
           </Button>
         </div>
       </DialogContent>

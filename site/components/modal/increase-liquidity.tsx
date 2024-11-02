@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Droplets } from "lucide-react";
 import NumberTicker from "@/components/magicui/number-ticker";
 
 interface Pool {
@@ -241,7 +242,12 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
             disabled={isLoading || !tokenAmount || !altAmount || Number(tokenAmount) <= 0}
             className="w-full bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 font-semibold border border-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Processing..." : "Increase Liquidity"}
+            {isLoading ? "Processing..." :
+              <div className="relative flex items-center justify-center gap-2">
+                <Droplets className="w-5 h-5" />
+                <span className="text-md">Increase Liquidity</span>
+              </div>
+            }
           </Button>
         </div>
       </DialogContent>

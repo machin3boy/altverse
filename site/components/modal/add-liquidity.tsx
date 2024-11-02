@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Droplets } from "lucide-react";
 import NumberTicker from "@/components/magicui/number-ticker";
 
 interface Pool {
