@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import Web3, { Contract, TransactionBlockTimeoutError } from "web3";
+import Web3 from "web3";
 import coreContractABI from "@/public/ABIs/Altverse.json";
 import { AbiItem } from "web3-utils";
 import ERC20ABI from "@/public/ABIs/ERC20.json";

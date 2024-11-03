@@ -6,10 +6,8 @@ import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
 import {
   Clock,
-  WalletCards,
   Lock,
   Unlock,
-  Shield,
   CheckCircle,
   XCircle,
 } from "lucide-react";

@@ -8,27 +8,34 @@
 #### Testnet USDC addresses
 - `0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B` - Celo Alfajores testnet
 - `0x5425890298aed601595a70ab815c96711a31bc65` - Avalanche Fuji testnet
+- `0x5fd84259d66Cd46123540766Be93DFE6D43130D7` - Optimism Sepolia testnet
 
 #### Testnet chain IDs
 - `14` - Celo Alfajores testnet 
 - `6` - Avalanche Fuji testnet
+- `10005` - Optimism Sepolia testnet
 
 #### Testnet WormholeRelayer addresses
 - `0x306B68267Deb7c5DfCDa3619E22E9Ca39C374f84` - Celo Alfajores testnet
 - `0xA3cF45939bD6260bcFe3D66bc73d60f19e49a8BB` - Avalanche Fuji testnet
+- `0x93BAD53DDfB6132b0aC8E37f6029163E63372cEE` - Optimism Sepolia testnet
 
 #### Testnet faucets
 - https://faucet.celo.org
 - https://core.app/en/tools/testnet-faucet/?subnet=c
+- https://sepolia-faucet.pk910.de/
+- https://superbridge.app/optimism
 
 #### Explorers
 - https://alfajores.celoscan.io
 - https://testnet.avascan.info
+- https://testnet.snowtrace.io/
+- https://sepolia-optimism.etherscan.io/
 - https://wormholescan.io/
 
 #### Deployment sequence
-- Deploy `Altverse.sol` on both chains
-- Call `setRegisteredSender` in `Altverse` contract on the opposite chain
+- Deploy `Altverse.sol` on all chains
+- Call `setRegisteredSender` in `Altverse` contract on the opposite chains
 - Deploy wrapped ERCs for testing at appropriate addresses
 - Call `setDesignatedUSDC` in `Altverse` contract with appropriate USDC address
 - Approve Altverse contract in `wBTC`, `wETH`, `wLINK` for spending to create LPs for `max(uint256)` amount
@@ -42,7 +49,6 @@
 - Inject `10000000000000000000000 wETH`, `24707300000000000000000000 ALT` as LP
 - Inject `1000000000000000000000000 wLINK`, `10980000000000000000000000 ALT` as LP
 - Finance Altverse contract with native asset (so users do not have to pay gas, for now)
-- Can deploy using `deployment/scenario.json` 
 
 #### Contract references (on all chains if deployed using `scenario.json`)
 

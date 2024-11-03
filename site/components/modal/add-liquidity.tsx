@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Droplets } from "lucide-react";
 import {
@@ -17,21 +16,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import NumberTicker from "@/components/magicui/number-ticker";
-
-interface Pool {
-  token: string;
-  tokenSymbol: string;
-  tokenReserve: string;
-  altReserve: string;
-  totalShares: string;
-  userShares: string;
-}
+import NumberTicker from "@/components/ui/number-ticker";
 
 interface AddLiquidityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void; // Add this
+  onSuccess?: () => void; 
 }
 
 const AddLiquidityModal = ({

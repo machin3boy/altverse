@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import Marquee from "@/components/magicui/marquee";
+import Marquee from "@/components/ui/marquee";
 import { useEffect, useId, useRef, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 

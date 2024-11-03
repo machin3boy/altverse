@@ -6,13 +6,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Droplets } from "lucide-react";
-import NumberTicker from "@/components/magicui/number-ticker";
+import NumberTicker from "@/components/ui/number-ticker";
 
 interface Pool {
   token: string;

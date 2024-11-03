@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swap from "@/components/modal/swap";
@@ -14,9 +13,7 @@ import Escrows from "@/components/modal/escrows";
 import Faucet from "@/components/modal/faucet";
 import USDC from "@/components/modal/usdc";
 import { X } from "lucide-react";
-import { useStorage, Chain } from "@/components/storage";
-import { toast } from "sonner";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { Chain } from "@/components/storage";
 
 interface ModalProps {
   isOpen: boolean;

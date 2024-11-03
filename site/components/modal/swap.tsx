@@ -11,8 +11,8 @@ import {
 import { useStorage } from "@/components/storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import NumberTicker from "@/components/magicui/number-ticker";
-import { ArrowRightLeft, Droplets, HandCoins } from "lucide-react";
+import NumberTicker from "@/components/ui/number-ticker";
+import { HandCoins } from "lucide-react";
 
 interface TokenBalance {
   symbol: string;

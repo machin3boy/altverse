@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { cn } from "@/lib/utils";
-import ShimmerButton from "@/components/magicui/shimmer-button";
-import BlurIn from "@/components/magicui/blurin";
-import Globe from "@/components/magicui/globe";
+import ShimmerButton from "@/components/ui/shimmer-button";
+import BlurIn from "@/components/ui/blurin";
+import Globe from "@/components/ui/globe";
 import Tiles from "@/components/ui/tiles";
 import Spider from "@/components/ui/spider";
 import Image from "next/image";

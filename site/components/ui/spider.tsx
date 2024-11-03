@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { AnimatedBeam } from "@/components/magicui/animated-beam";
+import { AnimatedBeam } from "@/components/ui/animated-beam";
 
 const Circle = React.forwardRef<
   HTMLDivElement,

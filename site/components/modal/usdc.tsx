@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import NumberTicker from "@/components/magicui/number-ticker";
+import NumberTicker from "@/components/ui/number-ticker";
 import {
   Select,
   SelectContent,
@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
-import { AbiItem } from "web3-utils";
-import { ArrowRightLeft, HandCoins } from "lucide-react";
+import { HandCoins } from "lucide-react";
 
 export default function USDC() {
   const {
