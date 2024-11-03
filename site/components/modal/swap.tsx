@@ -48,6 +48,20 @@ export default function Swap() {
     return (firstAvailableChain?.name_id as string) || "fuji";
   });
 
+  // Add effect to update targetChain when currentChain changes
+  useEffect(() => {
+    if (targetChain) {
+      const selectedChain = chains.find(chain => chain.name_id === targetChain);
+      if (selectedChain?.decimalId === currentChain) {
+        // Find first available chain that's not the current chain
+        const newChain = chains.find(chain => chain.decimalId !== currentChain);
+        if (newChain) {
+          setTargetChain(newChain.name_id);
+        }
+      }
+    }
+  }, [currentChain, targetChain, chains]);
+
   const [currentCalculation, setCurrentCalculation] =
     useState<AbortController | null>(null);
 
@@ -306,10 +320,10 @@ export default function Swap() {
                         );
                         const balance = currentToken
                           ? tokenBalances.find(
-                              (b) =>
-                                b.address.toLowerCase() ===
-                                currentToken.address.toLowerCase(),
-                            )
+                            (b) =>
+                              b.address.toLowerCase() ===
+                              currentToken.address.toLowerCase(),
+                          )
                           : null;
                         const numBalance = balance
                           ? Number(balance.balance)
@@ -346,11 +360,10 @@ export default function Swap() {
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder="0"
-                  className={`text-2xl pl-2 text-left font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    amount === ""
+                  className={`text-2xl pl-2 text-left font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${amount === ""
                       ? "text-gray-500 placeholder:text-gray-500"
                       : "text-white"
-                  }`}
+                    }`}
                   style={{
                     WebkitAppearance: "none",
                     MozAppearance: "textfield",
