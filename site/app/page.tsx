@@ -58,8 +58,6 @@ const Page: React.FC = () => {
     setAddress(userAddress);
 
     const chain = (await web3.eth.getChainId()).toString();
-    console.log("fetched chainid in dapp-main:");
-    console.log(chain);
     setChainId(chain);
 
     if (!userAddress) {
@@ -68,7 +66,6 @@ const Page: React.FC = () => {
   };
 
   const handleAccountChange = async (accounts: string[]) => {
-    console.log("Account changed:", accounts[0]);
 
     if (accounts[0]) {
       // Check if we need to reconnect
@@ -108,7 +105,6 @@ const Page: React.FC = () => {
   };
 
   const handleChainChanged = (newChainId: string) => {
-    console.log("Chain changed:", newChainId);
     setChainId(newChainId);
   };
 

@@ -270,8 +270,6 @@ export default function Swap() {
         targetAddress: ALTVERSE_ADDRESS,
       };
 
-      console.log("Initiating swap with params:", swapParams);
-
       const success = await initiateCrossChainSwap(swapParams);
 
       if (success) {

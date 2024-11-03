@@ -29,7 +29,6 @@ export default function Modal({
   const [activeTab, setActiveTab] = useState("swap");
 
   const handleClose = (open: boolean): void => {
-    console.log("Close button clicked");
     onClose();
   };
 

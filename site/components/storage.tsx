@@ -329,7 +329,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         // Create Web3 instance
         const web3Instance = new Web3((window as any).ethereum);
         setWeb3(web3Instance);
-        console.log("Connected to Web3");
         // Check if the desired network is already added
         const chainId = await (window as any).ethereum.request({
           method: "eth_chainId",
@@ -431,8 +430,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
 
         const newChainName = chains.find((c) => c.id === targetChainId)?.name;
         toast.info("Swapped chain successfully to " + newChainName);
-        console.log("Setting current chain to " + parseInt(targetChainId, 16));
-        console.log("Storing current chain as " + targetChainId);
         setCurrentChain(parseInt(targetChainId, 16));
         setStorage({ currentChain: targetChainId });
         return true;
@@ -451,8 +448,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       if (web3) {
         try {
           const chainId = await web3.eth.getChainId();
-          console.log("Setting current chain to " + Number(chainId));
-          console.log("Storing current chain as " + chainId.toString());
           setCurrentChain(Number(chainId));
           setStorage({ currentChain: chainId.toString() });
         } catch (error) {
@@ -467,8 +462,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     if ((window as any).ethereum) {
       (window as any).ethereum.on("chainChanged", (chainId: string) => {
         const numericChainId = parseInt(chainId, 16);
-        console.log("Setting current chain to " + numericChainId);
-        console.log("Storing current chain as " + numericChainId.toString());
         setCurrentChain(numericChainId);
         setStorage({ currentChain: numericChainId.toString() });
       });
@@ -910,12 +903,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         "18",
       );
 
-      console.log("Native token formatting:", {
-        raw: nativeBalance,
-        bigInt: nativeBigInt.toString(),
-        formatted: formattedNativeBalance,
-      });
-
       const balances: TokenBalance[] = [
         {
           symbol:
@@ -940,12 +927,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           const decimals = (await contract.methods.decimals().call()) as string;
           const balanceBigInt = BigInt(balance);
 
-          console.log(`Detailed balance info for ${token.symbol}:`, {
-            rawBalance: balance,
-            decimals: decimals,
-            balanceBigInt: balanceBigInt.toString(),
-          });
-
           // Test different formatting approaches
           const directWeiConversion = web3.utils.fromWei(balance, "ether");
           const manualFormatting = formatTokenBalance(balance, decimals);
@@ -954,12 +935,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
             Number(decimals),
             2,
           );
-
-          console.log(`Formatting results for ${token.symbol}:`, {
-            directWeiConversion,
-            manualFormatting,
-            withDecimals,
-          });
 
           // Use the new formatBalanceWithDecimals function with 2 decimal places
           return {
@@ -987,15 +962,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         tokenBalances.filter(
           (balance): balance is TokenBalance => balance !== null,
         ),
-      );
-
-      console.log(
-        "Final processed balances:",
-        validBalances.map((b) => ({
-          symbol: b.symbol,
-          balance: b.balance,
-          rawBalance: b.rawBalance.toString(),
-        })),
       );
 
       return validBalances;
@@ -1098,11 +1064,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         .allowance(accounts[0], ALTVERSE_ADDRESS)
         .call()) as string;
 
-      console.log("Current allowance:", currentAllowance);
-
       // If allowance is insufficient, request approval
       if (BigInt(currentAllowance) < BigInt(params.amountIn)) {
-        console.log("Requesting approval for token spend...");
         try {
           const approveTx = await sourceTokenContract.methods
             .approve(ALTVERSE_ADDRESS, MAX_UINT256)
@@ -1112,15 +1075,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
             toast.error("Approval failed");
             return false;
           }
-          console.log("Approval successful");
         } catch (error: any) {
           console.error("Approval error:", error);
           toast.error(`Approval failed: ${error.message}`);
           return false;
         }
-      } else {
-        console.log("Sufficient allowance exists");
-      }
+      } 
 
       // Now proceed with the swap
       const contract = new web3.eth.Contract(
@@ -1206,8 +1166,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      console.log("Fetching pool balances...");
-
       const contract = new web3.eth.Contract(
         coreContractABI as AbiItem[],
         ALTVERSE_ADDRESS,
@@ -1714,7 +1672,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
           const id = (await contract.methods
             .userEscrows(accounts[0], i)
             .call()) as string;
-          console.log(`Fetched escrow ID ${i}:`, id);
           if (
             id &&
             id !==
@@ -1727,8 +1684,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      console.log("All escrow IDs:", escrowIds);
-
       // Get details for each escrow with proper typing
       const escrows = await Promise.all(
         escrowIds.map(async (id: string) => {
@@ -1736,7 +1691,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
             const escrow = (await contract.methods
               .escrows(id)
               .call()) as Escrow;
-            console.log(`Escrow details for ID ${id}:`, escrow);
 
             const escrowDetails: Escrow = {
               id: id, // Store the original bytes32 hash
@@ -1807,8 +1761,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         // 0x + 64 hex characters
         formattedEscrowId = formattedEscrowId + "0";
       }
-
-      console.log("Claiming escrow with ID:", formattedEscrowId);
 
       const tx = await contract.methods
         .claimTimedOutEscrow(formattedEscrowId)
