@@ -76,12 +76,11 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
             >
               <SelectValue>
                 <div className="flex items-center gap-2">
-                  {otherChains.find(chain => chain.id === selectedChain)?.logo({
-                    width: 16,
-                    height: 16,
-                    className: "opacity-80",
-                    fillColor: "rgb(217 119 6)"
-                  })}
+                  <img
+                    src={otherChains.find(chain => chain.id === selectedChain)?.logoSrc}
+                    alt={otherChains.find(chain => chain.id === selectedChain)?.name}
+                    className="w-4 h-4"
+                    />
                   {otherChains.find(chain => chain.id === selectedChain)?.name}
                 </div>
               </SelectValue>
@@ -94,12 +93,11 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
                   className="text-white hover:bg-amber-500/20 cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    {chain.logo({
-                      width: 16,
-                      height: 16,
-                      className: "opacity-80",
-                      fillColor: "rgb(217 119 6)"
-                    })}
+                    <img
+                      src={chain.logoSrc}
+                      alt={chain.name}
+                      className="w-4 h-4"
+                    />
                     {chain.name}
                   </div>
                 </SelectItem>

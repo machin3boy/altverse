@@ -67,9 +67,9 @@ const chains: Chain[] = [
       symbol: "ETH",
       decimalId: 11155420,
       wormholeId: 24,
-      logoFill: "#FF0320", 
+      logoFill: "#383FEE", 
       textColor: "#ffffff", 
-      logoSrc: "/images/tokens/mono/OP.svg",
+      logoSrc: "/images/tokens/branded/OP2.svg",
       logo: (props) => <OPLogo {...props} /> ,
       usdcAddress: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
     },
