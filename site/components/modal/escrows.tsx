@@ -98,7 +98,9 @@ export default function Escrows() {
     return Number(formatted).toFixed(3);
   };
 
-  const getTimeLeft = (timeout: number) => {
+  const getTimeLeft = (timeout: number, isActive: boolean) => {
+    if (!isActive) return "Escrow Inactive";
+    
     const now = Date.now();
     const timeLeft = timeout - now;
 
@@ -209,9 +211,15 @@ export default function Escrows() {
                           Time Left
                         </p>
                         <p
-                          className={`font-mono font-bold ${Date.now() >= escrow.timeout ? "text-sky-500" : "text-amber-500"}`}
+                          className={`font-mono font-bold ${
+                            !escrow.active 
+                              ? "text-sky-500" 
+                              : Date.now() >= escrow.timeout 
+                                ? "text-sky-500" 
+                                : "text-amber-500"
+                          }`}
                         >
-                          {getTimeLeft(escrow.timeout)}
+                          {getTimeLeft(escrow.timeout, escrow.active)}
                         </p>
                       </div>
                     </div>
@@ -220,7 +228,7 @@ export default function Escrows() {
                     <Button
                       className={`w-full h-1/2 py-1 relative overflow-hidden group transition-all duration-200 ${
                         !escrow.active
-                          ? "bg-sky-500/10 text-sky-500/50 border border-sky-500/10 cursor-not-allowed" // Removed opacity
+                          ? "bg-sky-500/10 text-sky-500/50 border border-sky-500/10 cursor-not-allowed"
                           : Date.now() >= escrow.timeout
                             ? "bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 border border-sky-500/20 hover:border-sky-500/30"
                             : "bg-amber-500/10 text-amber-500/50 border border-amber-500/10 cursor-not-allowed"
