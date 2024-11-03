@@ -5,8 +5,8 @@ Altverse is a protocol that enables trustless cross-chain trading without tradit
 ![image](https://github.com/user-attachments/assets/9c93584a-d112-4632-81d8-b8959e5b4674)
 
 ## Quick Links
-- 🌐 [Website](https://altverse.link)
-- 📄 [Technical Whitepaper](https://altverse.link/whitepaper.pdf)
+- [Website](https://altverse.link)
+- [Whitepaper](https://altverse.link/whitepaper.pdf)
 
 ## Run Site Locally
 The frontend application is in the [`site`](./site) directory, built with Next.js, React, TypeScript, TailwindCSS, and shadcn/ui components.

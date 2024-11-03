@@ -256,7 +256,7 @@ const tokens: TokenConfig[] = [
     abi: FaucetERC20ABI as AbiItem[],
     icon: "Ξ",
     iconElement: EthLogo,
-    hoverColor: "hover:text-blue-500 hover:border-blue-500",
+    hoverColor: "hover:text-indigo-300 hover:border-indigo-300",
     logoSrc: "/images/tokens/branded/ETH.svg",
   },
   {
@@ -265,7 +265,7 @@ const tokens: TokenConfig[] = [
     abi: FaucetERC20ABI as AbiItem[],
     icon: "⬡",
     iconElement: ChainlinkLogo,
-    hoverColor: "hover:text-indigo-300 hover:border-indigo-300",
+    hoverColor: "hover:text-blue-500 hover:border-blue-500",
     logoSrc: "/images/tokens/branded/LINK.svg",
   },
 ];
