@@ -73,17 +73,6 @@ export default function Swap() {
             throw new Error("Invalid target chain");
           }
 
-          console.warn("Calculating received amount with params:", {
-            fromToken:
-              tokens.find((t) => t.symbol === swapFromToken)?.address || "",
-            toToken:
-              tokens.find((t) => t.symbol === swapToToken)?.address || "",
-            amountIn: web3.utils.toWei(inputAmount, "ether"),
-            targetChain: targetChainId,
-            currentChain: currentChain,
-            isCrossChain: currentChain !== targetChainId,
-          });
-
           const result = await calculateCrossChainAmount({
             fromToken:
               tokens.find((t) => t.symbol === swapFromToken)?.address || "",

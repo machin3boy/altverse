@@ -1099,12 +1099,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       let tx;
       if (isSameChain) {
         // For same-chain swaps, use regular swap function
-        console.warn("Same-chain swap initiated with params:", {
-          fromToken: params.fromToken,
-          toToken: params.toToken,
-          amountIn: params.amountIn,
-        });
-
         // Call your regular swap function here
         tx = await contract.methods
           .swap(params.fromToken, params.toToken, params.amountIn)
@@ -1117,14 +1111,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
         const wormholeChainId = chains.find(
           (c) => c.decimalId === params.targetChain,
         )?.wormholeId;
-
-        console.warn("Cross-chain swap initiated with params:", {
-          fromToken: params.fromToken,
-          toToken: params.toToken,
-          amountIn: params.amountIn,
-          wormholeChainId,
-          targetAddress: params.targetAddress,
-        });
 
         tx = await contract.methods
           .initiateCrossChainSwap(
