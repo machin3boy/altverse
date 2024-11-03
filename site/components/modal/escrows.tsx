@@ -213,7 +213,7 @@ export default function Escrows() {
                         <p
                           className={`font-mono font-bold ${
                             !escrow.active 
-                              ? "text-sky-500" 
+                              ? "text-sky-500/30" 
                               : Date.now() >= escrow.timeout 
                                 ? "text-sky-500" 
                                 : "text-amber-500"
