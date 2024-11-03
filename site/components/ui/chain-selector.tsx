@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -15,39 +15,45 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import chains from '@/app/constants';
+import { useStorage } from "@/components/storage";
 
 interface ChainSwitcherDialogProps {
   currentChainId: string;
   onSwitch: (chainId: string) => Promise<boolean>;
 }
 
-const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({ 
-  currentChainId, 
-  onSwitch
+const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
+  currentChainId,
+  onSwitch,
 }) => {
+  const { chains } = useStorage();
   // Filter out current chain and format remaining chains
-  const otherChains = chains.filter(chain => chain.id !== currentChainId);
-  
+  const otherChains = chains.filter((chain) => chain.id !== currentChainId);
+
   // Set initial selected chain
-  const [selectedChain, setSelectedChain] = useState<string>(otherChains[0]?.id || '');
+  const [selectedChain, setSelectedChain] = useState<string>(
+    otherChains[0]?.id || "",
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   // Update selected chain if available chains change
   useEffect(() => {
-    if (otherChains.length > 0 && !otherChains.find(chain => chain.id === selectedChain)) {
+    if (
+      otherChains.length > 0 &&
+      !otherChains.find((chain) => chain.id === selectedChain)
+    ) {
       setSelectedChain(otherChains[0].id);
     }
   }, [currentChainId, otherChains]);
 
   const handleSwitch = async () => {
     if (!selectedChain) return;
-    
+
     setIsLoading(true);
     try {
       await onSwitch(selectedChain);
     } catch (error) {
-      console.error('Failed to switch chain:', error);
+      console.error("Failed to switch chain:", error);
     } finally {
       setIsLoading(false);
     }
@@ -64,12 +70,12 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
           Select chain to switch to
         </AlertDialogTitle>
         <div className="w-full">
-          <Select 
-            value={selectedChain} 
+          <Select
+            value={selectedChain}
             onValueChange={setSelectedChain}
             disabled={isLoading}
           >
-            <SelectTrigger 
+            <SelectTrigger
               className="w-full bg-neutral-800 border-amber-500/20 
                 text-white hover:border-amber-500/40 transition-colors
                 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -77,18 +83,27 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
               <SelectValue>
                 <div className="flex items-center gap-2">
                   <img
-                    src={otherChains.find(chain => chain.id === selectedChain)?.logoSrc}
-                    alt={otherChains.find(chain => chain.id === selectedChain)?.name}
+                    src={
+                      otherChains.find((chain) => chain.id === selectedChain)
+                        ?.logoSrc
+                    }
+                    alt={
+                      otherChains.find((chain) => chain.id === selectedChain)
+                        ?.name
+                    }
                     className="w-4 h-4"
-                    />
-                  {otherChains.find(chain => chain.id === selectedChain)?.name}
+                  />
+                  {
+                    otherChains.find((chain) => chain.id === selectedChain)
+                      ?.name
+                  }
                 </div>
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="dark bg-neutral-900 border-amber-500/20">
               {otherChains.map((chain) => (
-                <SelectItem 
-                  key={chain.id} 
+                <SelectItem
+                  key={chain.id}
                   value={chain.id}
                   className="text-white hover:bg-amber-500/20 cursor-pointer"
                 >
@@ -111,7 +126,7 @@ const ChainSwitcherDialog: React.FC<ChainSwitcherDialogProps> = ({
       </AlertDialogHeader>
       <AlertDialogFooter className="flex justify-end mt-8">
         <div className="flex justify-end items-center space-x-4">
-          <AlertDialogCancel 
+          <AlertDialogCancel
             className="w-20 text-white h-9"
             disabled={isLoading}
           >

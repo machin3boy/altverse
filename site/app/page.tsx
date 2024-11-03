@@ -7,7 +7,6 @@ import Modal from "@/components/modal";
 import MetamaskLogo from "@/components/ui/metamask-logo";
 import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
-import chains from "./constants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +27,7 @@ declare global {
       on: (event: string, callback: (...args: any[]) => void) => void;
       removeListener: (
         event: string,
-        callback: (...args: any[]) => void
+        callback: (...args: any[]) => void,
       ) => void;
       request: (args: { method: string; params?: any[] }) => Promise<any>;
     };
@@ -36,11 +35,7 @@ declare global {
 }
 
 const Page: React.FC = () => {
-  const {
-    web3,
-    connectToWeb3,
-    switchChain,
-  } = useStorage();
+  const { web3, connectToWeb3, switchChain, chains } = useStorage();
   const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
   const [chainId, setChainId] = useState("");
@@ -53,7 +48,7 @@ const Page: React.FC = () => {
 
     if (!isConnected) {
       toast.error(
-        "Failed to connect to Web3. Ensure you connect from a Web3 connected browser/device."
+        "Failed to connect to Web3. Ensure you connect from a Web3 connected browser/device.",
       );
       return false;
     }
@@ -125,7 +120,6 @@ const Page: React.FC = () => {
   };
 
   const handleGetStarted = async () => {
-    debugger;
     const connectedToWeb3 = await handleConnectWallet();
     if (connectedToWeb3) setShowModal(true);
   };
@@ -151,7 +145,7 @@ const Page: React.FC = () => {
         if (window.ethereum?.removeListener) {
           window.ethereum.removeListener(
             "accountsChanged",
-            handleAccountChange
+            handleAccountChange,
           );
           window.ethereum.removeListener("chainChanged", handleChainChanged);
         }
@@ -207,13 +201,7 @@ const Page: React.FC = () => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <div
-                className={`inline-flex items-center rounded-lg transition-all duration-200 h-10 cursor-pointer
-                ${currentChain.id === "0xaef3"
-                    ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
-                    : currentChain.id === "0xa869"
-                    ? "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
-                    : "bg-[#15186b]/50 hover:bg-[#15186b]/70"
-                  }`}
+                className={`inline-flex items-center rounded-lg transition-all duration-200 h-10 cursor-pointer ${currentChain.bgStyle}`}
               >
                 <div className="flex items-center space-x-3 px-4">
                   <div className="w-5 h-5 flex items-center justify-center">
@@ -230,15 +218,17 @@ const Page: React.FC = () => {
               </div>
             </AlertDialogTrigger>
 
-          <ChainSwitcherDialog 
-            currentChainId={currentChain.id} 
-            onSwitch={(targetChain) => switchChain(targetChain)} 
-          />
+            <ChainSwitcherDialog
+              currentChainId={currentChain.id}
+              onSwitch={(targetChain) => switchChain(targetChain)}
+            />
           </AlertDialog>
         </div>
       )}
 
-      {showModal && <Modal isOpen={true} onClose={handleCloseModal} chain={currentChain} />}
+      {showModal && (
+        <Modal isOpen={true} onClose={handleCloseModal} chain={currentChain} />
+      )}
     </>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import {
   DialogContent,
   DialogHeader,
@@ -68,7 +68,7 @@ const AddLiquidityModal = ({
 
         // Get selected token balance
         const tokenBal = balances?.find(
-          (b) => b.address.toLowerCase() === selectedToken.toLowerCase()
+          (b) => b.address.toLowerCase() === selectedToken.toLowerCase(),
         );
         if (tokenBal) {
           setTokenBalance(tokenBal.balance);
@@ -160,7 +160,7 @@ const AddLiquidityModal = ({
 
   // Filter available tokens - only show supported tokens excluding ALT
   const availableTokens = tokens.filter(
-    (t) => t.symbol !== "ALT" && ["wBTC", "wETH", "wLINK"].includes(t.symbol)
+    (t) => t.symbol !== "ALT" && ["wBTC", "wETH", "wLINK"].includes(t.symbol),
   );
 
   return (
@@ -190,12 +190,24 @@ const AddLiquidityModal = ({
                 {selectedToken && (
                   <div className="flex items-center">
                     <img
-                      src={tokens.find(t => t.address.toLowerCase() === selectedToken.toLowerCase())?.logoSrc}
+                      src={
+                        tokens.find(
+                          (t) =>
+                            t.address.toLowerCase() ===
+                            selectedToken.toLowerCase(),
+                        )?.logoSrc
+                      }
                       className="w-6 h-6 mr-2 -ml-[2.75px]"
                       alt=""
                     />
                     <span className="font-mono">
-                      {tokens.find(t => t.address.toLowerCase() === selectedToken.toLowerCase())?.symbol}
+                      {
+                        tokens.find(
+                          (t) =>
+                            t.address.toLowerCase() ===
+                            selectedToken.toLowerCase(),
+                        )?.symbol
+                      }
                     </span>
                   </div>
                 )}
@@ -209,14 +221,8 @@ const AddLiquidityModal = ({
                   className="font-semibold data-[highlighted]:bg-amber-500/40 data-[highlighted]:text-white"
                 >
                   <div className="flex items-center">
-                    <img
-                      src={token.logoSrc}
-                      className="w-6 h-6 mr-2"
-                      alt=""
-                    />
-                    <span className="font-mono">
-                      {token.symbol.padEnd(4)}
-                    </span>
+                    <img src={token.logoSrc} className="w-6 h-6 mr-2" alt="" />
+                    <span className="font-mono">{token.symbol.padEnd(4)}</span>
                   </div>
                 </SelectItem>
               ))}
@@ -226,7 +232,9 @@ const AddLiquidityModal = ({
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-sm text-white font-semibold ml-1">Token Amount</label>
+            <label className="text-sm text-white font-semibold ml-1">
+              Token Amount
+            </label>
             {selectedToken && tokenBalance && (
               <div className="text-sm text-white font-mono font-semibold -mb-1">
                 Balance: {Number(tokenBalance).toFixed(3)}
@@ -248,7 +256,9 @@ const AddLiquidityModal = ({
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-sm text-white font-semibold ml-1">ALT Amount</label>
+            <label className="text-sm text-white font-semibold ml-1">
+              ALT Amount
+            </label>
             {altBalance && (
               <div className="text-sm text-white font-mono font-semibold">
                 Balance: {Number(altBalance).toFixed(3)}
@@ -257,7 +267,9 @@ const AddLiquidityModal = ({
           </div>
           <div className="border border-amber-500/20 bg-amber-500/5 rounded-md h-9 px-3 flex items-center">
             {altAmount === "" ? (
-              <span className="font-mono font-semibold text-base text-amber-500">0.0</span>
+              <span className="font-mono font-semibold text-base text-amber-500">
+                0.0
+              </span>
             ) : (
               <NumberTicker
                 value={Number(altAmount)}

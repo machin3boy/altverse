@@ -1,5 +1,5 @@
 import React from "react";
-import LogoProps from "./logo-props";
+import LogoProps from "@/components/ui/logo-props";
 
 const ZeroLogo: React.FC<LogoProps> = ({
   fillColor,
@@ -12,8 +12,8 @@ const ZeroLogo: React.FC<LogoProps> = ({
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 488.08 488.08"
     className={className}
-    width={width} 
-    height={height} 
+    width={width}
+    height={height}
   >
     <defs>
       <style></style>

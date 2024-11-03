@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Droplets, BriefcaseBusiness } from "lucide-react";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
-import { LiquidityPosition } from "../storage";
-import chains from "@/app/constants";
-import RemoveLiquidityModal from "@/components/modal/remove-liquidity"
-import IncreaseLiquidityModal from "@/components/modal/increase-liquidity"
-import AddLiquidityModal from "@/components/modal/add-liquidity"
+import { LiquidityPosition } from "@/components/storage";
+import RemoveLiquidityModal from "@/components/modal/remove-liquidity";
+import IncreaseLiquidityModal from "@/components/modal/increase-liquidity";
+import AddLiquidityModal from "@/components/modal/add-liquidity";
 
 interface Pool {
   token: string;
@@ -24,7 +21,8 @@ interface Pool {
 }
 
 const Pool: React.FC = () => {
-  const { web3, getUserLiquidityPositions, currentChain, tokens } = useStorage();
+  const { web3, getUserLiquidityPositions, currentChain, tokens, chains } =
+    useStorage();
   const [positions, setPositions] = useState<LiquidityPosition[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -103,7 +101,6 @@ const Pool: React.FC = () => {
                 <span>Loading Positions...</span>
               </div>
             </div>
-
           ) : positions.length === 0 ? (
             <div className="flex items-center justify-center min-h-[420px] w-full">
               <div className="flex flex-col items-center justify-center">
@@ -130,7 +127,10 @@ const Pool: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
                           <span className="text-amber-500 font-bold">
-                            {tokens.find(t => t.address === position.token)?.icon}
+                            {
+                              tokens.find((t) => t.address === position.token)
+                                ?.icon
+                            }
                           </span>
                         </div>
                         <span className="font-bold text-lg text-white">
@@ -145,13 +145,17 @@ const Pool: React.FC = () => {
                     {/* Position Details */}
                     <div className="grid grid-cols-2 gap-4 mb-4 ml-0.5">
                       <div className="space-y-1">
-                        <p className="text-sm text-gray-400 font-semibold">Token Amount</p>
+                        <p className="text-sm text-gray-400 font-semibold">
+                          Token Amount
+                        </p>
                         <p className="font-mono font-bold text-white">
                           {Number(position.formattedTokenAmount).toFixed(3)}
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm text-gray-400 font-semibold">Altcoin Amount</p>
+                        <p className="text-sm text-gray-400 font-semibold">
+                          Altcoin Amount
+                        </p>
                         <p className="font-mono font-bold text-white">
                           {Number(position.formattedAltAmount).toFixed(3)}
                         </p>
@@ -167,7 +171,7 @@ const Pool: React.FC = () => {
                           tokenReserve: position.tokenAmount,
                           altReserve: position.altAmount,
                           totalShares: position.shares,
-                          userShares: position.rawShares.toString()
+                          userShares: position.rawShares.toString(),
                         }}
                         onSuccess={startPolling}
                       />
@@ -178,7 +182,7 @@ const Pool: React.FC = () => {
                           tokenReserve: position.tokenAmount,
                           altReserve: position.altAmount,
                           totalShares: position.shares,
-                          userShares: position.rawShares.toString()
+                          userShares: position.rawShares.toString(),
                         }}
                         onSuccess={startPolling}
                       />

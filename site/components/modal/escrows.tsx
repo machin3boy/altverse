@@ -2,9 +2,17 @@ import React, { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
-import { Clock, WalletCards, Lock, Unlock, Shield, CheckCircle, XCircle } from "lucide-react";
+import {
+  Clock,
+  WalletCards,
+  Lock,
+  Unlock,
+  Shield,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 interface Escrow {
   id: string;
@@ -15,7 +23,8 @@ interface Escrow {
 }
 
 export default function Escrows() {
-  const { fetchUserEscrows, claimTimedOutEscrow, web3, currentChain } = useStorage();
+  const { fetchUserEscrows, claimTimedOutEscrow, web3, currentChain } =
+    useStorage();
   const [escrows, setEscrows] = useState<Escrow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPolling, setIsPolling] = useState(false);
@@ -151,29 +160,37 @@ export default function Escrows() {
               {escrows.map((escrow, index) => (
                 <Card
                   key={index}
-                  className={`bg-neutral-900/50 transition-all duration-200 shadow-lg ${escrow.active
-                    ? "border-amber-500/10 hover:border-amber-500/30 hover:shadow-amber-900/20"
-                    : "border-sky-500/10"}`} // Removed opacity-50
+                  className={`bg-neutral-900/50 transition-all duration-200 shadow-lg ${
+                    escrow.active
+                      ? "border-amber-500/10 hover:border-amber-500/30 hover:shadow-amber-900/20"
+                      : "border-sky-500/10"
+                  }`}
                 >
                   <CardContent className="p-4">
                     {/* Escrow Header */}
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${escrow.active
-                          ? "bg-sky-500/10"
-                          : "bg-sky-500/5"}`}
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            escrow.active ? "bg-sky-500/10" : "bg-sky-500/5"
+                          }`}
                         >
-                          {escrow.active
-                            ? <Lock className="w-4 h-4 text-sky-500" />
-                            : <Unlock className="w-4 h-4 text-sky-500/50" />}
+                          {escrow.active ? (
+                            <Lock className="w-4 h-4 text-sky-500" />
+                          ) : (
+                            <Unlock className="w-4 h-4 text-sky-500/50" />
+                          )}
                         </div>
                         <span className="font-bold text-lg text-white">
                           {formatAltAmount(escrow.altAmount)} ALT
                         </span>
                       </div>
-                      <div className={`px-2 py-1 rounded text-xs font-medium font-semibold ${escrow.active
-                        ? "bg-sky-500/10 text-sky-500"
-                        : "bg-sky-500/10 text-sky-500/50"}`}
+                      <div
+                        className={`px-2 py-1 rounded text-xs font-medium font-semibold ${
+                          escrow.active
+                            ? "bg-sky-500/10 text-sky-500"
+                            : "bg-sky-500/10 text-sky-500/50"
+                        }`}
                       >
                         {escrow.active ? "Escrow Active" : "Escrow Inactive"}
                       </div>
@@ -182,14 +199,19 @@ export default function Escrows() {
                     {/* Escrow Details */}
                     <div className="grid grid-cols-2 gap-4 mb-4 ml-0.5">
                       <div className="space-y-1">
-                        <p className="text-sm text-gray-400 font-semibold">Address</p>
+                        <p className="text-sm text-gray-400 font-semibold">
+                          Address
+                        </p>
                         <p className="font-mono font-bold text-white">
                           {formatAddress(escrow.user)}
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm text-gray-400 font-semibold">Time Left</p>
-                        <p className={`font-mono font-bold ${Date.now() >= escrow.timeout ? "text-sky-500" : "text-amber-500"}`}
+                        <p className="text-sm text-gray-400 font-semibold">
+                          Time Left
+                        </p>
+                        <p
+                          className={`font-mono font-bold ${Date.now() >= escrow.timeout ? "text-sky-500" : "text-amber-500"}`}
                         >
                           {getTimeLeft(escrow.timeout)}
                         </p>
@@ -198,11 +220,13 @@ export default function Escrows() {
 
                     {/* Action Button */}
                     <Button
-                      className={`w-full h-1/2 py-1 relative overflow-hidden group transition-all duration-200 ${!escrow.active
-                        ? "bg-sky-500/10 text-sky-500/50 border border-sky-500/10 cursor-not-allowed" // Removed opacity
-                        : Date.now() >= escrow.timeout
-                          ? "bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 border border-sky-500/20 hover:border-sky-500/30"
-                          : "bg-amber-500/10 text-amber-500/50 border border-amber-500/10 cursor-not-allowed"}`}
+                      className={`w-full h-1/2 py-1 relative overflow-hidden group transition-all duration-200 ${
+                        !escrow.active
+                          ? "bg-sky-500/10 text-sky-500/50 border border-sky-500/10 cursor-not-allowed" // Removed opacity
+                          : Date.now() >= escrow.timeout
+                            ? "bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 border border-sky-500/20 hover:border-sky-500/30"
+                            : "bg-amber-500/10 text-amber-500/50 border border-amber-500/10 cursor-not-allowed"
+                      }`}
                       disabled={Date.now() < escrow.timeout || !escrow.active}
                       onClick={() => handleClaimEscrow(escrow.id)}
                     >

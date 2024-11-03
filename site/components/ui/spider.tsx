@@ -11,7 +11,7 @@ const Circle = React.forwardRef<
       ref={ref}
       className={cn(
         "z-10 flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 p-1.5 shadow-[0_0_20px_-5px_rgba(245,158,11,0.8)]",
-        className
+        className,
       )}
     >
       {children}
@@ -36,7 +36,7 @@ export default function Spider({ className }: { className?: string }) {
     <div
       className={cn(
         "absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none",
-        className
+        className,
       )}
       ref={containerRef}
     >

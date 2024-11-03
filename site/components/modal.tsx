@@ -1,6 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swap from "@/components/modal/swap";
 import Pool from "@/components/modal/pool";
@@ -8,10 +14,9 @@ import Escrows from "@/components/modal/escrows";
 import Faucet from "@/components/modal/faucet";
 import USDC from "@/components/modal/usdc";
 import { X } from "lucide-react";
-import { useStorage } from "@/components/storage";
+import { useStorage, Chain } from "@/components/storage";
 import { toast } from "sonner";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import chains, { Chain } from "../app/constants";
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,13 +24,11 @@ interface ModalProps {
   chain: Chain;
 }
 
-export default function Modal(
-  { isOpen, onClose, chain }: ModalProps = {
-    isOpen: true,
-    onClose: () => { },
-    chain: chains[0],
-  }
-) {
+export default function Modal({
+  isOpen = true,
+  onClose = () => {},
+  chain,
+}: ModalProps) {
   const [activeTab, setActiveTab] = useState("swap");
 
   const handleClose = (open: boolean): void => {

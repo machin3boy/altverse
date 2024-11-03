@@ -8,7 +8,7 @@ import "./globals.css";
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
-  display: 'swap',
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,20 +23,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn(manrope.variable, "font-sans")}>
-      <body
-        className={cn(
-          "min-h-screen bg-black font-sans antialiased",
-        )}
-      >
+      <body className={cn("min-h-screen bg-black font-sans antialiased")}>
         <StorageProvider>
-        {children}
-        <Toaster
-              richColors
-              theme="dark"
-              toastOptions={{
-                duration: 5000,
-              }}
-            />
+          {children}
+          <Toaster
+            richColors
+            theme="dark"
+            toastOptions={{
+              duration: 5000,
+            }}
+          />
         </StorageProvider>
       </body>
     </html>
