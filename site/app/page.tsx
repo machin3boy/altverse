@@ -62,7 +62,6 @@ const Page: React.FC = () => {
 
   const fetchAddress = async () => {
     if (!web3) {
-      toast.error("Failed to fetch user address.");
       return false;
     }
 
@@ -213,17 +212,16 @@ const Page: React.FC = () => {
                     ? "bg-[#888a2d]/50 hover:bg-[#888a2d]/70"
                     : currentChain.id === "0xa869"
                     ? "bg-[#7d2324]/50 hover:bg-[#7d2324]/70"
-                    : "bg-[#780210]/50 hover:bg-[#780210]/70"
+                    : "bg-[#15186b]/50 hover:bg-[#15186b]/70"
                   }`}
               >
                 <div className="flex items-center space-x-3 px-4">
                   <div className="w-5 h-5 flex items-center justify-center">
-                    {currentChain.logo({
-                      className: `text-sky-500 bg-transparent fill-transparent stroke-[${currentChain.logoFill}]`,
-                      width: 20,
-                      height: 20,
-                      fillColor: currentChain.logoFill,
-                    })}
+                    <img
+                      src={currentChain.logoSrc}
+                      alt={currentChain.name}
+                      className="w-5 h-5"
+                    />
                   </div>
                   <span className="font-mono font-light text-[#FFF] hover:text-[#FFF] transition-all duration-200">
                     {currentChain.name}

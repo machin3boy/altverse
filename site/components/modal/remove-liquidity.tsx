@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -46,45 +53,46 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
     if (!web3) return;
 
     try {
-      const shareAmount = (percentage[0] * Number(pool.userShares)) / 100;
-      const sharesFormatted = web3.utils.fromWei(
-        BigInt(Math.floor(shareAmount)).toString(),
-        "ether"
-      );
-      setShares(sharesFormatted);
+      // Calculate share amount based on percentage, maintaining BigInt precision
+      const totalSharesBigInt = BigInt(pool.userShares);
+      const percentageBigInt = BigInt(Math.floor(percentage[0] * 100));
+      const shareAmount =
+        (totalSharesBigInt * percentageBigInt) / BigInt(10000);
 
-      const tokenAmountRaw = (shareAmount * Number(pool.tokenReserve)) / Number(pool.totalShares);
-      const altAmountRaw = (shareAmount * Number(pool.altReserve)) / Number(pool.totalShares);
+      // Set the actual shares value for contract calls
+      setShares(shareAmount.toString());
 
-      const formattedTokenAmount = web3.utils.fromWei(
-        BigInt(Math.floor(tokenAmountRaw)).toString(),
-        "ether"
-      );
-      const formattedAltAmount = web3.utils.fromWei(
-        BigInt(Math.floor(altAmountRaw)).toString(),
-        "ether"
-      );
+      // Calculate token amounts to receive
+      const tokenReserveBigInt = BigInt(pool.tokenReserve);
+      const altReserveBigInt = BigInt(pool.altReserve);
+      const totalSharesBigIntPool = BigInt(pool.totalShares);
 
-      setTokenAmount(formattedTokenAmount);
-      setAltAmount(formattedAltAmount);
+      const tokenAmountBigInt =
+        (shareAmount * tokenReserveBigInt) / totalSharesBigIntPool;
+      const altAmountBigInt =
+        (shareAmount * altReserveBigInt) / totalSharesBigIntPool;
+
+      // Format amounts for display
+      setTokenAmount(web3.utils.fromWei(tokenAmountBigInt.toString(), "ether"));
+      setAltAmount(web3.utils.fromWei(altAmountBigInt.toString(), "ether"));
     } catch (error) {
       console.error("Error calculating removal amounts:", error);
       setShares("0");
       setTokenAmount("0");
       setAltAmount("0");
     }
-  }, [web3, percentage, pool, currentChain]);
+  }, [web3, percentage, pool]);
 
+  // Then modify handleRemoveLiquidity to use the raw share amount
   const handleRemoveLiquidity = async () => {
-    if (!web3 || Number(shares) <= 0) return;
+    if (!web3 || shares === "0") return;
 
     setIsLoading(true);
     try {
-      const sharesToRemove = web3.utils.toWei(shares, "ether");
-
+      // No need for toWei conversion since shares are already in the correct denomination
       const success = await removeLiquidity({
         tokenAddress: pool.token,
-        shares: sharesToRemove,
+        shares: shares, // Use raw shares directly
       });
 
       if (success) {
@@ -111,7 +119,9 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
       </DialogTrigger>
       <DialogContent className="bg-zinc-950 border-2 border-sky-500/40 sm:max-w-[400px] rounded-lg pt-4">
         <DialogHeader className="flex flex-row justify-between items-center mb-2">
-          <DialogTitle className="text-white text-lg">Remove Liquidity</DialogTitle>
+          <DialogTitle className="text-white text-lg">
+            Remove Liquidity
+          </DialogTitle>
           <button
             type="button"
             className="rounded-sm bg-sky-500/10 hover:bg-sky-500/30 border border-sky-500/10 w-7 h-7 flex items-center justify-center transition-all duration-200"
@@ -148,18 +158,28 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
 
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
-              <span className="text-white font-semibold">Shares to Remove:</span>
-              <span className="font-mono font-semibold">{Number(shares).toFixed(3)}</span>
+              <span className="text-white font-semibold">
+                Shares to Remove:
+              </span>
+              <span className="font-mono font-semibold">
+                {web3
+                  ? Number(web3.utils.fromWei(shares, "ether")).toFixed(3)
+                  : "0.000"}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-white font-semibold">
                 {pool.tokenSymbol} to Receive:
               </span>
-              <span className="font-mono font-semibold">{Number(tokenAmount).toFixed(3)}</span>
+              <span className="font-mono font-semibold">
+                {Number(tokenAmount).toFixed(3)}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-white font-semibold">ALT to Receive:</span>
-              <span className="font-mono font-semibold">{Number(altAmount).toFixed(3)}</span>
+              <span className="font-mono font-semibold">
+                {Number(altAmount).toFixed(3)}
+              </span>
             </div>
           </div>
 
@@ -168,12 +188,14 @@ const RemoveLiquidityModal: React.FC<RemoveLiquidityModalProps> = ({
             disabled={isLoading || percentage[0] <= 0}
             className="w-full bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 font-semibold border border-sky-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Removing Liquidity..." :
+            {isLoading ? (
+              "Removing Liquidity..."
+            ) : (
               <div className="relative flex items-center justify-center gap-2">
                 <Droplets className="w-5 h-5" />
                 <span className="text-md">Remove Liquidity</span>
               </div>
-            }
+            )}
           </Button>
         </div>
       </DialogContent>

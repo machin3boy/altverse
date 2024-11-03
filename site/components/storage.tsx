@@ -323,9 +323,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
             return false;
           }
         }
-        let newChain =
-          targetChainId === "0xa869" ? "Avalanche Fuji" : "Celo Alfajores";
-        toast.info("Swapped chain successfully to " + newChain);
+
+        const newChainName = chains.find((c) => c.id === targetChainId)?.name;
+        toast.info("Swapped chain successfully to " + newChainName);
         console.log("Setting current chain to " + parseInt(targetChainId, 16));
         console.log("Storing current chain as " + targetChainId);
         setCurrentChain(parseInt(targetChainId, 16));
@@ -620,6 +620,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({
       const userShares = await contract.methods
         .userShares(params.tokenAddress, accounts[0])
         .call() as string;
+
+      debugger;
 
       if (BigInt(userShares) < BigInt(params.shares)) {
         toast.error("Insufficient liquidity shares");
