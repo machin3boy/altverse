@@ -218,7 +218,7 @@ const chains: Chain[] = [
     full_name: "OP Sepolia Testnet",
     name_id: "optimism",
     id: "0xaa37dc",
-    rpc: "https://sepolia.optimism.io",
+    rpc: "https://endpoints.omniatech.io/v1/op/sepolia/public",
     blockExplorer: "https://sepolia-optimism.etherscan.io/",
     symbol: "ETH",
     decimalId: 11155420,
