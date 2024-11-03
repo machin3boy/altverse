@@ -39,3 +39,18 @@ Once running, visit [https://localhost:3000](https://localhost:3000) to view the
 ### Source Code
 Full smart contract implementations and documentation can be found in the [`contracts`](./contracts) directory.
 
+## Testing Instructions
+- Obtain testnet CELO from [faucet](https://faucet.celo.org/alfajores)
+- Visit [Altverse dApp](https://altverse.link)
+- Click "Get Started" on front page (requires MetaMask or Brave Wallet)
+- In the modal, ensure connected chain is Celo Alfajores
+  - Desktop: Use chain selector in top right if needed
+  - Mobile: Switch manually in wallet
+  - Network will be auto-added if not present
+- Obtain test assets to swap from "Faucet" tab
+- Go to "Swap" tab
+- Select source/destination assets and chain
+- Execute swap
+
+Supported testnets: Celo Alfajores, Avalanche Fuji, Optimism Sepolia
+Contract address on all networks: `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B`
