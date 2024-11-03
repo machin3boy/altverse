@@ -131,18 +131,20 @@ export default function Escrows() {
             <div className="flex items-center justify-center h-[420px]">
               <div className="text-sky-500 animate-pulse flex items-center gap-2 font-semibold">
                 <Lock className="w-5 h-5 animate-pulse" />
-                <span>Loading escrows...</span>
+                <span>Loading Escrows...</span>
               </div>
             </div>
           ) : escrows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 bg-amber-950/20 rounded-lg border border-amber-500/10 p-6">
-              <WalletCards className="w-12 h-12 text-amber-500/30 mb-4" />
-              <p className="text-sm font-medium text-amber-500/80">
-                No active escrows
-              </p>
-              <p className="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
-                Escrows will appear here when you perform cross-chain swaps
-              </p>
+            <div className="flex items-center justify-center min-h-[420px] w-full">
+              <div className="flex flex-col items-center justify-center">
+                <div className="text-sky-500 flex items-center gap-2 font-semibold">
+                  <Lock className="w-5 h-5" />
+                  <span>No Active Escrows</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center font-semibold max-w-[200px] mx-auto">
+                  Escrows will appear here when you perform cross-chain swaps
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
