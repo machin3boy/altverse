@@ -1,5 +1,5 @@
 import React from "react";
-import LogoProps from "./logo-props";
+import LogoProps from "@/components/ui/logo-props";
 
 const MetamaskLogo: React.FC<LogoProps> = ({
   fillColor,
@@ -10,15 +10,17 @@ const MetamaskLogo: React.FC<LogoProps> = ({
   <svg
     id="svg14"
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 200 200"  // Changed from 48 48 to a larger viewBox
+    viewBox="0 0 200 200" // Changed from 48 48 to a larger viewBox
     style={{
-      width: '1.5rem',      // Using rem units for size
-      height: '1.5rem',
-      strokeWidth: '1',   // Increased stroke width to maintain visibility
+      width: "1.5rem", // Using rem units for size
+      height: "1.5rem",
+      strokeWidth: "1", // Increased stroke width to maintain visibility
     }}
     className={className}
   >
-    <g transform="scale(4.166)"> {/* 200/48 ≈ 4.166 - scales the internal elements to match new viewBox */}
+    <g transform="scale(4.166)">
+      {" "}
+      {/* 200/48 ≈ 4.166 - scales the internal elements to match new viewBox */}
       <polyline points="23.971 35.016 26.233 35.016 26.959 38.431 23.624 38.431" />
       <polyline points="42.158 31.771 30.588 31.984 26.233 35.016 26.617 16.784 29.008 10.85 40.621 6.239 42.5 11.96 40.792 18.706 40.963 22.121 39.853 23.759 42.158 31.771 40.066 40.267 31.527 37.62 26.959 41.761 23.971 41.761" />
       <line x1="39.8529" y1="23.7591" x2="31.698" y2="21.3529" />

@@ -1,5 +1,5 @@
 import React from "react";
-import LogoProps from "./logo-props";
+import LogoProps from "@/components/ui/logo-props";
 
 const EthLogo: React.FC<LogoProps> = ({
   fillColor,
@@ -13,7 +13,6 @@ const EthLogo: React.FC<LogoProps> = ({
     height={height}
     className={className}
     viewBox=".273 -.001 59.701 60"
-
   >
     <g>
       <path

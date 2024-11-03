@@ -8,35 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import { useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { ArrowRightLeft, Droplets, HandCoins } from "lucide-react";
-import chains from "@/app/constants";
-
-const tokens = [
-  {
-    symbol: "ALT",
-    logoSrc: "/images/tokens/branded/ALT.svg",
-    address: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
-  },
-  {
-    symbol: "wBTC",
-    logoSrc: "/images/tokens/branded/BTC.svg",
-    address: "0xd6833DAAA48C127b2d007AbEE8d6b7f2CC6DFA36",
-  },
-  {
-    symbol: "wETH",
-    logoSrc: "/images/tokens/branded/ETH.svg",
-    address: "0x1A323bD7b3f917A6AfFE320A8b3F266130c785b9",
-  },
-  {
-    symbol: "wLINK",
-    logoSrc: "/images/tokens/branded/LINK.svg",
-    address: "0x0adea7235B7693C40F546E39Df559D4e31b0Cbfb",
-  },
-];
 
 interface TokenBalance {
   symbol: string;
@@ -52,6 +28,9 @@ export default function Swap() {
     currentChain,
     web3,
     fetchTokenBalances,
+    chains,
+    tokens,
+    ALTVERSE_ADDRESS,
   } = useStorage();
 
   const [swapFromToken, setSwapFromToken] = useState("ALT");
@@ -63,8 +42,10 @@ export default function Swap() {
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
   const [targetChain, setTargetChain] = useState(() => {
-    const firstAvailableChain = chains.find(chain => chain.decimalId !== currentChain);
-    return firstAvailableChain?.name_id as string || "fuji";
+    const firstAvailableChain = chains.find(
+      (chain) => chain.decimalId !== currentChain,
+    );
+    return (firstAvailableChain?.name_id as string) || "fuji";
   });
 
   const [currentCalculation, setCurrentCalculation] =
@@ -86,7 +67,7 @@ export default function Swap() {
           }
 
           const targetChainId = chains.find(
-            (chain) => chain.name_id === targetChain
+            (chain) => chain.name_id === targetChain,
           )?.decimalId;
           if (!targetChainId) {
             throw new Error("Invalid target chain");
@@ -119,7 +100,7 @@ export default function Swap() {
           if (result) {
             const formattedOutput = web3.utils.fromWei(
               result.estimatedOutput,
-              "ether"
+              "ether",
             );
             const roundedOutput = Number(formattedOutput).toFixed(6);
             const finalOutput = roundedOutput.replace(/\.?0+$/, "");
@@ -148,7 +129,7 @@ export default function Swap() {
       calculateCrossChainAmount,
       web3,
       currentChain,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -203,7 +184,7 @@ export default function Swap() {
     if (!token) return "0";
 
     const balance = tokenBalances.find(
-      (b) => b.address.toLowerCase() === token.address.toLowerCase()
+      (b) => b.address.toLowerCase() === token.address.toLowerCase(),
     );
     return balance ? balance.rawBalance.toString() : "0";
   }, [tokenBalances, swapFromToken]);
@@ -260,7 +241,9 @@ export default function Swap() {
       toast.error("Please select a destination chain");
       return;
     }
-    const targetChainId = chains.find((chain) => chain.name_id === targetChain)?.decimalId;
+    const targetChainId = chains.find(
+      (chain) => chain.name_id === targetChain,
+    )?.decimalId;
     if (targetChainId === currentChain) {
       toast.error("We currently only support cross-chain swaps.");
       return;
@@ -274,8 +257,9 @@ export default function Swap() {
         return;
       }
 
-      const targetChainId = chains.find((chain) => chain.name_id === targetChain)
-        ?.decimalId as number;
+      const targetChainId = chains.find(
+        (chain) => chain.name_id === targetChain,
+      )?.decimalId as number;
 
       const swapParams = {
         fromToken:
@@ -283,7 +267,7 @@ export default function Swap() {
         toToken: tokens.find((t) => t.symbol === swapToToken)?.address || "",
         amountIn: web3.utils.toWei(amount, "ether"),
         targetChain: targetChainId,
-        targetAddress: "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B",
+        targetAddress: ALTVERSE_ADDRESS,
       };
 
       console.log("Initiating swap with params:", swapParams);
@@ -328,12 +312,21 @@ export default function Swap() {
                     disabled={true}
                   >
                     <span className="font-mono inline pt-[2.75px]">
-                      Balance: {(() => {
-                        const currentToken = tokens.find((t) => t.symbol === swapFromToken);
-                        const balance = currentToken ? tokenBalances.find(
-                          (b) => b.address.toLowerCase() === currentToken.address.toLowerCase()
-                        ) : null;
-                        const numBalance = balance ? Number(balance.balance) : 0;
+                      Balance:{" "}
+                      {(() => {
+                        const currentToken = tokens.find(
+                          (t) => t.symbol === swapFromToken,
+                        );
+                        const balance = currentToken
+                          ? tokenBalances.find(
+                              (b) =>
+                                b.address.toLowerCase() ===
+                                currentToken.address.toLowerCase(),
+                            )
+                          : null;
+                        const numBalance = balance
+                          ? Number(balance.balance)
+                          : 0;
 
                         return numBalance > 0 ? (
                           <NumberTicker
@@ -366,8 +359,11 @@ export default function Swap() {
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder="0"
-                  className={`text-2xl pl-2 text-left font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${amount === "" ? "text-gray-500 placeholder:text-gray-500" : "text-white"
-                    }`}
+                  className={`text-2xl pl-2 text-left font-mono bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                    amount === ""
+                      ? "text-gray-500 placeholder:text-gray-500"
+                      : "text-white"
+                  }`}
                   style={{
                     WebkitAppearance: "none",
                     MozAppearance: "textfield",
@@ -378,7 +374,10 @@ export default function Swap() {
                     <SelectValue>
                       <div className="flex items-center">
                         <img
-                          src={tokens.find(t => t.symbol === swapFromToken)?.logoSrc}
+                          src={
+                            tokens.find((t) => t.symbol === swapFromToken)
+                              ?.logoSrc
+                          }
                           className="w-6 h-6 mr-2"
                         />
                         <span className="font-mono w-12">
@@ -419,7 +418,9 @@ export default function Swap() {
                   <SelectTrigger className="w-fit border-sky-500/10 font-semibold font-mono data-[state=open]:border-sky-500 focus:ring-0 focus:ring-offset-0 bg-sky-500/10 py-4 transition-colors duration-200">
                     <SelectValue>
                       {(() => {
-                        const chain = chains.find((c) => c.name_id === targetChain);
+                        const chain = chains.find(
+                          (c) => c.name_id === targetChain,
+                        );
                         return (
                           <div className="flex items-center gap-2">
                             <img
@@ -460,16 +461,26 @@ export default function Swap() {
               <div className="flex items-center space-x-2">
                 <div className="w-full relative">
                   {!Number(lastReceivedAmount) && (
-                    <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">0</span>
+                    <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">
+                      0
+                    </span>
                   )}
                   <NumberTicker
-                    value={!amount ? 0 : (lastReceivedAmount && Number(lastReceivedAmount) ? Number(lastReceivedAmount) : 0)}
+                    value={
+                      !amount
+                        ? 0
+                        : lastReceivedAmount && Number(lastReceivedAmount)
+                          ? Number(lastReceivedAmount)
+                          : 0
+                    }
                     decimalPlaces={(() => {
                       const num = Number(lastReceivedAmount);
                       if (num === 0 || num >= 1) return 3;
                       // Convert to string and find first non-zero digit after decimal
-                      const decimalStr = num.toFixed(6).split('.')[1];
-                      const firstNonZeroIndex = decimalStr.split('').findIndex(digit => digit !== '0');
+                      const decimalStr = num.toFixed(6).split(".")[1];
+                      const firstNonZeroIndex = decimalStr
+                        .split("")
+                        .findIndex((digit) => digit !== "0");
                       // Return index + 1 to show one more digit after first significant digit
                       // Clamp between 3 and 6
                       return Math.min(Math.max(firstNonZeroIndex + 2, 3), 6);
@@ -482,7 +493,10 @@ export default function Swap() {
                     <SelectValue>
                       <div className="flex items-center">
                         <img
-                          src={tokens.find(t => t.symbol === swapToToken)?.logoSrc}
+                          src={
+                            tokens.find((t) => t.symbol === swapToToken)
+                              ?.logoSrc
+                          }
                           className="w-6 h-6 mr-2"
                         />
                         <span className="font-mono w-12">
@@ -520,10 +534,12 @@ export default function Swap() {
       <div className="mt-auto mb-10">
         <Button
           onClick={handleSwap}
-          disabled={!amount ||
+          disabled={
+            !amount ||
             amount === "0" ||
             isCalculating ||
-            Math.abs(Number(lastReceivedAmount)) < 1e-8}
+            Math.abs(Number(lastReceivedAmount)) < 1e-8
+          }
           className="w-full bg-amber-500/10 
             hover:bg-amber-500/30 
             text-amber-500 

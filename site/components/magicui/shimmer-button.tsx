@@ -88,7 +88,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
             )}
           />
         </button>
-        </div>
+      </div>
     );
   },
 );

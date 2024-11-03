@@ -1,5 +1,5 @@
 import React from "react";
-import LogoProps from "./logo-props";
+import LogoProps from "@/components/ui/logo-props";
 
 const ChainlinkLogo: React.FC<LogoProps> = ({
   fillColor,

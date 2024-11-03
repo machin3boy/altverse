@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { Droplets } from "lucide-react";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 
 interface Pool {
   token: string;

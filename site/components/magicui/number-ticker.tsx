@@ -50,16 +50,10 @@ export default function NumberTicker({
           }
         }
       }),
-    [springValue, decimalPlaces, useCommas]
+    [springValue, decimalPlaces, useCommas],
   );
 
   return (
-    <span
-      className={cn(
-        "inline-block tabular-nums",
-        className
-      )}
-      ref={ref}
-    />
+    <span className={cn("inline-block tabular-nums", className)} ref={ref} />
   );
 }

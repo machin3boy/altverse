@@ -1,12 +1,17 @@
-import React from 'react';
-import LogoProps from './logo-props';
+import React from "react";
+import LogoProps from "@/components/ui/logo-props";
 
-const BitcoinLogo: React.FC<LogoProps> = ({ fillColor, className, width, height }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={width} 
-    height={height} 
-    viewBox="0 0 64 64" 
+const BitcoinLogo: React.FC<LogoProps> = ({
+  fillColor,
+  className,
+  width,
+  height,
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 64 64"
     className={className}
   >
     <g transform="translate(0.00630876,-0.00301984)">

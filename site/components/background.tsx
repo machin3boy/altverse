@@ -52,7 +52,7 @@ const createSpline = () => {
   const len = curvePath.length;
   for (let p = 0; p < len; p += 3) {
     points.push(
-      new THREE.Vector3(curvePath[p], curvePath[p + 1], curvePath[p + 2])
+      new THREE.Vector3(curvePath[p], curvePath[p + 1], curvePath[p + 2]),
     );
   }
   return new THREE.CatmullRomCurve3(points);
@@ -79,7 +79,7 @@ const Tunnel: React.FC<{}> = ({}) => {
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      1000,
     );
     camera.position.z = 5;
 
@@ -99,7 +99,7 @@ const Tunnel: React.FC<{}> = ({}) => {
       new THREE.Vector2(window.innerWidth, window.innerHeight),
       2.0,
       0.5,
-      100
+      100,
     );
     bloomPass.threshold = 0.001;
     bloomPass.strength = 4.5;
@@ -190,10 +190,10 @@ const Background: React.FC<BackgroundProps> = ({ showModal = false }) => {
     handleResize();
 
     // Add event listener for resize
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {

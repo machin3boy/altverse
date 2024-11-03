@@ -1,9 +1,5 @@
 import React from "react";
-import ZeroLogo from "../ui/alt-logo";
-import BitcoinLogo from "../ui/bitcoin-logo";
-import EthLogo from "../ui/eth-logo";
-import ChainlinkLogo from "../ui/chainlink-logo";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface CryptoButtonProps {
@@ -22,31 +18,35 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({
   isMobile = false,
 }) => {
   const [hoverTextColor, hoverBorderColor] = hoverColor.split(" ");
-  
+
   return (
-    <Card 
+    <Card
       onClick={onRequest}
       className={`
         group cursor-pointer
         bg-neutral-900 text-neutral-400
-        ${!isMobile ? 'aspect-square' : 'h-16'}
+        ${!isMobile ? "aspect-square" : "h-16"}
         border-2 ${hoverBorderColor}
         ${hoverTextColor}
         transition-all duration-200 ease-in-out
         hover:shadow-lg
       `}
     >
-      <CardContent className={`
-        flex ${isMobile ? 'flex-row' : 'flex-col'} 
+      <CardContent
+        className={`
+        flex ${isMobile ? "flex-row" : "flex-col"} 
         items-center 
-        ${isMobile ? 'justify-start' : 'justify-center'} 
+        ${isMobile ? "justify-start" : "justify-center"} 
         h-full p-2
-        ${isMobile ? 'gap-3' : ''}
-      `}>
-        <div className={`
+        ${isMobile ? "gap-3" : ""}
+      `}
+      >
+        <div
+          className={`
           flex items-center justify-center 
-          ${isMobile ? 'w-10 h-10' : 'w-16 h-16 mb-2'}
-        `}>
+          ${isMobile ? "w-10 h-10" : "w-16 h-16 mb-2"}
+        `}
+        >
           <Icon
             fillColor="currentColor"
             width={isMobile ? 28 : 48}
@@ -63,30 +63,7 @@ const CryptoButton: React.FC<CryptoButtonProps> = ({
 };
 
 const Faucet: React.FC = () => {
-  const { requestTokenFromFaucet } = useStorage();
-
-  const cryptos = [
-    {
-      name: "ALT",
-      Icon: ZeroLogo,
-      hoverColor: "hover:text-amber-500 hover:border-amber-500",
-    },
-    {
-      name: "wBTC",
-      Icon: BitcoinLogo,
-      hoverColor: "hover:text-[#F7931A] hover:border-[#F7931A]",
-    },
-    {
-      name: "wLINK",
-      Icon: ChainlinkLogo,
-      hoverColor: "hover:text-blue-500 hover:border-blue-500",
-    },
-    {
-      name: "wETH",
-      Icon: EthLogo,
-      hoverColor: "hover:text-indigo-300 hover:border-indigo-300",
-    },
-  ];
+  const { requestTokenFromFaucet, tokens } = useStorage();
 
   const handleRequest = async (tokenName: string) => {
     await requestTokenFromFaucet(tokenName);
@@ -96,20 +73,24 @@ const Faucet: React.FC = () => {
     <div className="flex items-center justify-center w-full h-full -mt-4 md:-mt-3">
       <div className="w-full max-w-4xl">
         <div className="hidden md:grid md:grid-cols-2 gap-4 bg-neutral-950 rounded-xl p-4">
-          {cryptos.map((crypto, index) => (
+          {tokens.map((token, index) => (
             <CryptoButton
               key={index}
-              {...crypto}
-              onRequest={() => handleRequest(crypto.name)}
+              name={token.symbol}
+              Icon={token.iconElement}
+              hoverColor={token.hoverColor}
+              onRequest={() => handleRequest(token.symbol)}
             />
           ))}
         </div>
         <div className="md:hidden flex flex-col gap-3 bg-neutral-950 rounded-xl px-3 py-4">
-          {cryptos.map((crypto, index) => (
+          {tokens.map((token, index) => (
             <CryptoButton
               key={index}
-              {...crypto}
-              onRequest={() => handleRequest(crypto.name)}
+              name={token.symbol}
+              Icon={token.iconElement}
+              hoverColor={token.hoverColor}
+              onRequest={() => handleRequest(token.symbol)}
               isMobile={true}
             />
           ))}

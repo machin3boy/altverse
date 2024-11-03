@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import {
   Dialog,
   DialogContent,
@@ -67,7 +67,7 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
         const balances = await fetchTokenBalances(accounts[0]);
 
         const tokenBal = balances?.find(
-          (b) => b.address.toLowerCase() === pool.token.toLowerCase()
+          (b) => b.address.toLowerCase() === pool.token.toLowerCase(),
         );
         if (tokenBal) {
           setTokenBalance(tokenBal.balance);
@@ -178,7 +178,9 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
       </DialogTrigger>
       <DialogContent className="bg-zinc-950 border-2 border-amber-500/40 sm:max-w-[400px] rounded-lg pt-4">
         <DialogHeader className="flex flex-row justify-between items-center mb-2">
-          <DialogTitle className="text-white text-lg">Increase Liquidity</DialogTitle>
+          <DialogTitle className="text-white text-lg">
+            Increase Liquidity
+          </DialogTitle>
           <button
             type="button"
             className="rounded-sm bg-amber-500/10 hover:bg-amber-500/30 border border-amber-500/10 w-7 h-7 flex items-center justify-center transition-all duration-200"
@@ -195,7 +197,9 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
         <div className="space-y-4 text-white">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-sm text-white font-semibold ml-1">{pool.tokenSymbol} Amount</label>
+              <label className="text-sm text-white font-semibold ml-1">
+                {pool.tokenSymbol} Amount
+              </label>
               {tokenBalance && (
                 <div className="text-sm text-white font-mono font-semibold -mb-1">
                   Balance: {Number(tokenBalance).toFixed(3)}
@@ -216,7 +220,9 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
           </div>
           <div className="space-y-2 pb-4">
             <div className="flex justify-between items-center">
-              <label className="text-sm text-white font-semibold ml-1">ALT Amount</label>
+              <label className="text-sm text-white font-semibold ml-1">
+                ALT Amount
+              </label>
               {altBalance && (
                 <div className="text-sm text-white font-mono font-semibold">
                   Balance: {Number(altBalance).toFixed(3)}
@@ -225,7 +231,9 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
             </div>
             <div className="border border-amber-500/20 bg-amber-500/5 rounded-md h-9 px-3 flex items-center">
               {altAmount === "" ? (
-                <span className="font-mono font-semibold text-base text-amber-500">0.0</span>
+                <span className="font-mono font-semibold text-base text-amber-500">
+                  0.0
+                </span>
               ) : (
                 <NumberTicker
                   value={Number(altAmount)}
@@ -239,15 +247,22 @@ const IncreaseLiquidityModal: React.FC<IncreaseLiquidityModalProps> = ({
           </div>
           <Button
             onClick={handleAddLiquidity}
-            disabled={isLoading || !tokenAmount || !altAmount || Number(tokenAmount) <= 0}
+            disabled={
+              isLoading ||
+              !tokenAmount ||
+              !altAmount ||
+              Number(tokenAmount) <= 0
+            }
             className="w-full bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 font-semibold border border-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Processing..." :
+            {isLoading ? (
+              "Processing..."
+            ) : (
               <div className="relative flex items-center justify-center gap-2">
                 <Droplets className="w-5 h-5" />
                 <span className="text-md">Increase Liquidity</span>
               </div>
-            }
+            )}
           </Button>
         </div>
       </DialogContent>

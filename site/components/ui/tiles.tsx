@@ -170,7 +170,7 @@ const createTiles = (tokens: any[]) =>
     bg: (
       <div
         className={`pointer-events-none absolute left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 overflow-visible rounded-full bg-gradient-to-r ${getTokenGradient(
-          token
+          token,
         )} opacity-70 blur-[20px] filter`}
       ></div>
     ),
@@ -191,19 +191,29 @@ const priorityTokens = [
   "1INCH",
 ];
 
-const remainingTokens = shuffleArray(allTokens.filter(
-  (token) => !priorityTokens.includes(token)
-));
+const remainingTokens = shuffleArray(
+  allTokens.filter((token) => !priorityTokens.includes(token)),
+);
 
 // Calculate the number of tokens per tile set
 const totalTokens = allTokens.length;
 const tokensPerSet = Math.floor(totalTokens / 5);
 
 // Distribute tokens evenly across tile sets
-const tiles1 = createTiles([...priorityTokens.slice(0, 7), ...remainingTokens.slice(0, tokensPerSet - 7)]);
-const tiles2 = createTiles([...priorityTokens.slice(7), ...remainingTokens.slice(tokensPerSet - 7, tokensPerSet * 2 - 12)]);
-const tiles3 = createTiles(remainingTokens.slice(tokensPerSet * 2 - 12, tokensPerSet * 3 - 12));
-const tiles4 = createTiles(remainingTokens.slice(tokensPerSet * 3 - 12, tokensPerSet * 4 - 12));
+const tiles1 = createTiles([
+  ...priorityTokens.slice(0, 7),
+  ...remainingTokens.slice(0, tokensPerSet - 7),
+]);
+const tiles2 = createTiles([
+  ...priorityTokens.slice(7),
+  ...remainingTokens.slice(tokensPerSet - 7, tokensPerSet * 2 - 12),
+]);
+const tiles3 = createTiles(
+  remainingTokens.slice(tokensPerSet * 2 - 12, tokensPerSet * 3 - 12),
+);
+const tiles4 = createTiles(
+  remainingTokens.slice(tokensPerSet * 3 - 12, tokensPerSet * 4 - 12),
+);
 const tiles5 = createTiles(remainingTokens.slice(tokensPerSet * 4 - 12));
 
 const Card = (card: { icon: JSX.Element; bg: JSX.Element }) => {
@@ -232,7 +242,7 @@ const Card = (card: { icon: JSX.Element; bg: JSX.Element }) => {
         // light styles
         "bg-white",
         // dark styles
-        "transform-gpu dark:bg-transparent dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]"
+        "transform-gpu dark:bg-transparent dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]",
       )}
     >
       {card.icon}

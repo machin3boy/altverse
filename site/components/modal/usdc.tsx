@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import NumberTicker from "@/components/magicui/number-ticker";
-import coreContractABI from "../../public/ABIs/Altverse.json";
 import {
   Select,
   SelectContent,
@@ -10,14 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStorage } from "../storage";
+import { useStorage } from "@/components/storage";
 import { toast } from "sonner";
 import { AbiItem } from "web3-utils";
 import { ArrowRightLeft, HandCoins } from "lucide-react";
-import chains from "@/app/constants";
 
 export default function USDC() {
-  const { web3, currentChain, getPoolBalances, swapALTForUSDC, swapUSDCForALT, fetchTokenBalances } = useStorage();
+  const {
+    web3,
+    currentChain,
+    getPoolBalances,
+    swapALTForUSDC,
+    swapUSDCForALT,
+    fetchTokenBalances,
+    chains,
+    ALTVERSE_ADDRESS,
+  } = useStorage();
   const [altcoinFromToken, setAltcoinFromToken] = useState("ALT");
   const [amount, setAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("0");
@@ -34,7 +41,7 @@ export default function USDC() {
     alt: "0",
     altRaw: "0",
     usdc: "0",
-    usdcRaw: "0"
+    usdcRaw: "0",
   });
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
@@ -69,8 +76,6 @@ export default function USDC() {
 
     setIsCalculating(true);
     try {
-      // For now, using 1:1 conversion rate
-      // You can implement your actual calculation logic here
       const calculated = inputAmount;
       setReceivedAmount(calculated);
     } catch (error) {
@@ -82,7 +87,7 @@ export default function USDC() {
   };
 
   const getUSDCAddress = useCallback((chainId: number) => {
-    return chains.find(chain => chain.decimalId === chainId)?.usdcAddress;
+    return chains.find((chain) => chain.decimalId === chainId)?.usdcAddress;
   }, []);
 
   useEffect(() => {
@@ -95,24 +100,26 @@ export default function USDC() {
         if (accounts[0]) {
           const balances = await fetchTokenBalances(accounts[0]);
           if (balances) {
-            const altBalance = balances.find(b =>
-              b.address.toLowerCase() === "0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B".toLowerCase()
+            const altBalance = balances.find(
+              (b) => b.address.toLowerCase() === ALTVERSE_ADDRESS.toLowerCase(),
             );
 
             const usdcAddress = getUSDCAddress(currentChain);
             if (!usdcAddress) {
-              throw new Error("Could not determine USDC address for current chain");
+              throw new Error(
+                "Could not determine USDC address for current chain",
+              );
             }
 
-            const usdcBalance = balances.find(b =>
-              b.address.toLowerCase() === usdcAddress.toLowerCase()
+            const usdcBalance = balances.find(
+              (b) => b.address.toLowerCase() === usdcAddress.toLowerCase(),
             );
 
             setTokenBalances({
               alt: altBalance?.balance || "0",
               altRaw: altBalance?.rawBalance.toString() || "0",
               usdc: usdcBalance?.balance || "0",
-              usdcRaw: usdcBalance?.rawBalance.toString() || "0"
+              usdcRaw: usdcBalance?.rawBalance.toString() || "0",
             });
           }
         }
@@ -129,7 +136,10 @@ export default function USDC() {
   const handleMaxClick = useCallback(() => {
     if (!web3) return;
 
-    const userBalance = altcoinFromToken === "ALT" ? Number(tokenBalances.alt) : Number(tokenBalances.usdc);
+    const userBalance =
+      altcoinFromToken === "ALT"
+        ? Number(tokenBalances.alt)
+        : Number(tokenBalances.usdc);
     const poolLimit = altcoinFromToken === "ALT" ? usdcPool : altPool;
 
     // Find the minimum of user balance and pool balances
@@ -155,12 +165,14 @@ export default function USDC() {
           setUsdcPool(Number(balances.usdcBalance));
         }
       } catch (error) {
-        console.error('Failed to fetch pool balances:', error);
+        console.error("Failed to fetch pool balances:", error);
       }
     };
 
     fetchBalances();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [currentChain, getPoolBalances]);
 
   const handleSwap = async () => {
@@ -213,7 +225,9 @@ export default function USDC() {
           <div className="bg-neutral-800/60 p-4 rounded-lg space-y-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className={`text-md font-mono font-semibold ${altcoinFromToken === "USDC" ? "text-sky-500" : "text-amber-500"}`}>
+                <span
+                  className={`text-md font-mono font-semibold ${altcoinFromToken === "USDC" ? "text-sky-500" : "text-amber-500"}`}
+                >
                   You Pay
                 </span>
                 <div className="flex items-center gap-2">
@@ -232,25 +246,33 @@ export default function USDC() {
                     disabled={true}
                   >
                     <span className="font-mono inline pt-[2.75px]">
-                      Balance: {
-                        Number(altcoinFromToken === "USDC" ? tokenBalances.usdc : tokenBalances.alt) > 0 ? (
-                          <NumberTicker
-                            value={Number(altcoinFromToken === "USDC" ? tokenBalances.usdc : tokenBalances.alt)}
-                            decimalPlaces={3}
-                          />
-                        ) : (
-                          <span>0.000</span>
-                        )
-                      }
+                      Balance:{" "}
+                      {Number(
+                        altcoinFromToken === "USDC"
+                          ? tokenBalances.usdc
+                          : tokenBalances.alt,
+                      ) > 0 ? (
+                        <NumberTicker
+                          value={Number(
+                            altcoinFromToken === "USDC"
+                              ? tokenBalances.usdc
+                              : tokenBalances.alt,
+                          )}
+                          decimalPlaces={3}
+                        />
+                      ) : (
+                        <span>0.000</span>
+                      )}
                     </span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`text-xs ${altcoinFromToken === "USDC"
-                      ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
-                      : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
-                      } font-semibold`}
+                    className={`text-xs ${
+                      altcoinFromToken === "USDC"
+                        ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
+                        : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
+                    } font-semibold`}
                     onClick={handleMaxClick}
                     disabled={isLoadingBalances}
                   >
@@ -276,15 +298,22 @@ export default function USDC() {
                   onValueChange={setAltcoinFromToken}
                 >
                   <SelectTrigger
-                    className={`w-[160px] font-semibold data-[state=open]:border-${altcoinFromToken === "USDC" ? "sky" : "amber"
-                      }-500 focus:ring-0 focus:ring-offset-0 bg-${altcoinFromToken === "USDC" ? "sky" : "amber"
-                      }-500/10 border-${altcoinFromToken === "USDC" ? "sky" : "amber"
-                      }-500/10 py-4 transition-colors duration-200`}
+                    className={`w-[160px] font-semibold data-[state=open]:border-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500 focus:ring-0 focus:ring-offset-0 bg-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500/10 border-${
+                      altcoinFromToken === "USDC" ? "sky" : "amber"
+                    }-500/10 py-4 transition-colors duration-200`}
                   >
                     <SelectValue>
                       <div className="flex items-center">
                         <img
-                          src={altcoinFromToken === "USDC" ? "/images/tokens/branded/USDC.svg" : "/images/tokens/branded/ALT.svg"}
+                          src={
+                            altcoinFromToken === "USDC"
+                              ? "/images/tokens/branded/USDC.svg"
+                              : "/images/tokens/branded/ALT.svg"
+                          }
                           alt={altcoinFromToken}
                           className="w-6 h-6 mr-2"
                         />
@@ -294,7 +323,9 @@ export default function USDC() {
                       </div>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className={`bg-black text-white border-${altcoinFromToken === "USDC" ? "sky" : "amber"}-500/20`}>
+                  <SelectContent
+                    className={`bg-black text-white border-${altcoinFromToken === "USDC" ? "sky" : "amber"}-500/20`}
+                  >
                     <SelectItem
                       value="USDC"
                       className="font-semibold data-[highlighted]:bg-sky-500/40 data-[highlighted]:text-white"
@@ -326,30 +357,46 @@ export default function USDC() {
               </div>
             </div>
             <div className="space-y-4 pt-4">
-              <span className={`text-md font-mono font-semibold ${altcoinFromToken === "USDC" ? "text-amber-500" : "text-sky-500"}`}>
+              <span
+                className={`text-md font-mono font-semibold ${altcoinFromToken === "USDC" ? "text-amber-500" : "text-sky-500"}`}
+              >
                 You Receive
               </span>
               <div className="flex items-center space-x-2">
                 <div className="w-full relative">
                   {!Number(receivedAmount) && (
-                    <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">0</span>
+                    <span className="absolute inset-0 pl-2 text-2xl font-mono text-gray-500">
+                      0
+                    </span>
                   )}
                   <NumberTicker
-                    value={receivedAmount && Number(receivedAmount) ? Number(receivedAmount) : 0}
+                    value={
+                      receivedAmount && Number(receivedAmount)
+                        ? Number(receivedAmount)
+                        : 0
+                    }
                     decimalPlaces={(() => {
                       const num = Number(receivedAmount);
                       if (num === 0 || num >= 1) return 3;
-                      const decimalStr = num.toFixed(6).split('.')[1];
-                      const firstNonZeroIndex = decimalStr.split('').findIndex(digit => digit !== '0');
+                      const decimalStr = num.toFixed(6).split(".")[1];
+                      const firstNonZeroIndex = decimalStr
+                        .split("")
+                        .findIndex((digit) => digit !== "0");
                       return Math.min(Math.max(firstNonZeroIndex + 2, 3), 6);
                     })()}
                     className={`text-2xl pl-2 pb-0 font-mono ${receivedAmount === "0" ? "text-gray-500" : "text-white"}`}
                   />
                 </div>
-                <div className={`h-9 font-mono font-bold text-sm w-[100px] bg-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10 rounded-md flex items-center px-3 border border-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10`}>
+                <div
+                  className={`h-9 font-mono font-bold text-sm w-[100px] bg-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10 rounded-md flex items-center px-3 border border-${altcoinFromToken === "USDC" ? "amber" : "sky"}-500/10`}
+                >
                   <div className="flex items-center">
                     <img
-                      src={altcoinFromToken === "USDC" ? "/images/tokens/branded/ALT.svg" : "/images/tokens/branded/USDC.svg"}
+                      src={
+                        altcoinFromToken === "USDC"
+                          ? "/images/tokens/branded/ALT.svg"
+                          : "/images/tokens/branded/USDC.svg"
+                      }
                       alt={altcoinFromToken === "USDC" ? "ALT" : "USDC"}
                       className="w-6 h-6 mr-2"
                     />
@@ -366,20 +413,27 @@ export default function USDC() {
       <div className="mt-auto mb-4">
         <Button
           onClick={handleSwap}
-          disabled={!amount ||
+          disabled={
+            !amount ||
             amount === "0" ||
             isCalculating ||
             isSwapping ||
-            Math.abs(Number(receivedAmount)) < 1e-8}
-          className={`w-full ${altcoinFromToken === "USDC"
-            ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
-            : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
-            } font-semibold py-2.5 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500/10 disabled:hover:text-amber-500`}
+            Math.abs(Number(receivedAmount)) < 1e-8
+          }
+          className={`w-full ${
+            altcoinFromToken === "USDC"
+              ? "bg-sky-500/10 hover:bg-sky-500/30 text-sky-500 hover:text-sky-400 border border-sky-500/10"
+              : "bg-amber-500/10 hover:bg-amber-500/30 text-amber-500 hover:text-amber-400 border border-amber-500/10"
+          } font-semibold py-2.5 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500/10 disabled:hover:text-amber-500`}
         >
           <div className="relative flex items-center justify-center gap-2">
             <HandCoins className="w-5 h-5" />
             <span className="text-md">
-              {isSwapping ? "Swapping..." : (isCalculating ? "Loading..." : "Swap")}
+              {isSwapping
+                ? "Swapping..."
+                : isCalculating
+                  ? "Loading..."
+                  : "Swap"}
             </span>
           </div>
         </Button>
