@@ -8,7 +8,8 @@ Altverse is a protocol that enables trustless cross-chain trading without tradit
 - 🌐 [Website](https://altverse.link)
 - 📄 [Technical Whitepaper](https://altverse.link/whitepaper.pdf)
 
-## Local Development
+## Run Site Locally
+The frontend application is in the [`site`](./site) directory, built with Next.js, React, TypeScript, TailwindCSS, and shadcn/ui components.
 
 ### Docker Setup
 ```bash
@@ -27,18 +28,14 @@ Once running, visit [https://localhost:3000](https://localhost:3000) to view the
 ## Smart Contracts
 
 ### Contract Deployments
-`Altverse.sol` is deployed on multiple testnets:
+[`Altverse.sol`](./contracts/Altverse.sol) is deployed on multiple testnets:
 
-| Network | Address | Explorer |
-|---------|---------|----------|
-| Celo Alfajores | `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B` | [View on Celoscan](https://alfajores.celoscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) |
-| Optimism Sepolia | `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B` | [View on Etherscan](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) |
+| Network | Address | Explorer | Contract Verification |
+|---------|---------|----------|----------|
+| Celo Alfajores | `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B` | [View on Celoscan](https://alfajores.celoscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) | [Celoscan Verification](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B#code) |
+| Optimism Sepolia | `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B` | [View on Etherscan](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) | [Etherscan Verification](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) |
 | Avalanche Fuji | `0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B) |
 
-### Verified Contracts
-- [Verified Contract on Celoscan](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B#code)
-- [Verified Contract on Etherscan](https://sepolia-optimism.etherscan.io/address/0xA17Fe331Cb33CdB650dF2651A1b9603632120b7B)
-
 ### Source Code
-Full smart contract implementations and documentation can be found in the [contracts directory](./contracts).
+Full smart contract implementations and documentation can be found in the [`contracts`](./contracts) directory.
 
